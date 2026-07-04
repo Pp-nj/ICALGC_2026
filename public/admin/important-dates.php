@@ -41,11 +41,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             $db = Database::getInstance();
             if ($editId) {
-                $db->prepare("UPDATE important_dates SET name_th=:nt, name_en=:ne, date_value=:dv, sort_order=:so WHERE id=:id")
+                $db->prepare("UPDATE important_dates SET title_th=:nt, title_en=:ne, event_date=:dv, sort_order=:so WHERE id=:id")
                    ->execute([':nt'=>$nameTh,':ne'=>$nameEn,':dv'=>$dateVal,':so'=>$sortOrder,':id'=>$editId]);
                 flashSet('success', $_lang==='th' ? 'อัปเดตแล้ว' : 'Updated.');
             } else {
-                $db->prepare("INSERT INTO important_dates (name_th, name_en, date_value, sort_order) VALUES (:nt, :ne, :dv, :so)")
+                $db->prepare("INSERT INTO important_dates (title_th, title_en, event_date, sort_order) VALUES (:nt, :ne, :dv, :so)")
                    ->execute([':nt'=>$nameTh,':ne'=>$nameEn,':dv'=>$dateVal,':so'=>$sortOrder]);
                 flashSet('success', $_lang==='th' ? 'เพิ่มวันสำคัญแล้ว' : 'Date added.');
             }
@@ -62,7 +62,7 @@ $editId   = intGet('edit');
 
 try {
     $db    = Database::getInstance();
-    $dates = $db->query("SELECT * FROM important_dates ORDER BY sort_order, date_value")->fetchAll();
+    $dates = $db->query("SELECT * FROM important_dates ORDER BY sort_order, event_date")->fetchAll();
     if ($editId) {
         $eStmt = $db->prepare("SELECT * FROM important_dates WHERE id = :id");
         $eStmt->execute([':id' => $editId]);
@@ -71,6 +71,7 @@ try {
 } catch (\Throwable $e) {
     error_log($e->getMessage());
     $dates = [];
+    $debugError = $e->getMessage();
 }
 
 $pageTitle  = $_lang==='th' ? 'จัดการวันสำคัญ' : 'Important Dates';
@@ -99,6 +100,13 @@ $activeMenu = 'important-dates';
 
     <?= flashHtml() ?>
 
+    <?php if (!empty($debugError)): ?>
+      <div class="alert alert-danger"><strong>DEBUG:</strong> <?= htmlspecialchars($debugError) ?></div>
+    <?php endif; ?>
+    <?php if (isset($dates)): ?>
+      <div class="alert alert-info"><strong>DEBUG:</strong> found <?= count($dates) ?> rows</div>
+    <?php endif; ?>
+
     <?php if (!empty($errors)): ?>
       <div class="alert alert-danger mb-4">
         <ul class="mb-0 ps-3"><?php foreach ($errors as $err): ?><li><?= e($err) ?></li><?php endforeach; ?></ul>
@@ -119,15 +127,15 @@ $activeMenu = 'important-dates';
             <div class="d-flex flex-column gap-3">
               <div>
                 <label class="form-label fw-bold" style="font-size:.85rem;"><?= $_lang==='th'?'ชื่อ (ไทย)':'Name (Thai)' ?> <span class="text-danger">*</span></label>
-                <input type="text" name="name_th" class="form-control" value="<?= e($editItem['name_th'] ?? post('name_th')) ?>" required>
+                <input type="text" name="name_th" class="form-control" value="<?= e($editItem['title_th'] ?? post('name_th')) ?>" required>
               </div>
               <div>
                 <label class="form-label fw-bold" style="font-size:.85rem;"><?= $_lang==='th'?'ชื่อ (อังกฤษ)':'Name (English)' ?> <span class="text-danger">*</span></label>
-                <input type="text" name="name_en" class="form-control" value="<?= e($editItem['name_en'] ?? post('name_en')) ?>" required>
+                <input type="text" name="name_en" class="form-control" value="<?= e($editItem['title_en'] ?? post('name_en')) ?>" required>
               </div>
               <div>
                 <label class="form-label fw-bold" style="font-size:.85rem;"><?= $_lang==='th'?'วันที่':'Date' ?> <span class="text-danger">*</span></label>
-                <input type="date" name="date_value" class="form-control" value="<?= e($editItem['date_value'] ?? post('date_value')) ?>" required>
+                <input type="date" name="date_value" class="form-control" value="<?= e($editItem['event_date'] ?? post('date_value')) ?>" required>
               </div>
               <div>
                 <label class="form-label fw-bold" style="font-size:.85rem;"><?= $_lang==='th'?'ลำดับ':'Sort Order' ?></label>
@@ -168,16 +176,16 @@ $activeMenu = 'important-dates';
                 </thead>
                 <tbody>
                   <?php foreach ($dates as $d):
-                    $isPast   = strtotime($d['date_value']) < strtotime('today');
-                    $isToday  = date('Y-m-d', strtotime($d['date_value'])) === date('Y-m-d');
+                    $isPast   = strtotime($d['event_date']) < strtotime('today');
+                    $isToday  = date('Y-m-d', strtotime($d['event_date'])) === date('Y-m-d');
                   ?>
                     <tr>
                       <td style="text-align:center;"><?= (int)$d['sort_order'] ?></td>
-                      <td style="font-weight:600;font-size:.88rem;"><?= e($d['name_th']) ?></td>
-                      <td style="font-size:.88rem;"><?= e($d['name_en']) ?></td>
+                      <td style="font-weight:600;font-size:.88rem;"><?= e($d['title_th']) ?></td>
+                      <td style="font-size:.88rem;"><?= e($d['title_en']) ?></td>
                       <td style="font-size:.85rem;white-space:nowrap;">
                         <span style="color:<?= $isToday?'var(--gold)':($isPast?'var(--gray-400)':'var(--blue-dark)') ?>;font-weight:<?= $isToday?'700':'400' ?>;">
-                          <?= humanDate($d['date_value'], $_lang) ?>
+                          <?= humanDate($d['event_date'], $_lang) ?>
                         </span>
                         <?php if ($isToday): ?><span class="badge ms-1" style="background:var(--gold);color:var(--blue-dark);font-size:.65rem;">TODAY</span><?php endif; ?>
                         <?php if ($isPast && !$isToday): ?><span class="badge ms-1" style="background:var(--gray-300);color:var(--gray-600);font-size:.65rem;"><?= $_lang==='th'?'ผ่านแล้ว':'Past' ?></span><?php endif; ?>

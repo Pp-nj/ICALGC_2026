@@ -19,23 +19,26 @@ $perPage   = 9;
 $where  = ["p.status_code = 'published'"];
 $params = [];
 
-if ($search) {
-    $where[]   = "(p.title_en ILIKE :q OR p.title_th ILIKE :q OR p.abstract_en ILIKE :q OR p.keywords ILIKE :q OR u.first_name ILIKE :q OR u.last_name ILIKE :q)";
-    $params[':q'] = '%' . $search . '%';
-}
-if ($themeId) {
-    $where[]         = "p.theme_id = :theme_id";
-    $params[':theme_id'] = $themeId;
-}
-if ($yearFilter) {
-    $where[]          = "EXTRACT(YEAR FROM pub.published_at) = :yr";
-    $params[':yr']    = $yearFilter;
-}
-
-$whereStr = implode(' AND ', $where);
-
 try {
     $db = Database::getInstance();
+    $isMysql = $db->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql';
+
+    if ($search) {
+        $where[] = $isMysql
+            ? "(p.title_en LIKE :q OR p.title_th LIKE :q OR p.abstract_en LIKE :q OR p.keywords LIKE :q OR u.first_name LIKE :q OR u.last_name LIKE :q)"
+            : "(p.title_en ILIKE :q OR p.title_th ILIKE :q OR p.abstract_en ILIKE :q OR p.keywords ILIKE :q OR u.first_name ILIKE :q OR u.last_name ILIKE :q)";
+        $params[':q'] = '%' . $search . '%';
+    }
+    if ($themeId) {
+        $where[]         = "p.theme_id = :theme_id";
+        $params[':theme_id'] = $themeId;
+    }
+    if ($yearFilter) {
+        $where[]          = "EXTRACT(YEAR FROM pub.published_at) = :yr";
+        $params[':yr']    = $yearFilter;
+    }
+
+    $whereStr = implode(' AND ', $where);
 
     // Total count
     $cntSql  = "SELECT COUNT(*) FROM papers p
@@ -98,8 +101,8 @@ require_once __DIR__ . '/../app/helpers/header.php';
 <section class="pub-search-section">
   <div class="container">
     <div class="section-header" style="margin-bottom:32px;">
-      <span class="section-label" style="background:rgba(255,255,255,.15);color:var(--gold-light);">Repository</span>
-      <h1 class="section-title"><?= t('pub.title') ?></h1>
+      <span class="section-label" style="background:rgba(255,255,255,.15);color:var(--gold-light);" ><?= t('pub.label') ?></span>
+      <h1 class="section-title" style="color:var(--white);"> <?= t('pub.title') ?></h1>
       <div class="section-divider"></div>
     </div>
 

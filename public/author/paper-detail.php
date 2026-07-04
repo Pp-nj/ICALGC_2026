@@ -44,12 +44,12 @@ try {
 
     // Review assignments + reviews
     $revStmt = $db->prepare("
-        SELECT ra.id AS assignment_id, ra.status AS assign_status,
+        SELECT ra.id AS assignment_id, ra.assignment_status AS assign_status,
                ra.assigned_at, ra.due_date,
-               r.id AS review_id, r.recommendation, r.overall_score,
-               r.criterion_1_score, r.criterion_2_score, r.criterion_3_score,
-               r.criterion_4_score, r.criterion_5_score, r.criterion_6_score,
-               r.comments_to_author, r.submitted_at AS reviewed_at
+               r.id AS review_id, r.recommendation, r.score_overall,
+               r.score_originality, r.score_relevance, r.score_methodology,
+               r.score_writing, r.score_contribution,
+               r.comment_for_author, r.reviewed_at
         FROM review_assignments ra
         LEFT JOIN reviews r ON r.assignment_id = ra.id
         WHERE ra.paper_id = :pid
@@ -67,7 +67,7 @@ try {
     $publication = $pubStmt->fetch();
 
     // Certificate
-    $certStmt = $db->prepare("SELECT * FROM certificates WHERE paper_id = :pid AND user_id = :uid ORDER BY issued_at DESC LIMIT 1");
+    $certStmt = $db->prepare("SELECT * FROM certificates WHERE paper_id = :pid AND user_id = :uid ORDER BY generated_at DESC LIMIT 1");
     $certStmt->execute([':pid' => $paperId, ':uid' => $uid]);
     $certificate = $certStmt->fetch();
 
@@ -255,9 +255,9 @@ $recommendationColor = function($rec) {
                 <?php foreach ($coAuthors as $i => $ca): ?>
                   <tr>
                     <td><?= $i+1 ?></td>
-                    <td style="font-weight:600;"><?= e($ca['name']) ?></td>
+                    <td style="font-weight:600;"><?= e($ca['full_name']) ?></td>
                     <td style="font-size:.85rem;"><?= e($ca['email']) ?></td>
-                    <td style="font-size:.85rem;"><?= e($ca['affiliation']) ?></td>
+                    <td style="font-size:.85rem;"><?= e($ca['institution']) ?></td>
                     <td style="font-size:.85rem;"><?= e($ca['country']) ?></td>
                   </tr>
                 <?php endforeach; ?>
@@ -289,7 +289,7 @@ $recommendationColor = function($rec) {
                       <div style="font-size:.76rem;color:var(--gray-500);">
                         <?= strtoupper($f['file_type']) ?> &bull; <?= formatFileSize($f['file_size']) ?>
                         &bull; <?= humanDate($f['uploaded_at'], $_lang) ?>
-                        <?php if ($f['is_revision']): ?>
+                        <?php if ($f['file_category'] === 'revision'): ?>
                           <span class="badge ms-2" style="background:#fd7e14;color:#fff;font-size:.7rem;"><?= $_lang==='th' ? 'แก้ไข' : 'Revision' ?></span>
                         <?php endif; ?>
                       </div>
@@ -322,9 +322,9 @@ $recommendationColor = function($rec) {
                   <div style="font-size:.8rem;color:var(--gray-500);"><?= humanDate($rev['reviewed_at'], $_lang) ?></div>
                 </div>
                 <div class="d-flex align-items-center gap-2">
-                  <?php if ($rev['overall_score']): ?>
+                  <?php if ($rev['score_overall']): ?>
                     <div class="text-center" style="background:var(--blue-dark);color:#fff;border-radius:50%;width:54px;height:54px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:800;font-size:1.1rem;">
-                      <?= number_format($rev['overall_score'], 1) ?>
+                      <?= number_format($rev['score_overall'], 1) ?>
                       <span style="font-size:.6rem;font-weight:400;">/10</span>
                     </div>
                   <?php endif; ?>
@@ -336,25 +336,23 @@ $recommendationColor = function($rec) {
                 </div>
               </div>
 
-              <?php if ($rev['criterion_1_score']): ?>
+              <?php if ($rev['score_originality']): ?>
                 <div class="mb-3">
                   <div style="font-size:.82rem;font-weight:700;color:var(--blue-dark);margin-bottom:8px;"><?= $_lang==='th' ? 'คะแนนแต่ละเกณฑ์' : 'Criterion Scores' ?></div>
                   <div class="row g-2">
                     <?php
                     $criteria = $_lang==='th' ? [
-                        'criterion_1_score' => 'ความเกี่ยวข้องกับหัวข้อ',
-                        'criterion_2_score' => 'ความชัดเจนของวัตถุประสงค์',
-                        'criterion_3_score' => 'ความเหมาะสมของวิธีวิจัย',
-                        'criterion_4_score' => 'คุณภาพของบทคัดย่อ',
-                        'criterion_5_score' => 'ความเป็นต้นฉบับ',
-                        'criterion_6_score' => 'การเขียนและภาษา',
+                        'score_originality'  => 'ความเป็นต้นฉบับ',
+                        'score_relevance'    => 'ความเกี่ยวข้องกับหัวข้อ',
+                        'score_methodology'  => 'ความเหมาะสมของวิธีวิจัย',
+                        'score_writing'      => 'การเขียนและภาษา',
+                        'score_contribution' => 'คุณค่าทางวิชาการ',
                     ] : [
-                        'criterion_1_score' => 'Relevance to Theme',
-                        'criterion_2_score' => 'Clarity of Objectives',
-                        'criterion_3_score' => 'Research Methodology',
-                        'criterion_4_score' => 'Abstract Quality',
-                        'criterion_5_score' => 'Originality',
-                        'criterion_6_score' => 'Writing & Language',
+                        'score_originality'  => 'Originality',
+                        'score_relevance'    => 'Relevance to Theme',
+                        'score_methodology'  => 'Research Methodology',
+                        'score_writing'      => 'Writing & Language',
+                        'score_contribution' => 'Academic Contribution',
                     ];
                     foreach ($criteria as $field => $label):
                         $score = (int)($rev[$field] ?? 0);
@@ -374,13 +372,13 @@ $recommendationColor = function($rec) {
                 </div>
               <?php endif; ?>
 
-              <?php if ($rev['comments_to_author']): ?>
+              <?php if ($rev['comment_for_author']): ?>
                 <div>
                   <div style="font-size:.82rem;font-weight:700;color:var(--blue-dark);margin-bottom:6px;">
                     <i class="fas fa-comment-alt me-1"></i><?= $_lang==='th' ? 'ความเห็นถึงผู้แต่ง' : 'Comments to Author' ?>
                   </div>
                   <div style="font-size:.88rem;line-height:1.7;padding:12px;background:#fff;border-radius:var(--radius);border-left:3px solid var(--blue-mid);">
-                    <?= nl2br(e($rev['comments_to_author'])) ?>
+                    <?= nl2br(e($rev['comment_for_author'])) ?>
                   </div>
                 </div>
               <?php endif; ?>

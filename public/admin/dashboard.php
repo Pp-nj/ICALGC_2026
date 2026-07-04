@@ -3,6 +3,7 @@ require_once __DIR__ . '/../../app/helpers/init.php';
 
 use App\Core\Auth;
 use App\Core\Database;
+use App\Core\Notification;
 
 Auth::require('admin');
 $user   = Auth::user();
@@ -11,17 +12,18 @@ $appUrl = APP_URL;
 
 try {
     $db = Database::getInstance();
+    $isMysql = $db->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql';
 
     // Paper stats
     $paperStats = $db->query("
         SELECT
             COUNT(*) AS total,
-            COUNT(*) FILTER (WHERE status_code = 'submitted') AS new_submissions,
-            COUNT(*) FILTER (WHERE status_code IN ('screening','under_review')) AS under_review,
-            COUNT(*) FILTER (WHERE status_code = 'accepted') AS accepted,
-            COUNT(*) FILTER (WHERE status_code = 'published') AS published,
-            COUNT(*) FILTER (WHERE status_code = 'revision_required') AS revision_required,
-            COUNT(*) FILTER (WHERE status_code = 'rejected') AS rejected
+            SUM(CASE WHEN status_code = 'submitted' THEN 1 ELSE 0 END) AS new_submissions,
+            SUM(CASE WHEN status_code = 'under_review' THEN 1 ELSE 0 END) AS under_review,
+            SUM(CASE WHEN status_code = 'accepted' THEN 1 ELSE 0 END) AS accepted,
+            SUM(CASE WHEN status_code = 'published' THEN 1 ELSE 0 END) AS published,
+            SUM(CASE WHEN status_code = 'revision_required' THEN 1 ELSE 0 END) AS revision_required,
+            SUM(CASE WHEN status_code = 'rejected' THEN 1 ELSE 0 END) AS rejected
         FROM papers
     ")->fetch();
 
@@ -29,21 +31,25 @@ try {
     $userStats = $db->query("
         SELECT
             COUNT(*) AS total,
-            COUNT(*) FILTER (WHERE role = 'author') AS authors,
-            COUNT(*) FILTER (WHERE role = 'reviewer') AS reviewers
+            SUM(CASE WHEN role = 'author' THEN 1 ELSE 0 END) AS authors,
+            SUM(CASE WHEN role = 'reviewer' THEN 1 ELSE 0 END) AS reviewers,
+            SUM(CASE WHEN role = 'admin' THEN 1 ELSE 0 END) AS admins
         FROM users
     ")->fetch();
 
     // Pending review assignments
-    $pendingReviews = (int)$db->query("SELECT COUNT(*) FROM review_assignments WHERE status IN ('pending','accepted')")->fetchColumn();
+    $pendingReviews = (int)$db->query("SELECT COUNT(*) FROM review_assignments WHERE assignment_status IN ('pending','in_progress')")->fetchColumn();
 
     // Recent papers (10)
+    $submitterNameExpr = $isMysql
+        ? "CONCAT(u.first_name, ' ', u.last_name)"
+        : "(u.first_name || ' ' || u.last_name)";
     $recentPapers = $db->query("
-        SELECT p.*, u.name AS submitter_name,
+        SELECT p.*, {$submitterNameExpr} AS submitter_name,
                ps.name_th, ps.name_en AS ps_name_en, ps.color_hex
         FROM papers p
-        JOIN users u ON u.id = p.submitter_id
-        JOIN paper_statuses ps ON ps.code = p.status_code
+        LEFT JOIN users u ON u.id = p.submitter_id
+        LEFT JOIN paper_statuses ps ON ps.code = p.status_code
         ORDER BY p.submitted_at DESC
         LIMIT 10
     ")->fetchAll();
@@ -66,10 +72,14 @@ try {
         ORDER BY ps.progress_step
     ")->fetchAll();
 
+    $unreadCount = Notification::countUnread((int)$user['id']);
+    $unreadNotifs = $unreadCount > 0 ? Notification::getUnread((int)$user['id']) : [];
+
 } catch (\Throwable $e) {
     error_log($e->getMessage());
     $paperStats = []; $userStats = []; $pendingReviews = 0;
     $recentPapers = []; $byTheme = []; $byStatus = [];
+    $unreadCount = 0; $unreadNotifs = [];
 }
 
 $pageTitle  = t('author.dashboard');
@@ -99,7 +109,16 @@ $activeMenu = 'dashboard';
         </h1>
         <p class="dash-breadcrumb"><?= date('j F Y') ?></p>
       </div>
-      <div class="d-flex gap-2">
+      <div class="d-flex gap-2 align-items-center">
+        <!-- Notification Bell -->
+        <a href="<?= $appUrl ?>/admin/notifications.php" class="btn btn-outline-secondary position-relative" style="border-radius:50%;width:42px;height:42px;display:flex;align-items:center;justify-content:center;padding:0;" title="<?= $_lang==='th' ? 'การแจ้งเตือน' : 'Notifications' ?>">
+          <i class="fas fa-bell<?= $unreadCount > 0 ? ' text-warning' : '' ?>"></i>
+          <?php if ($unreadCount > 0): ?>
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:.65rem;">
+              <?= $unreadCount > 99 ? '99+' : $unreadCount ?>
+            </span>
+          <?php endif; ?>
+        </a>
         <a href="<?= $appUrl ?>/admin/papers.php" class="btn-primary-custom">
           <i class="fas fa-file-alt me-2"></i><?= $_lang==='th' ? 'จัดการบทความ' : 'Manage Papers' ?>
         </a>
@@ -107,6 +126,32 @@ $activeMenu = 'dashboard';
     </div>
 
     <?= flashHtml() ?>
+
+    <!-- Alert: Unread Notifications -->
+    <?php if ($unreadCount > 0): ?>
+      <div class="alert d-flex align-items-start gap-3 mb-3" style="background:#fff8e1;border-left:4px solid #f59e0b;border-radius:var(--radius);color:#78350f;">
+        <i class="fas fa-bell fa-lg mt-1" style="color:#f59e0b;"></i>
+        <div class="flex-grow-1">
+          <strong><?= $_lang==='th' ? "คุณมีการแจ้งเตือนใหม่ {$unreadCount} รายการ" : "You have {$unreadCount} unread notification" . ($unreadCount > 1 ? 's' : '') ?></strong>
+          <?php if (!empty($unreadNotifs)): ?>
+            <ul class="mb-1 mt-1" style="font-size:.85rem;padding-left:1.2rem;">
+              <?php foreach (array_slice($unreadNotifs, 0, 3) as $n): ?>
+                <li><?= e($_lang==='th' ? ($n['title_th'] ?? $n['title_en']) : ($n['title_en'] ?? $n['title_th'])) ?></li>
+              <?php endforeach; ?>
+              <?php if ($unreadCount > 3): ?>
+                <li style="list-style:none;margin-top:2px;">... <?= $_lang==='th' ? "และอีก " . ($unreadCount - 3) . " รายการ" : "and " . ($unreadCount - 3) . " more" ?></li>
+              <?php endif; ?>
+            </ul>
+          <?php endif; ?>
+          <a href="<?= $appUrl ?>/admin/notifications.php" class="fw-bold" style="color:inherit;font-size:.88rem;">
+            <?= $_lang==='th' ? 'ดูการแจ้งเตือนทั้งหมด' : 'View all notifications' ?> →
+          </a>
+        </div>
+        <a href="<?= $appUrl ?>/admin/notifications.php?mark_all_read=1" class="text-muted" style="font-size:.8rem;white-space:nowrap;" title="<?= $_lang==='th' ? 'ทำเครื่องหมายว่าอ่านแล้วทั้งหมด' : 'Mark all as read' ?>">
+          <i class="fas fa-check-double"></i>
+        </a>
+      </div>
+    <?php endif; ?>
 
     <!-- Alert: New Submissions -->
     <?php if ((int)($paperStats['new_submissions'] ?? 0) > 0): ?>
@@ -116,8 +161,8 @@ $activeMenu = 'dashboard';
           <strong><?= $_lang==='th' ? 'บทความใหม่รอตรวจสอบ' : 'New Submissions Pending' ?></strong><br>
           <span style="font-size:.88rem;">
             <?= $_lang==='th'
-              ? "มี {$paperStats['new_submissions']} บทความใหม่ที่รอการคัดกรอง"
-              : "There are {$paperStats['new_submissions']} new paper(s) awaiting screening." ?>
+              ? "มี {$paperStats['new_submissions']} บทความใหม่ที่รอดำเนินการ"
+              : "There are {$paperStats['new_submissions']} new paper(s) awaiting review." ?>
           </span>
           <a href="<?= $appUrl ?>/admin/papers.php?status=submitted" class="ms-2 fw-bold" style="color:inherit;">
             <?= $_lang==='th' ? 'ดูบทความ' : 'View Papers' ?> →
@@ -254,25 +299,32 @@ $activeMenu = 'dashboard';
             <i class="fas fa-users me-2" style="color:var(--gold);"></i><?= $_lang==='th' ? 'ผู้ใช้งาน' : 'Users' ?>
           </div>
           <div class="row g-2 text-center">
-            <div class="col-4">
+            <div class="col-3">
               <div style="font-size:1.4rem;font-weight:800;color:var(--blue-dark);"><?= number_format((int)($userStats['total']??0)) ?></div>
               <div style="font-size:.75rem;color:var(--gray-500);"><?= $_lang==='th'?'ทั้งหมด':'Total' ?></div>
             </div>
-            <div class="col-4">
+            <div class="col-3">
               <div style="font-size:1.4rem;font-weight:800;color:var(--blue-mid);"><?= number_format((int)($userStats['authors']??0)) ?></div>
               <div style="font-size:.75rem;color:var(--gray-500);"><?= $_lang==='th'?'ผู้แต่ง':'Authors' ?></div>
             </div>
-            <div class="col-4">
+            <div class="col-3">
               <div style="font-size:1.4rem;font-weight:800;color:var(--gold);"><?= number_format((int)($userStats['reviewers']??0)) ?></div>
               <div style="font-size:.75rem;color:var(--gray-500);"><?= $_lang==='th'?'ผู้ทรง':'Reviewers' ?></div>
             </div>
+            <div class="col-3">
+              <div style="font-size:1.4rem;font-weight:800;color:#dc3545;"><?= number_format((int)($userStats['admins']??0)) ?></div>
+              <div style="font-size:.75rem;color:var(--gray-500);"><?= $_lang==='th'?'แอดมิน':'Admins' ?></div>
+            </div>
           </div>
-          <div class="mt-3 d-flex gap-2">
+          <div class="mt-3 d-flex gap-2 flex-wrap">
             <a href="<?= $appUrl ?>/admin/users.php" class="btn-outline-custom flex-fill text-center" style="font-size:.82rem;padding:8px;">
               <i class="fas fa-users me-1"></i><?= $_lang==='th'?'ผู้ใช้':'Users' ?>
             </a>
             <a href="<?= $appUrl ?>/admin/reviewers.php" class="btn-outline-custom flex-fill text-center" style="font-size:.82rem;padding:8px;">
               <i class="fas fa-user-tie me-1"></i><?= $_lang==='th'?'ผู้ทรง':'Reviewers' ?>
+            </a>
+            <a href="<?= $appUrl ?>/admin/admins.php" class="btn-outline-custom flex-fill text-center" style="font-size:.82rem;padding:8px;">
+              <i class="fas fa-user-shield me-1"></i><?= $_lang==='th'?'แอดมิน':'Admins' ?>
             </a>
           </div>
         </div>

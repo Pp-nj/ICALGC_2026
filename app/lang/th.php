@@ -6,11 +6,11 @@ return [
     // ── Navigation ────────────────────────────────────────
     'nav.home'              => 'หน้าหลัก',
     'nav.about'             => 'เกี่ยวกับ',
-    'nav.call_abstract'     => 'เชิญชวนส่งบทคัดย่อ',
-    'nav.publication'       => 'สิ่งพิมพ์',
+    'nav.call_abstract'     => 'หลักเกณฑ์การส่งบทคัดย่อ',
+    'nav.publication'       => 'การเผยแพร่',
     'nav.live'              => 'ถ่ายทอดสด',
     'nav.photo'             => 'ภาพกิจกรรม',
-    'nav.keynote'           => 'วิทยากรหลัก',
+    'nav.keynote'           => 'ผู้บรรยายพิเศษ',
     'nav.announcements'     => 'ประกาศ',
     'nav.venue'             => 'สถานที่และติดต่อ',
     'nav.login'             => 'เข้าสู่ระบบ',
@@ -22,22 +22,22 @@ return [
 
     // ── Hero ──────────────────────────────────────────────
     'hero.title'            => 'ICALGC 2026',
-    'hero.subtitle'         => 'การประชุมวิชาการนานาชาติว่าด้วยภาษาอาเซียนในบริบทโลก 2026',
+    'hero.subtitle'         => 'การประชุมวิชาการระดับนานาชาติ ด้วยภาษาอาเซียนในบริบทโลกาภิวัคน์ 2026',
     'hero.subtitle2'        => 'การประชุมวิชาการนานาชาติว่าด้วยภาษาอาเซียนในบริบทโลก 2026',
     'hero.date'             => '25 พฤศจิกายน 2569 | 08:30 น. – 17:00 น.',
     'hero.venue'            => 'มหาวิทยาลัยศรีนครินทรวิโรฒ วิทยาเขตประสานมิตร กรุงเทพมหานคร ประเทศไทย',
     'hero.btn_register'     => 'ลงทะเบียน',
     'hero.btn_login'        => 'เข้าสู่ระบบ',
-    'hero.btn_abstract'     => 'ส่งบทคัดย่อ',
+    'hero.btn_abstract'     => 'หลักเกณฑ์การส่งบทคัดย่อ',
     'hero.countdown_days'   => 'วัน',
     'hero.countdown_hours'  => 'ชั่วโมง',
     'hero.countdown_mins'   => 'นาที',
     'hero.countdown_secs'   => 'วินาที',
-    'hero.countdown_label'  => 'จนถึงวันประชุม',
+    'hero.countdown_label'  => 'จะถึงวันประชุม',
 
     // ── Quick Access ──────────────────────────────────────
-    'quick.important_dates' => 'วันสำคัญ',
-    'quick.keynote'         => 'วิทยากรหลัก',
+    'quick.important_dates' => 'กำหนดการสำคัญ',
+    'quick.keynote'         => 'ผู้บรรยายพิเศษ',
     'quick.announcements'   => 'ประกาศ',
     'quick.venue'           => 'สถานที่และติดต่อ',
 
@@ -49,7 +49,7 @@ return [
     'about.obj3'            => 'เสริมสร้างภาพลักษณ์ระดับโลกของคณะมนุษยศาสตร์',
 
     // ── Important Dates ───────────────────────────────────
-    'dates.title'           => 'วันสำคัญ',
+    'dates.title'           => 'กำนหนดการสำคัญ',
     'dates.days_left'       => 'เหลือ {n} วัน',
     'dates.today'           => 'วันนี้',
     'dates.passed'          => 'ผ่านไปแล้ว',
@@ -60,7 +60,7 @@ return [
     'announce.view_all'     => 'ดูประกาศทั้งหมด',
 
     // ── Call for Abstract ─────────────────────────────────
-    'cfa.title'             => 'เชิญชวนส่งบทคัดย่อ',
+    'cfa.title'             => 'หลักเกณฑ์การส่งบทคัดย่อ',
     'cfa.submission_details'=> 'รายละเอียดการส่งบทความ',
     'cfa.themes'            => 'หัวข้อการประชุม',
     'cfa.template'          => 'ดาวน์โหลดแบบฟอร์ม',
@@ -71,7 +71,8 @@ return [
     'cfa.download_template' => 'ดาวน์โหลดแบบฟอร์มบทคัดย่อ',
 
     // ── Publication ───────────────────────────────────────
-    'pub.title'             => 'คลังสิ่งพิมพ์',
+    'pub.title'             => 'คลังผลงานวิชาการ',
+    'pub.label'             => 'คลังผลงาน',
     'pub.search'            => 'ค้นหา',
     'pub.search_placeholder'=> 'ค้นหาชื่อบทความ ผู้แต่ง หรือคำสำคัญ...',
     'pub.filter_theme'      => 'กรองตามหัวข้อ',
@@ -156,7 +157,6 @@ return [
     'review.minor'          => 'แก้ไขเล็กน้อย',
     'review.major'          => 'แก้ไขมาก',
     'review.reject'         => 'ปฏิเสธ',
-    'review.save_draft'     => 'บันทึกร่าง',
     'review.submit'         => 'ส่งผลการพิจารณา',
 
     // ── Admin ─────────────────────────────────────────────

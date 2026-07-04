@@ -236,15 +236,18 @@ function formatFileSize(int $bytes): string
 function statusBadge(string $code, string $lang = ''): string
 {
     if (!$lang) $lang = lang();
-    static $statuses = null;
-    if ($statuses === null) {
-        $db    = Database::getInstance();
-        $rows  = $db->query("SELECT * FROM paper_statuses")->fetchAll();
-        foreach ($rows as $r) $statuses[$r['code']] = $r;
-    }
-    $s     = $statuses[$code] ?? ['name_en' => $code, 'name_th' => $code, 'color_hex' => '#999'];
-    $label = $lang === 'th' ? $s['name_th'] : $s['name_en'];
-    $color = $s['color_hex'];
+    // Canonical 6-status definitions (override DB to ensure consistency)
+    $map = [
+        'submitted'         => ['th' => 'ส่งแล้ว',             'en' => 'Submitted',         'color' => '#0d6efd'],
+        'under_review'      => ['th' => 'อยู่ระหว่างพิจารณา',   'en' => 'Under Review',      'color' => '#6f42c1'],
+        'revision_required' => ['th' => 'ต้องการแก้ไข',         'en' => 'Revision Required', 'color' => '#fd7e14'],
+        'accepted'          => ['th' => 'ได้รับการยอมรับ',      'en' => 'Accepted',          'color' => '#198754'],
+        'rejected'          => ['th' => 'ถูกปฏิเสธ',           'en' => 'Rejected',          'color' => '#dc3545'],
+        'published'         => ['th' => 'เผยแพร่แล้ว',         'en' => 'Published',         'color' => '#0f5132'],
+    ];
+    $s     = $map[$code] ?? ['th' => $code, 'en' => $code, 'color' => '#6c757d'];
+    $label = $lang === 'th' ? $s['th'] : $s['en'];
+    $color = $s['color'];
     return "<span class='badge status-badge' style='background:{$color};'>" . e($label) . '</span>';
 }
 

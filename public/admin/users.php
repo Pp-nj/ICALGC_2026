@@ -8,20 +8,33 @@ Auth::require('admin');
 $_lang  = lang();
 $appUrl = APP_URL;
 
-// Handle suspend/activate
+// Handle suspend/activate/reset-password
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     Auth::verifyCsrf(post('csrf_token'));
     $userId = intPost('user_id');
     $action = post('action');
-    if ($userId && in_array($action, ['suspend', 'activate'])) {
+    if ($userId && in_array($action, ['suspend', 'activate', 'reset_password'])) {
         try {
             $db = Database::getInstance();
-            $val = $action === 'suspend' ? 't' : 'f';
-            $db->prepare("UPDATE users SET is_suspended = :v WHERE id = :uid AND id != :me")
-               ->execute([':v' => $val, ':uid' => $userId, ':me' => Auth::id()]);
-            flashSet('success', $action === 'suspend'
-                ? ($_lang==='th' ? 'ระงับผู้ใช้เรียบร้อย' : 'User suspended.')
-                : ($_lang==='th' ? 'เปิดใช้งานผู้ใช้เรียบร้อย' : 'User activated.'));
+            if ($action === 'reset_password') {
+                $newPwd = post('new_password');
+                if (strlen($newPwd) < 8) {
+                    flashSet('danger', $_lang==='th' ? 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร' : 'Password must be at least 8 characters.');
+                } else {
+                    $hash = password_hash($newPwd, PASSWORD_BCRYPT, ['cost' => 12]);
+                    $db->prepare("UPDATE users SET password_hash = :hash, updated_at = NOW() WHERE id = :uid")
+                       ->execute([':hash' => $hash, ':uid' => $userId]);
+                    auditLog('reset_password', 'users', "Admin reset password for user $userId");
+                    flashSet('success', $_lang==='th' ? 'รีเซ็ตรหัสผ่านเรียบร้อย' : 'Password reset successfully.');
+                }
+            } else {
+                $val = $action === 'suspend' ? 'suspended' : 'active';
+                $db->prepare("UPDATE users SET account_status = :v WHERE id = :uid AND id != :me")
+                   ->execute([':v' => $val, ':uid' => $userId, ':me' => Auth::id()]);
+                flashSet('success', $action === 'suspend'
+                    ? ($_lang==='th' ? 'ระงับผู้ใช้เรียบร้อย' : 'User suspended.')
+                    : ($_lang==='th' ? 'เปิดใช้งานผู้ใช้เรียบร้อย' : 'User activated.'));
+            }
         } catch (\Throwable $e) { error_log($e->getMessage()); }
     }
     redirect($appUrl . '/admin/users.php');
@@ -34,12 +47,18 @@ $perPage    = 20;
 
 $where  = ['1=1'];
 $params = [];
-if ($search) { $where[] = "(u.name ILIKE :q OR u.email ILIKE :q OR u.affiliation ILIKE :q)"; $params[':q'] = "%$search%"; }
 if ($roleFilter) { $where[] = "u.role = :role"; $params[':role'] = $roleFilter; }
-$whereStr = implode(' AND ', $where);
 
 try {
     $db = Database::getInstance();
+    $isMysql = $db->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql';
+    if ($search) {
+        $where[] = $isMysql
+            ? "(CONCAT(u.first_name, ' ', u.last_name) LIKE :q OR u.email LIKE :q OR u.affiliation LIKE :q)"
+            : "((u.first_name || ' ' || u.last_name) ILIKE :q OR u.email ILIKE :q OR u.affiliation ILIKE :q)";
+        $params[':q'] = "%$search%";
+    }
+    $whereStr = implode(' AND ', $where);
     $cntStmt = $db->prepare("SELECT COUNT(*) FROM users u WHERE $whereStr");
     $cntStmt->execute($params);
     $total = (int)$cntStmt->fetchColumn();
@@ -146,7 +165,7 @@ $activeMenu = 'users';
               ?>
                 <tr>
                   <td style="font-weight:600;font-size:.88rem;">
-                    <?= e($u['name']) ?>
+                    <?= e($u['first_name'] . ' ' . $u['last_name']) ?>
                     <?php if (!$u['email_verified']): ?>
                       <i class="fas fa-exclamation-circle ms-1" style="color:#fd7e14;font-size:.72rem;" title="Unverified email"></i>
                     <?php endif; ?>
@@ -160,19 +179,23 @@ $activeMenu = 'users';
                   </td>
                   <td style="text-align:center;font-weight:700;font-size:.88rem;color:var(--blue-dark);"><?= (int)$u['paper_count'] ?></td>
                   <td>
-                    <?php if ($u['is_suspended']): ?>
+                    <?php if ($u['account_status'] === 'suspended'): ?>
                       <span class="badge" style="background:#dc3545;color:#fff;font-size:.72rem;"><?= $_lang==='th'?'ระงับ':'Suspended' ?></span>
                     <?php else: ?>
                       <span class="badge" style="background:#198754;color:#fff;font-size:.72rem;"><?= $_lang==='th'?'ใช้งาน':'Active' ?></span>
                     <?php endif; ?>
                   </td>
                   <td style="font-size:.78rem;"><?= humanDate($u['created_at'], $_lang) ?></td>
-                  <td>
+                  <td class="d-flex gap-1 flex-wrap">
+                    <a href="<?= $appUrl ?>/admin/user-detail.php?id=<?= (int)$u['id'] ?>" class="btn btn-sm btn-outline-primary rounded-pill" style="font-size:.72rem;"
+                       title="<?= $_lang==='th'?'ดู/แก้ไขข้อมูล':'View/Edit Profile' ?>">
+                      <i class="fas fa-pen"></i>
+                    </a>
                     <?php if ($u['id'] !== Auth::id()): ?>
                       <form method="POST" class="d-inline">
                         <input type="hidden" name="csrf_token" value="<?= Auth::csrfToken() ?>">
                         <input type="hidden" name="user_id" value="<?= (int)$u['id'] ?>">
-                        <?php if ($u['is_suspended']): ?>
+                        <?php if ($u['account_status'] === 'suspended'): ?>
                           <input type="hidden" name="action" value="activate">
                           <button type="submit" class="btn btn-sm btn-outline-success rounded-pill" style="font-size:.72rem;"
                                   data-confirm="<?= $_lang==='th'?'ยืนยันการเปิดใช้งาน?':'Confirm activate user?' ?>">
@@ -186,6 +209,11 @@ $activeMenu = 'users';
                           </button>
                         <?php endif; ?>
                       </form>
+                      <button type="button" class="btn btn-sm btn-outline-warning rounded-pill" style="font-size:.72rem;"
+                              onclick="openResetPwd(<?= (int)$u['id'] ?>, '<?= e($u['first_name'].' '.$u['last_name']) ?>')"
+                              title="<?= $_lang==='th'?'ตั้งค่ารหัสผ่านใหม่':'Reset Password' ?>">
+                        <i class="fas fa-key"></i>
+                      </button>
                     <?php endif; ?>
                   </td>
                 </tr>
@@ -209,7 +237,57 @@ $activeMenu = 'users';
   </main>
 </div>
 
+<!-- Reset Password Modal -->
+<div class="modal fade" id="resetPwdModal" tabindex="-1">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" style="font-size:.95rem;">
+          <i class="fas fa-key me-2" style="color:var(--gold);"></i>
+          <?= $_lang==='th'?'ตั้งค่ารหัสผ่านใหม่':'Reset Password' ?>
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="POST">
+        <div class="modal-body">
+          <input type="hidden" name="csrf_token" value="<?= Auth::csrfToken() ?>">
+          <input type="hidden" name="action" value="reset_password">
+          <input type="hidden" name="user_id" id="resetPwdUserId">
+          <p class="mb-3" style="font-size:.85rem;color:var(--gray-700);">
+            <?= $_lang==='th'?'ผู้ใช้:':'User:' ?> <strong id="resetPwdUserName"></strong>
+          </p>
+          <label class="form-label fw-semibold" style="font-size:.85rem;">
+            <?= $_lang==='th'?'รหัสผ่านใหม่':'New Password' ?> <span class="text-danger">*</span>
+          </label>
+          <div class="input-group">
+            <input type="password" name="new_password" id="resetPwdInput" class="form-control"
+                   placeholder="<?= $_lang==='th'?'อย่างน้อย 8 ตัวอักษร':'Min 8 characters' ?>"
+                   minlength="8" required>
+            <button class="input-group-text" type="button"
+                    onclick="var i=document.getElementById('resetPwdInput');i.type=i.type==='password'?'text':'password';"
+                    style="cursor:pointer;"><i class="fas fa-eye"></i></button>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal"><?= $_lang==='th'?'ยกเลิก':'Cancel' ?></button>
+          <button type="submit" class="btn btn-warning btn-sm fw-bold">
+            <i class="fas fa-save me-1"></i><?= $_lang==='th'?'บันทึก':'Save' ?>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="<?= $appUrl ?>/assets/js/main.js"></script>
+<script>
+function openResetPwd(userId, userName) {
+  document.getElementById('resetPwdUserId').value = userId;
+  document.getElementById('resetPwdUserName').textContent = userName;
+  document.getElementById('resetPwdInput').value = '';
+  new bootstrap.Modal(document.getElementById('resetPwdModal')).show();
+}
+</script>
 </body>
 </html>

@@ -27,8 +27,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $titleTh    = sanitize(post('title_th'));
         $titleEn    = sanitize(post('title_en'));
-        $abstractTh = sanitize(post('abstract_th'));
-        $abstractEn = sanitize(post('abstract_en'));
+        $abstractTh = '';
+        $abstractEn = '';
         $keywords   = sanitize(post('keywords'));
         $themeId    = intPost('theme_id');
 
@@ -42,8 +42,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Validate
         if (!$titleTh)    $errors[] = t('paper.title_th') . ': ' . t('common.required');
         if (!$titleEn)    $errors[] = t('paper.title_en') . ': ' . t('common.required');
-        if (!$abstractTh) $errors[] = t('paper.abstract_th') . ': ' . t('common.required');
-        if (!$abstractEn) $errors[] = t('paper.abstract_en') . ': ' . t('common.required');
         if (!$keywords)   $errors[] = t('paper.keywords') . ': ' . t('common.required');
         if (!$themeId)    $errors[] = t('paper.theme') . ': ' . t('common.required');
 
@@ -68,7 +66,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         (paper_code, title_th, title_en, abstract_th, abstract_en, keywords, theme_id, submitter_id, status_code)
                     VALUES
                         (:code, :tth, :ten, :ath, :aen, :kw, :tid, :uid, 'submitted')
-                    RETURNING id
                 ");
                 $ins->execute([
                     ':code' => $paperCode,
@@ -80,7 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ':tid'  => $themeId,
                     ':uid'  => $user['id'],
                 ]);
-                $paperId = (int)$ins->fetchColumn();
+                $paperId = (int)$db->lastInsertId();
 
                 // Upload file
                 $storedName = moveUpload($_FILES['paper_file']);
@@ -123,13 +120,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 $db->commit();
 
-                // Notifications
-                // Get first admin
-                $adminRow = $db->query("SELECT id FROM users WHERE role = 'admin' LIMIT 1")->fetch();
-                $adminId  = $adminRow ? (int)$adminRow['id'] : null;
-                if ($adminId) {
-                    Notification::paperSubmitted($user['id'], $adminId, $paperCode, $titleEn);
-                }
+                // Notifications (author + all active admins)
+                Notification::paperSubmitted($user['id'], $paperCode, $titleEn);
 
                 // Email to author
                 $authorRow = $db->prepare("SELECT email, first_name, last_name FROM users WHERE id = :uid");
@@ -215,22 +207,6 @@ $activeMenu = 'submit';
             <input type="text" name="title_en" class="form-control" value="<?= e(post('title_en')) ?>" required
                    placeholder="Paper title in English">
           </div>
-          <div class="col-md-6">
-            <label class="form-label"><?= t('paper.abstract_th') ?> <span class="required">*</span></label>
-            <textarea name="abstract_th" class="form-control" rows="5" required
-                      placeholder="บทคัดย่อภาษาไทย (250–350 คำ)"><?= e(post('abstract_th')) ?></textarea>
-            <div style="font-size:.75rem;color:var(--gray-500);margin-top:4px;">
-              <span id="wordCountTh">0</span> <?= $_lang==='th'?'คำ (แนะนำ 250–350 คำ)':'words (recommended: 250–350)' ?>
-            </div>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label"><?= t('paper.abstract_en') ?> <span class="required">*</span></label>
-            <textarea name="abstract_en" class="form-control" rows="5" required
-                      placeholder="Abstract in English (250–350 words)"><?= e(post('abstract_en')) ?></textarea>
-            <div style="font-size:.75rem;color:var(--gray-500);margin-top:4px;">
-              <span id="wordCountEn">0</span> <?= $_lang==='th'?'คำ (แนะนำ 250–350 คำ)':'words (recommended: 250–350)' ?>
-            </div>
-          </div>
           <div class="col-md-8">
             <label class="form-label"><?= t('paper.keywords') ?> <span class="required">*</span></label>
             <input type="text" name="keywords" class="form-control" value="<?= e(post('keywords')) ?>" required
@@ -307,16 +283,6 @@ $activeMenu = 'submit';
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="<?= $appUrl ?>/assets/js/main.js"></script>
 <script>
-// Word counters
-function countWords(str) {
-  return str.trim() === '' ? 0 : str.trim().split(/\s+/).length;
-}
-document.querySelector('[name="abstract_th"]')?.addEventListener('input', function() {
-  document.getElementById('wordCountTh').textContent = countWords(this.value);
-});
-document.querySelector('[name="abstract_en"]')?.addEventListener('input', function() {
-  document.getElementById('wordCountEn').textContent = countWords(this.value);
-});
 // File drop zone styling
 const wrapper = document.querySelector('.file-drop-wrapper');
 if (wrapper) {

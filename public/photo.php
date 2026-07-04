@@ -12,6 +12,7 @@ require_once __DIR__ . '/../app/helpers/header.php';
     <h1 style="font-size:2.2rem;font-weight:800;color:var(--white);margin-top:12px;">
       <?= $_lang==='th'?'ภาพกิจกรรม ICALGC 2026':'ICALGC 2026 Photo Gallery' ?>
     </h1>
+    <div class="section-divider"></div>
   </div>
 </div>
 <section class="page-section">

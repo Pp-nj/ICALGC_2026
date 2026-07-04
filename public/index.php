@@ -40,8 +40,7 @@ require_once __DIR__ . '/../app/helpers/header.php';
         <h1 class="hero-title"><?= t('hero.title') ?></h1>
 
         <p class="hero-subtitle"><?= t('hero.subtitle') ?></p>
-        <p class="hero-subtitle2"><?= t('hero.subtitle2') ?></p>
-
+        
         <div class="hero-meta">
           <div class="hero-meta-item">
             <i class="fas fa-calendar-alt"></i>
@@ -93,7 +92,11 @@ require_once __DIR__ . '/../app/helpers/header.php';
           </div>
           <p class="mt-3 mb-0" style="color:rgba(255,255,255,.6);font-size:.78rem;letter-spacing:1px;">
             <i class="fas fa-map-pin me-1 text-gold"></i>
+            <?php if ($_lang === 'th'): ?>
+            <?= e(CONF_DATE_TH) ?>
+          <?php else: ?>
             <?= e(CONF_DATE_EN) ?>
+          <?php endif; ?>
           </p>
         </div>
       </div>
@@ -121,7 +124,7 @@ require_once __DIR__ . '/../app/helpers/header.php';
         <a href="<?= $appUrl ?>/keynote.php" class="quick-card card-hover text-decoration-none">
           <div class="quick-card-icon"><i class="fas fa-chalkboard-teacher"></i></div>
           <h4><?= t('quick.keynote') ?></h4>
-          <p><?= $_lang==='th' ? 'วิทยากรผู้ทรงคุณวุฒิ' : 'Distinguished keynote speakers' ?></p>
+          <p><?= $_lang==='th' ? 'รายชื่อผู้บรรยายพิเศษ' : 'List keynote speakers' ?></p>
         </a>
       </div>
 
@@ -141,74 +144,7 @@ require_once __DIR__ . '/../app/helpers/header.php';
         </a>
       </div>
 
-    </div>
-  </div>
-</section>
-
-<!-- ════════════════════════════════════
-     ABOUT SECTION
-     ════════════════════════════════════ -->
-<section class="about-section page-section" id="about">
-  <div class="container">
-    <div class="row align-items-center g-5">
-
-      <!-- Left: Content -->
-      <div class="col-lg-6" data-aos="fade-right">
-        <div class="section-label"><?= t('nav.about') ?></div>
-        <h2 class="section-title text-start mb-3"><?= t('about.title') ?></h2>
-        <div class="section-divider" style="margin:0 0 24px;"></div>
-
-        <?php if ($_lang === 'th'): ?>
-          <p style="color:var(--gray-700);line-height:1.8;margin-bottom:20px;">
-            การประชุมวิชาการนานาชาติว่าด้วยภาษาอาเซียนในบริบทโลก 2026 (ICALGC 2026)
-            เป็นเวทีแลกเปลี่ยนความรู้ทางวิชาการระดับนานาชาติ
-            จัดขึ้นโดยคณะมนุษยศาสตร์ มหาวิทยาลัยศรีนครินทรวิโรฒ
-            ร่วมกับมหาวิทยาลัยกวางตุ้งเพื่อการศึกษาต่างประเทศ
-          </p>
-        <?php else: ?>
-          <p style="color:var(--gray-700);line-height:1.8;margin-bottom:20px;">
-            The International Conference on ASEAN Languages in Global Contexts 2026 (ICALGC 2026)
-            is an international academic forum organized by the Faculty of Humanities,
-            Srinakharinwirot University, in collaboration with Guangdong University of Foreign Studies.
-          </p>
-        <?php endif; ?>
-
-        <h5 style="color:var(--blue-dark);margin-bottom:16px;font-size:1rem;">
-          <i class="fas fa-bullseye me-2 text-gold"></i>
-          <?= $_lang==='th' ? 'วัตถุประสงค์' : 'Objectives' ?>
-        </h5>
-
-        <ul class="about-objectives">
-          <li>
-            <span class="obj-icon"><i class="fas fa-check"></i></span>
-            <span><?= t('about.obj1') ?></span>
-          </li>
-          <li>
-            <span class="obj-icon"><i class="fas fa-check"></i></span>
-            <span><?= t('about.obj2') ?></span>
-          </li>
-          <li>
-            <span class="obj-icon"><i class="fas fa-check"></i></span>
-            <span><?= t('about.obj3') ?></span>
-          </li>
-        </ul>
-
-        <a href="<?= $appUrl ?>/about.php" class="btn-primary-custom">
-          <?= t('about.read_more') ?> <i class="fas fa-arrow-right ms-2"></i>
-        </a>
-      </div>
-
-      <!-- Right: Image -->
-      <div class="col-lg-6">
-        <div class="about-image-wrap">
-          <img src="<?= $appUrl ?>/assets/images/about-conference.jpg"
-               alt="ICALGC 2026"
-               onerror="this.src='https://placehold.co/600x380/003087/c9a227?text=ICALGC+2026'">
-          <div class="about-image-badge">
-            <i class="fas fa-university me-2"></i>ICALGC 2026
-          </div>
-        </div>
-      </div>
+      
 
     </div>
   </div>
@@ -225,7 +161,8 @@ require_once __DIR__ . '/../app/helpers/header.php';
       <div class="section-divider"></div>
     </div>
 
-    <div class="timeline-scroll">
+    <div class="h-timeline">
+      <div class="h-timeline-line"></div>
       <?php foreach ($importantDates as $idx => $date): ?>
         <?php
         $daysLeft = daysUntil($date['event_date']);
@@ -250,14 +187,18 @@ require_once __DIR__ . '/../app/helpers/header.php';
         $icons = ['calendar-plus', 'file-alt', 'check-circle', 'star', 'certificate'];
         $icon  = $icons[$idx] ?? 'calendar';
         $title = $_lang==='th' ? $date['title_th'] : $date['title_en'];
+        $position = ($idx % 2 === 0) ? 'above' : 'below';
         ?>
-        <div class="timeline-card <?= $cardClass ?>">
-          <div class="timeline-icon">
+        <div class="h-timeline-item <?= $cardClass ?> <?= $position ?>">
+          <div class="h-timeline-content">
+            <div class="h-timeline-title"><?= e($title) ?></div>
+            <div class="h-timeline-date"><?= humanDate($date['event_date']) ?></div>
+            <span class="timeline-badge <?= $badgeClass ?>"><?= e($badgeText) ?></span>
+          </div>
+          <div class="h-timeline-connector"></div>
+          <div class="h-timeline-node">
             <i class="fas fa-<?= $icon ?>"></i>
           </div>
-          <div class="timeline-title"><?= e($title) ?></div>
-          <div class="timeline-date"><?= humanDate($date['event_date']) ?></div>
-          <span class="timeline-badge <?= $badgeClass ?>"><?= e($badgeText) ?></span>
         </div>
       <?php endforeach; ?>
     </div>
@@ -278,12 +219,13 @@ require_once __DIR__ . '/../app/helpers/header.php';
     <div class="row g-4">
       <!-- Announcement Card 1 -->
       <div class="col-md-4">
-        <div class="announce-card">
-          <div class="announce-card-img">
+        <div class="announce-card h-100">
+          <div class="announce-card-img ann-cat--announcements">
             <i class="fas fa-file-alt"></i>
+            <span class="ann-date-badge"><i class="far fa-calendar-alt" style="margin-right:4px;opacity:.7;"></i>1 July 2026</span>
           </div>
           <div class="announce-card-body">
-            <span class="announce-tag"><?= $_lang==='th' ? 'บทคัดย่อ' : 'Abstract' ?></span>
+            <span class="announce-tag ann-cat--announcements"><?= $_lang==='th' ? 'บทคัดย่อ' : 'Abstract' ?></span>
             <h3 class="announce-card-title">
               <?= $_lang==='th'
                 ? 'เปิดรับบทคัดย่อ ICALGC 2026 แล้ววันนี้!'
@@ -296,9 +238,8 @@ require_once __DIR__ . '/../app/helpers/header.php';
             </p>
           </div>
           <div class="announce-card-footer">
-            <span class="announce-date"><i class="far fa-calendar me-1"></i>1 July 2026</span>
-            <a href="<?= $appUrl ?>/announcements.php" class="btn-outline-custom" style="padding:6px 16px;font-size:.8rem;">
-              <?= t('announce.read_more') ?>
+            <a href="<?= $appUrl ?>/announcements.php" class="ann-read-btn">
+              <?= t('announce.read_more') ?> <i class="fas fa-arrow-right" style="font-size:.75rem;"></i>
             </a>
           </div>
         </div>
@@ -306,27 +247,27 @@ require_once __DIR__ . '/../app/helpers/header.php';
 
       <!-- Announcement Card 2 -->
       <div class="col-md-4">
-        <div class="announce-card">
-          <div class="announce-card-img">
+        <div class="announce-card h-100">
+          <div class="announce-card-img ann-cat--announcements">
             <i class="fas fa-chalkboard-teacher"></i>
+            <span class="ann-date-badge"><i class="far fa-calendar-alt" style="margin-right:4px;opacity:.7;"></i>15 July 2026</span>
           </div>
           <div class="announce-card-body">
-            <span class="announce-tag"><?= $_lang==='th' ? 'วิทยากร' : 'Keynote' ?></span>
+            <span class="announce-tag ann-cat--announcements"><?= $_lang==='th' ? 'ผู้บรรยายพิเศษ' : 'Keynote' ?></span>
             <h3 class="announce-card-title">
               <?= $_lang==='th'
-                ? 'ประกาศรายชื่อวิทยากรหลัก ICALGC 2026'
+                ? 'ประกาศรายชื่อผู้บรรยายพิเศษ ICALGC 2026'
                 : 'ICALGC 2026 Keynote Speakers Announced' ?>
             </h3>
             <p class="announce-card-text">
               <?= $_lang==='th'
-                ? 'เราได้รับเกียรติจากนักวิชาการระดับโลกมาเป็นวิทยากรหลักในการประชุม ICALGC 2026 ติดตามรายชื่อได้เร็วๆ นี้'
+                ? 'เราได้รับเกียรติจากนักวิชาการระดับโลกมาเป็นผู้บรรยายพิเศษในการประชุม ICALGC 2026 ติดตามรายชื่อได้เร็วๆ นี้'
                 : 'We are honored to announce world-class academics as keynote speakers for ICALGC 2026. Stay tuned for updates.' ?>
             </p>
           </div>
           <div class="announce-card-footer">
-            <span class="announce-date"><i class="far fa-calendar me-1"></i>15 July 2026</span>
-            <a href="<?= $appUrl ?>/announcements.php" class="btn-outline-custom" style="padding:6px 16px;font-size:.8rem;">
-              <?= t('announce.read_more') ?>
+            <a href="<?= $appUrl ?>/announcements.php" class="ann-read-btn">
+              <?= t('announce.read_more') ?> <i class="fas fa-arrow-right" style="font-size:.75rem;"></i>
             </a>
           </div>
         </div>
@@ -334,12 +275,13 @@ require_once __DIR__ . '/../app/helpers/header.php';
 
       <!-- Announcement Card 3 -->
       <div class="col-md-4">
-        <div class="announce-card">
-          <div class="announce-card-img">
-            <i class="fas fa-university"></i>
+        <div class="announce-card h-100">
+          <div class="announce-card-img ann-cat--updates">
+            <i class="fas fa-user-plus"></i>
+            <span class="ann-date-badge"><i class="far fa-calendar-alt" style="margin-right:4px;opacity:.7;"></i>1 July 2026</span>
           </div>
           <div class="announce-card-body">
-            <span class="announce-tag"><?= $_lang==='th' ? 'ลงทะเบียน' : 'Registration' ?></span>
+            <span class="announce-tag ann-cat--updates"><?= $_lang==='th' ? 'ลงทะเบียน' : 'Registration' ?></span>
             <h3 class="announce-card-title">
               <?= $_lang==='th'
                 ? 'เปิดลงทะเบียนเข้าร่วมประชุม ICALGC 2026'
@@ -352,9 +294,8 @@ require_once __DIR__ . '/../app/helpers/header.php';
             </p>
           </div>
           <div class="announce-card-footer">
-            <span class="announce-date"><i class="far fa-calendar me-1"></i>1 July 2026</span>
-            <a href="<?= $appUrl ?>/register.php" class="btn-outline-custom" style="padding:6px 16px;font-size:.8rem;">
-              <?= t('nav.register') ?>
+            <a href="<?= $appUrl ?>/announcements.php" class="ann-read-btn">
+              <?= t('announce.read_more') ?> <i class="fas fa-arrow-right" style="font-size:.75rem;"></i>
             </a>
           </div>
         </div>
@@ -372,7 +313,7 @@ require_once __DIR__ . '/../app/helpers/header.php';
 
 <!-- ════════════════════════════════════
      CONFERENCE STATS STRIP
-     ════════════════════════════════════ -->
+     ════════════════════════════════════ 
 <section style="background:var(--blue-dark);padding:50px 0;color:var(--white);">
   <div class="container">
     <div class="row g-4 text-center">
@@ -402,7 +343,7 @@ require_once __DIR__ . '/../app/helpers/header.php';
       </div>
     </div>
   </div>
-</section>
+</section>-->
 
 <?php
 $inlineJs = "initCountdown('" . CONF_DATE . "');";

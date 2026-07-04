@@ -172,9 +172,9 @@ $typeIcons = [
                   <?php endif; ?>
                 </div>
               </div>
-              <?php if ($n['paper_id']): ?>
+              <?php if (!empty($n['related_paper_id'])): ?>
                 <div class="mt-2">
-                  <a href="<?= $appUrl ?>/author/paper-detail.php?id=<?= (int)$n['paper_id'] ?>"
+                  <a href="<?= $appUrl ?>/author/paper-detail.php?id=<?= (int)$n['related_paper_id'] ?>"
                      style="font-size:.78rem;color:var(--blue-mid);">
                     <i class="fas fa-arrow-right me-1"></i><?= t('paper.view_details') ?>
                   </a>

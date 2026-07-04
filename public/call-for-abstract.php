@@ -33,6 +33,7 @@ require_once __DIR__ . '/../app/helpers/header.php';
     <span class="section-label" style="background:rgba(255,255,255,.15);color:var(--gold-light);">ICALGC 2026</span>
     <h1 style="font-size:2.2rem;font-weight:800;color:var(--white);margin-top:12px;"><?= t('cfa.title') ?></h1>
     <p style="color:rgba(255,255,255,.8);"><?= e(CONF_NAME_EN) ?></p>
+    <div class="section-divider"></div>
     <a href="<?= $appUrl ?>/author/submit.php" class="btn-hero-primary mt-3" style="display:inline-block;">
       <i class="fas fa-file-upload me-2"></i>
       <?= $_lang==='th'?'ส่งบทคัดย่อเลย':'Submit Your Abstract Now' ?>
@@ -70,6 +71,206 @@ require_once __DIR__ . '/../app/helpers/header.php';
           <?php endif; ?>
         </div>
 
+        <!-- Conference Tracks -->
+        <div class="content-card cfa-section" id="tracks" style="padding:0;overflow:hidden;">
+          <div style="padding:20px 24px 0;"><div class="content-card-title" style="margin-bottom:16px;"><i class="fas fa-road me-2" style="color:var(--gold);"></i><?= $_lang==='th'?'สาขาหัวข้อการประชุม (Conference Tracks)':'Conference Tracks' ?></div></div>
+
+          <div class="row g-0">
+
+            <!-- Track 1: Navy Blue (ASEAN) -->
+            <div class="col-md-6">
+              <div style="background:#0a1f44;min-height:100%;padding:24px;color:#fff;display:flex;flex-direction:column;">
+
+                <!-- Track Header -->
+                <div style="background:#1a3a6b;border-radius:10px;padding:14px 16px;margin-bottom:16px;text-align:center;">
+                  <span style="display:inline-block;background:#c9a227;color:#0a1f44;font-weight:800;font-size:.75rem;letter-spacing:2px;padding:3px 12px;border-radius:20px;margin-bottom:8px;">TRACK 1</span>
+                  <div style="font-weight:800;font-size:1rem;line-height:1.4;color:#fff;">ASEAN Languages, ASEAN Studies,<br>and ASEAN Language Teaching</div>
+                  <div style="font-size:.8rem;color:#a0b8d8;margin-top:6px;">(Vietnamese, Cambodian/Khmer, Myanmar/Burmese, Lao, Indonesia and Malay Languages)</div>
+                </div>
+
+                <!-- Banner Image Placeholder -->
+                <div style="position:relative;border-radius:10px;overflow:hidden;margin-bottom:16px;background:#1a3a6b;height:140px;display:flex;align-items:center;justify-content:center;border:2px dashed #2a5a9b;">
+                  <div style="text-align:center;color:#6a9abf;">
+                    <i class="fas fa-image" style="font-size:2rem;margin-bottom:6px;display:block;"></i>
+                    <span style="font-size:.75rem;"><?= $_lang==='th'?'[รูปสถานที่สำคัญของประเทศในอาเซียน]':'[Banner: ASEAN Landmark / Heritage Image]' ?></span>
+                  </div>
+                  <img src="<?= $appUrl ?>/assets/images/track-asean.jpg" alt="ASEAN"
+                       style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"
+                       onerror="this.remove()">
+                </div>
+
+                <!-- Scope -->
+                <div style="background:#1a3a6b;border-radius:10px;padding:14px;">
+                  <div style="font-weight:700;font-size:.85rem;color:#c9a227;margin-bottom:10px;border-bottom:1px solid #2a5a9b;padding-bottom:6px;">
+                    <i class="fas fa-crosshairs me-1"></i>
+                    <?= $_lang==='th'?'ขอบเขตหัวข้อที่ครอบคลุม':'Scope & Topics Covered' ?>
+                  </div>
+                  <div class="row g-0">
+                    <?php
+                    $track1Items = $_lang==='th' ? [
+                      ['icon'=>'language',         'text'=>'ภาษาศาสตร์ภาษาอาเซียน'],
+                      ['icon'=>'globe-asia',        'text'=>'อาเซียนศึกษา'],
+                      ['icon'=>'chalkboard-teacher','text'=>'การสอนภาษาในอาเซียน'],
+                      ['icon'=>'book-open',         'text'=>'วรรณกรรมอาเซียน'],
+                      ['icon'=>'exchange-alt',      'text'=>'การแปลและการล่าม'],
+                      ['icon'=>'users',             'text'=>'ภาษาและวัฒนธรรมอาเซียน'],
+                      ['icon'=>'laptop-code',       'text'=>'เทคโนโลยีทางภาษา'],
+                      ['icon'=>'scroll',            'text'=>'นโยบายภาษาในอาเซียน'],
+                    ] : [
+                      ['icon'=>'language',         'text'=>'ASEAN Linguistics'],
+                      ['icon'=>'globe-asia',        'text'=>'ASEAN Studies'],
+                      ['icon'=>'chalkboard-teacher','text'=>'Language Teaching in ASEAN'],
+                      ['icon'=>'book-open',         'text'=>'ASEAN Literature'],
+                      ['icon'=>'exchange-alt',      'text'=>'Translation & Interpretation'],
+                      ['icon'=>'users',             'text'=>'Language & Culture in ASEAN'],
+                      ['icon'=>'laptop-code',       'text'=>'Language Technology'],
+                      ['icon'=>'scroll',            'text'=>'Language Policy in ASEAN'],
+                    ];
+                    $half = (int)ceil(count($track1Items)/2);
+                    $col1 = array_slice($track1Items,0,$half);
+                    $col2 = array_slice($track1Items,$half);
+                    ?>
+                    <div class="col-6">
+                      <?php foreach($col1 as $item): ?>
+                        <div style="display:flex;align-items:flex-start;gap:6px;margin-bottom:7px;">
+                          <i class="fas fa-<?= $item['icon'] ?>" style="color:#c9a227;font-size:.75rem;margin-top:3px;flex-shrink:0;"></i>
+                          <span style="font-size:.78rem;color:#d0e4f5;line-height:1.3;"><?= $item['text'] ?></span>
+                        </div>
+                      <?php endforeach; ?>
+                    </div>
+                    <div class="col-6">
+                      <?php foreach($col2 as $item): ?>
+                        <div style="display:flex;align-items:flex-start;gap:6px;margin-bottom:7px;">
+                          <i class="fas fa-<?= $item['icon'] ?>" style="color:#c9a227;font-size:.75rem;margin-top:3px;flex-shrink:0;"></i>
+                          <span style="font-size:.78rem;color:#d0e4f5;line-height:1.3;"><?= $item['text'] ?></span>
+                        </div>
+                      <?php endforeach; ?>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- ASEAN Country Flags -->
+                <div style="margin-top:auto;padding-top:16px;">
+                  <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;">
+                    <?php
+                    $aseanFlags = [
+                      ['flag'=>'/vietnam.webp','name'=>'Vietnam'],
+                      ['flag'=>'/cambodia.webp','name'=>'Cambodia'],
+                      ['flag'=>'/myanmar.webp','name'=>'Myanmar'],
+                      ['flag'=>'/laos.webp','name'=>'Laos'],
+                      ['flag'=>'/indonesia.webp','name'=>'Indonesia'],
+                      ['flag'=>'/malaysia.webp','name'=>'Malaysia'],
+                    ];
+                    foreach($aseanFlags as $f): ?>
+                      <div style="text-align:center;min-width:44px;">
+                        <div style="width:44px;height:44px;border-radius:50%;overflow:hidden;border:2px solid #2a5a9b;display:flex;align-items:center;justify-content:center;background:#1a3a6b;margin:0 auto;">
+                          <img src="/assets/images/flags/<?= $f['flag'] ?>" alt="<?= $f['name'] ?>" style="width:100%;height:100%;object-fit:cover;">
+                        </div>
+                        <div style="font-size:.62rem;color:#a0b8d8;margin-top:4px;line-height:1.2;"><?= $f['name'] ?></div>
+                      </div>
+                    <?php endforeach; ?>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- Track 2: Gold/Brown (Thai) -->
+            <div class="col-md-6">
+              <div style="background:#4a2c0a;min-height:100%;padding:24px;color:#fff;display:flex;flex-direction:column;">
+
+                <!-- Track Header -->
+                <div style="background:#6b3f15;border-radius:10px;padding:14px 16px;margin-bottom:16px;text-align:center;">
+                  <span style="display:inline-block;background:#c9a227;color:#4a2c0a;font-weight:800;font-size:.75rem;letter-spacing:2px;padding:3px 12px;border-radius:20px;margin-bottom:8px;">TRACK 2</span>
+                  <div style="font-weight:800;font-size:1rem;line-height:1.4;color:#fff;">Thai Language, Thai Studies,<br>and Thai Language Teaching</div>
+                  <div style="font-size:.8rem;color:#d4b896;margin-top:6px;">(Thai Language, Literature, Folklore <br> and Thai Language Pedagog)</div>
+                </div>
+
+                <!-- Banner Image Placeholder -->
+                <div style="position:relative;border-radius:10px;overflow:hidden;margin-bottom:16px;background:#6b3f15;height:140px;display:flex;align-items:center;justify-content:center;border:2px dashed #9b6f3a;">
+                  <div style="text-align:center;color:#c4945a;">
+                    <i class="fas fa-image" style="font-size:2rem;margin-bottom:6px;display:block;"></i>
+                    <span style="font-size:.75rem;"><?= $_lang==='th'?'[รูปสถานที่สำคัญ/ศิลปวัฒนธรรมของไทย]':'[Banner: Thai Cultural Heritage / Art Image]' ?></span>
+                  </div>
+                  <img src="<?= $appUrl ?>/assets/images/track-thai.webp" alt="Thai"
+                       style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"
+                       onerror="this.remove()">
+                </div>
+
+                <!-- Scope -->
+                <div style="background:#6b3f15;border-radius:10px;padding:14px;">
+                  <div style="font-weight:700;font-size:.85rem;color:#c9a227;margin-bottom:10px;border-bottom:1px solid #9b6f3a;padding-bottom:6px;">
+                    <i class="fas fa-crosshairs me-1"></i>
+                    <?= $_lang==='th'?'ขอบเขตหัวข้อที่ครอบคลุม':'Scope & Topics Covered' ?>
+                  </div>
+                  <div class="row g-0">
+                    <?php
+                    $track2Items = $_lang==='th' ? [
+                      ['icon'=>'language',          'text'=>'ภาษาศาสตร์ภาษาไทย'],
+                      ['icon'=>'chalkboard-teacher','text'=>'การสอนภาษาไทย'],
+                      ['icon'=>'book-open',         'text'=>'วรรณกรรมไทย'],
+                      ['icon'=>'globe',             'text'=>'ภาษาไทยสำหรับชาวต่างชาติ'],
+                      ['icon'=>'theater-masks',     'text'=>'วัฒนธรรมและภาษาไทย'],
+                      ['icon'=>'laptop-code',       'text'=>'ภาษาไทยในยุคดิจิทัล'],
+                      ['icon'=>'search',            'text'=>'ไทยศึกษา'],
+                      ['icon'=>'shield-alt',        'text'=>'การอนุรักษ์ภาษาไทย'],
+                    ] : [
+                      ['icon'=>'language',          'text'=>'Thai Linguistics'],
+                      ['icon'=>'chalkboard-teacher','text'=>'Thai Language Teaching'],
+                      ['icon'=>'book-open',         'text'=>'Thai Literature'],
+                      ['icon'=>'globe',             'text'=>'Thai for Foreign Learners'],
+                      ['icon'=>'theater-masks',     'text'=>'Thai Culture & Language'],
+                      ['icon'=>'laptop-code',       'text'=>'Thai Language in Digital Era'],
+                      ['icon'=>'search',            'text'=>'Thai Studies'],
+                      ['icon'=>'shield-alt',        'text'=>'Thai Language Preservation'],
+                    ];
+                    $half2 = (int)ceil(count($track2Items)/2);
+                    $col1t2 = array_slice($track2Items,0,$half2);
+                    $col2t2 = array_slice($track2Items,$half2);
+                    ?>
+                    <div class="col-6">
+                      <?php foreach($col1t2 as $item): ?>
+                        <div style="display:flex;align-items:flex-start;gap:6px;margin-bottom:7px;">
+                          <i class="fas fa-<?= $item['icon'] ?>" style="color:#c9a227;font-size:.75rem;margin-top:3px;flex-shrink:0;"></i>
+                          <span style="font-size:.78rem;color:#f0dfc0;line-height:1.3;"><?= $item['text'] ?></span>
+                        </div>
+                      <?php endforeach; ?>
+                    </div>
+                    <div class="col-6">
+                      <?php foreach($col2t2 as $item): ?>
+                        <div style="display:flex;align-items:flex-start;gap:6px;margin-bottom:7px;">
+                          <i class="fas fa-<?= $item['icon'] ?>" style="color:#c9a227;font-size:.75rem;margin-top:3px;flex-shrink:0;"></i>
+                          <span style="font-size:.78rem;color:#f0dfc0;line-height:1.3;"><?= $item['text'] ?></span>
+                        </div>
+                      <?php endforeach; ?>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- ASEAN Country Flags -->
+                <div style="margin-top:auto;padding-top:16px;">
+                  <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;">
+                    <?php
+                    $aseanFlags = [
+                      ['flag'=>'Thailand.webp','name'=>'Thailand']
+                    ];
+                    foreach($aseanFlags as $f): ?>
+                      <div style="text-align:center;min-width:44px;">
+                        <div style="width:44px;height:44px;border-radius:50%;overflow:hidden;border:2px solid #2a5a9b;display:flex;align-items:center;justify-content:center;background:#1a3a6b;margin:0 auto;">
+                          <img src="/assets/images/flags/<?= $f['flag'] ?>" alt="<?= $f['name'] ?>" style="width:100%;height:100%;object-fit:cover;">
+                        </div>
+                        <div style="font-size:.62rem;color:#a0b8d8;margin-top:4px;line-height:1.2;"><?= $f['name'] ?></div>
+                      </div>
+                    <?php endforeach; ?>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+          </div><!-- /row -->
+        </div><!-- /tracks -->
+
         <!-- Conference Themes -->
         <div class="content-card cfa-section" id="themes">
           <div class="content-card-title"><i class="fas fa-layer-group me-2" style="color:var(--gold);"></i><?= t('cfa.themes') ?></div>
@@ -104,12 +305,12 @@ require_once __DIR__ . '/../app/helpers/header.php';
             <a href="<?= $appUrl ?>/assets/templates/abstract-template-en.docx"
                class="btn-primary-custom d-flex align-items-center gap-2" download>
               <i class="fas fa-file-word"></i>
-              <?= $_lang==='th'?'แบบฟอร์มภาษาอังกฤษ (DOCX)':'English Template (DOCX)' ?>
+              <?= $_lang==='th'?'รูปแบบบทคัดย่อภาษาอังกฤษ (DOCX)':'English Template (DOCX)' ?>
             </a>
             <a href="<?= $appUrl ?>/assets/templates/abstract-template-th.docx"
                class="btn-outline-custom d-flex align-items-center gap-2" download>
               <i class="fas fa-file-word"></i>
-              <?= $_lang==='th'?'แบบฟอร์มภาษาไทย (DOCX)':'Thai Template (DOCX)' ?>
+              <?= $_lang==='th'?'รูปแบบบทคัดย่อภาษาไทย (DOCX)':'Thai Template (DOCX)' ?>
             </a>
           </div>
         </div>
@@ -124,6 +325,7 @@ require_once __DIR__ . '/../app/helpers/header.php';
               <li>ต้องระบุชื่อบทความทั้งในภาษาไทยและภาษาอังกฤษ</li>
               <li>ต้องระบุชื่อผู้แต่งทุกคน สังกัด และอีเมลของผู้แต่งผู้รับผิดชอบ</li>
               <li>ส่งบทคัดย่อในรูปแบบ PDF หรือ DOCX เท่านั้น ขนาดไม่เกิน 20 MB</li>
+              <li>ไม่ใส่ตรางรูปภาพและแผนภูมิ</li>
               <li>ผลการพิจารณาถือเป็นที่สิ้นสุด</li>
             </ol>
           <?php else: ?>
@@ -133,6 +335,7 @@ require_once __DIR__ . '/../app/helpers/header.php';
               <li>The title must be provided in both Thai and English.</li>
               <li>All authors must be listed with affiliations and the corresponding author's email.</li>
               <li>Submit in PDF or DOCX format only, maximum 20 MB.</li>
+              <li>Do not include tables, images, or charts.</li>
               <li>The review committee's decision is final.</li>
             </ol>
           <?php endif; ?>
@@ -258,6 +461,7 @@ require_once __DIR__ . '/../app/helpers/header.php';
         <div class="cfa-toc" style="position:sticky;top:100px;">
           <div class="cfa-toc-title"><i class="fas fa-list me-2"></i><?= $_lang==='th'?'สารบัญ':'Contents' ?></div>
           <a href="#submission-details"><?= t('cfa.submission_details') ?></a>
+          <a href="#tracks"><?= $_lang==='th'?'สาขาหัวข้อการประชุม':'Conference Tracks' ?></a>
           <a href="#themes"><?= t('cfa.themes') ?></a>
           <a href="#template"><?= t('cfa.template') ?></a>
           <a href="#guidelines"><?= t('cfa.guidelines') ?></a>

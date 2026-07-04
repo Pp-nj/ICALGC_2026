@@ -70,8 +70,8 @@ $csrf = Auth::csrfToken();
     <!-- Logo -->
     <div class="auth-logo">
       <div class="d-flex justify-content-center gap-3 align-items-center mb-2">
-        <img src="<?= $appUrl ?>/assets/images/logo-swu.png" alt="SWU" style="height:50px;" onerror="this.style.display='none'">
-        <img src="<?= $appUrl ?>/assets/images/logo-gduf.png" alt="GDUF" style="height:50px;" onerror="this.style.display='none'">
+        <img src="<?= $appUrl ?>/assets/images/swu_Logo.png" alt="SWU" style="height:50px;" onerror="this.style.display='none'">
+        <img src="<?= $appUrl ?>/assets/images/Guangdong University of Foreign Studies 02.png" alt="GDUF" style="height:50px;" onerror="this.style.display='none'">
       </div>
       <h4>ICALGC 2026</h4>
       <p><?= $_lang==='th' ? 'การประชุมวิชาการนานาชาติ' : 'International Academic Conference' ?></p>

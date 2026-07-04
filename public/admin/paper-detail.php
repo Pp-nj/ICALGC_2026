@@ -15,7 +15,7 @@ try {
     $db = Database::getInstance();
 
     $stmt = $db->prepare("
-        SELECT p.*, u.name AS submitter_name, u.email AS submitter_email, u.affiliation AS submitter_affiliation,
+        SELECT p.*, CONCAT(u.first_name, ' ', u.last_name) AS submitter_name, u.email AS submitter_email, u.affiliation AS submitter_affiliation,
                ct.name_th AS theme_th, ct.name_en AS theme_en,
                ps.name_th AS status_th, ps.name_en AS status_en, ps.color_hex, ps.progress_step
         FROM papers p
@@ -38,9 +38,9 @@ try {
     $files = $fStmt->fetchAll();
 
     $raStmt = $db->prepare("
-        SELECT ra.*, rv.name AS reviewer_name, rv.email AS reviewer_email,
-               r.id AS review_id, r.recommendation, r.overall_score, r.comments_to_author,
-               r.comments_to_editor, r.submitted_at AS reviewed_at
+        SELECT ra.*, CONCAT(rv.first_name, ' ', rv.last_name) AS reviewer_name, rv.email AS reviewer_email,
+               r.id AS review_id, r.recommendation, r.score_overall, r.comment_for_author,
+               r.comment_for_editor, r.reviewed_at
         FROM review_assignments ra
         JOIN users rv ON rv.id = ra.reviewer_id
         LEFT JOIN reviews r ON r.assignment_id = ra.id
@@ -102,11 +102,19 @@ $activeMenu = 'papers';
     <div class="content-card mb-4">
       <div class="content-card-title"><i class="fas fa-tasks me-2" style="color:var(--gold);"></i><?= $_lang==='th' ? 'สถานะ' : 'Status' ?></div>
       <div class="progress-track">
-        <?php foreach ($allStatuses as $i => $s):
+        <?php
+          $isRejected     = $paper['status_code'] === 'rejected';
+          $filteredStatuses = array_values(array_filter($allStatuses, function($s) use ($isRejected) {
+              if ($s['code'] === 'rejected' && !$isRejected) return false;
+              if (in_array($s['code'], ['accepted','published']) && $isRejected) return false;
+              return true;
+          }));
+        ?>
+        <?php foreach ($filteredStatuses as $i => $s):
           $currentStep = (int)$paper['progress_step'];
           $thisStep    = (int)$s['progress_step'];
           $isDone      = $thisStep < $currentStep;
-          $isCurrent   = $thisStep === $currentStep;
+          $isCurrent   = $s['code'] === $paper['status_code'];
         ?>
           <div class="progress-step <?= $isDone?'done':($isCurrent?'active':'') ?>">
             <div class="progress-circle" style="<?= $isCurrent?"background:{$s['color_hex']};color:#fff;border-color:{$s['color_hex']};":($isDone?'background:#198754;color:#fff;border-color:#198754;':'') ?>">
@@ -116,7 +124,7 @@ $activeMenu = 'papers';
               <?= e($_lang==='th'?$s['name_th']:$s['name_en']) ?>
             </div>
           </div>
-          <?php if ($i < count($allStatuses)-1): ?>
+          <?php if ($i < count($filteredStatuses)-1): ?>
             <div class="progress-connector <?= $isDone?'done':'' ?>"></div>
           <?php endif; ?>
         <?php endforeach; ?>
@@ -160,7 +168,7 @@ $activeMenu = 'papers';
                   <div style="font-weight:600;font-size:.85rem;"><?= e($f['original_name']) ?></div>
                   <div style="font-size:.75rem;color:var(--gray-500);">
                     <?= formatFileSize($f['file_size']) ?> &bull; <?= humanDate($f['uploaded_at'], $_lang) ?>
-                    <?php if ($f['is_revision']): ?><span class="badge ms-1" style="background:#fd7e14;color:#fff;font-size:.68rem;">Revision</span><?php endif; ?>
+                    <?php if ($f['file_category'] === 'revision'): ?><span class="badge ms-1" style="background:#fd7e14;color:#fff;font-size:.68rem;">Revision</span><?php endif; ?>
                   </div>
                 </div>
               </div>
@@ -180,8 +188,8 @@ $activeMenu = 'papers';
             </div>
           <?php else: ?>
             <?php foreach ($assignments as $ra):
-              $statusColors = ['pending'=>'#fd7e14','accepted'=>'#0057b7','completed'=>'#198754','declined'=>'#6c757d'];
-              $statusLabels = ['pending'=>['th'=>'รอตอบรับ','en'=>'Pending'],'accepted'=>['th'=>'รับแล้ว','en'=>'Accepted'],'completed'=>['th'=>'เสร็จสิ้น','en'=>'Completed'],'declined'=>['th'=>'ปฏิเสธ','en'=>'Declined']];
+              $statusColors = ['pending'=>'#fd7e14','in_progress'=>'#0057b7','completed'=>'#198754','declined'=>'#6c757d'];
+              $statusLabels = ['pending'=>['th'=>'รอตอบรับ','en'=>'Pending'],'in_progress'=>['th'=>'กำลังประเมิน','en'=>'In Progress'],'completed'=>['th'=>'เสร็จสิ้น','en'=>'Completed'],'declined'=>['th'=>'ปฏิเสธ','en'=>'Declined']];
             ?>
               <div class="p-4 mb-3 rounded" style="border:1px solid var(--gray-200);background:var(--gray-100);">
                 <div class="d-flex justify-content-between align-items-start mb-2 flex-wrap gap-2">
@@ -189,15 +197,15 @@ $activeMenu = 'papers';
                     <div style="font-weight:700;color:var(--blue-dark);"><?= e($ra['reviewer_name']) ?></div>
                     <div style="font-size:.8rem;color:var(--gray-500);"><?= e($ra['reviewer_email']) ?></div>
                   </div>
-                  <span class="badge rounded-pill" style="background:<?= $statusColors[$ra['status']]??'#6c757d' ?>;color:#fff;font-size:.75rem;">
-                    <?= $_lang==='th' ? ($statusLabels[$ra['status']]['th']??$ra['status']) : ($statusLabels[$ra['status']]['en']??$ra['status']) ?>
+                  <span class="badge rounded-pill" style="background:<?= $statusColors[$ra['assignment_status']]??'#6c757d' ?>;color:#fff;font-size:.75rem;">
+                    <?= $_lang==='th' ? ($statusLabels[$ra['assignment_status']]['th']??$ra['assignment_status']) : ($statusLabels[$ra['assignment_status']]['en']??$ra['assignment_status']) ?>
                   </span>
                 </div>
                 <?php if ($ra['review_id']): ?>
                   <div class="d-flex gap-3 align-items-center mt-2 flex-wrap">
-                    <?php if ($ra['overall_score']): ?>
+                    <?php if ($ra['score_overall']): ?>
                       <div class="text-center" style="background:var(--blue-dark);color:#fff;border-radius:50%;width:46px;height:46px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:800;">
-                        <?= number_format($ra['overall_score'],1) ?>
+                        <?= number_format($ra['score_overall'],1) ?>
                         <span style="font-size:.55rem;font-weight:400;">/10</span>
                       </div>
                     <?php endif; ?>
@@ -208,16 +216,16 @@ $activeMenu = 'papers';
                     <?php endif; ?>
                     <span style="font-size:.78rem;color:var(--gray-500);"><?= humanDate($ra['reviewed_at'], $_lang) ?></span>
                   </div>
-                  <?php if ($ra['comments_to_editor']): ?>
+                  <?php if ($ra['comment_for_editor']): ?>
                     <div class="mt-2 p-2 rounded" style="background:#fff;border-left:3px solid var(--gold);font-size:.82rem;">
                       <strong style="font-size:.75rem;color:var(--gold);"><?= $_lang==='th' ? 'ความเห็นถึงบรรณาธิการ (ลับ):' : 'Confidential comments:' ?></strong><br>
-                      <?= nl2br(e($ra['comments_to_editor'])) ?>
+                      <?= nl2br(e($ra['comment_for_editor'])) ?>
                     </div>
                   <?php endif; ?>
-                  <?php if ($ra['comments_to_author']): ?>
+                  <?php if ($ra['comment_for_author']): ?>
                     <div class="mt-2 p-2 rounded" style="background:#fff;border-left:3px solid var(--blue-mid);font-size:.82rem;">
                       <strong style="font-size:.75rem;color:var(--blue-mid);"><?= $_lang==='th' ? 'ความเห็นถึงผู้แต่ง:' : 'Comments to author:' ?></strong><br>
-                      <?= nl2br(e($ra['comments_to_author'])) ?>
+                      <?= nl2br(e($ra['comment_for_author'])) ?>
                     </div>
                   <?php endif; ?>
                 <?php endif; ?>
@@ -280,9 +288,9 @@ $activeMenu = 'papers';
           <div class="content-card-title"><i class="fas fa-users me-2" style="color:var(--gold);"></i><?= t('paper.co_authors') ?></div>
           <?php foreach ($coAuthors as $ca): ?>
             <div class="mb-2 pb-2" style="border-bottom:1px solid var(--gray-200);font-size:.84rem;">
-              <div style="font-weight:600;"><?= e($ca['name']) ?></div>
+              <div style="font-weight:600;"><?= e($ca['full_name']) ?></div>
               <div style="color:var(--gray-500);"><?= e($ca['email']) ?></div>
-              <div style="color:var(--gray-500);"><?= e($ca['affiliation']) ?> <?= $ca['country'] ? "· {$ca['country']}" : '' ?></div>
+              <div style="color:var(--gray-500);"><?= e($ca['institution']) ?> <?= $ca['country'] ? "· {$ca['country']}" : '' ?></div>
             </div>
           <?php endforeach; ?>
         </div>

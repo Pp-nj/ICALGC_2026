@@ -13,7 +13,7 @@ class Notification
      * Create a system notification (and optionally send email)
      */
     public static function create(
-        int    $userId,
+        ?int   $userId,
         string $type,
         string $titleTh,
         string $titleEn,
@@ -25,8 +25,7 @@ class Notification
         $db  = Database::getInstance();
         $sql = "INSERT INTO notifications
                     (user_id, type, title_th, title_en, message_th, message_en, related_paper_id, channel)
-                VALUES (:uid, :type, :tth, :ten, :mth, :men, :pid, :ch)
-                RETURNING id";
+                VALUES (:uid, :type, :tth, :ten, :mth, :men, :pid, :ch)";
         $stmt = $db->prepare($sql);
         $stmt->execute([
             ':uid'  => $userId,
@@ -38,7 +37,7 @@ class Notification
             ':pid'  => $paperId,
             ':ch'   => $channel,
         ]);
-        return (int)$stmt->fetchColumn();
+        return (int)$db->lastInsertId();
     }
 
     public static function getUnread(int $userId): array
@@ -81,7 +80,7 @@ class Notification
 
     // ── Convenience helpers ───────────────────────────────────
 
-    public static function paperSubmitted(int $authorId, int $adminId, string $paperCode, string $titleEn): void
+    public static function paperSubmitted(int $authorId, string $paperCode, string $titleEn): void
     {
         // Notify author
         self::create($authorId, 'paper_submitted',
@@ -91,13 +90,12 @@ class Notification
             "Your paper {$paperCode} has been submitted successfully.",
             null, 'system'
         );
-        // Notify admin
-        self::create($adminId, 'paper_submitted',
+        // Notify all active admins
+        self::notifyAdmins('paper_submitted',
             'มีบทความใหม่เข้ามา',
             'New Paper Submitted',
             "บทความใหม่ {$paperCode}: {$titleEn}",
-            "New paper submitted: {$paperCode} — {$titleEn}",
-            null, 'system'
+            "New paper submitted: {$paperCode} — {$titleEn}"
         );
     }
 
@@ -154,5 +152,48 @@ class Notification
             "Paper {$paperCode} requires revision. Please review the comments.",
             $paperId, 'both'
         );
+    }
+
+    public static function underReview(int $authorId, string $paperCode, int $paperId): void
+    {
+        self::create($authorId, 'review_assigned',
+            'บทความอยู่ระหว่างพิจารณา',
+            'Paper Under Review',
+            "บทความ {$paperCode} ได้รับการมอบหมายผู้ทรงคุณวุฒิครบแล้วและอยู่ระหว่างพิจารณา",
+            "Paper {$paperCode} has been assigned to reviewers and is now under review.",
+            $paperId, 'both'
+        );
+    }
+
+    public static function paperUnpublished(int $authorId, string $paperCode, int $paperId): void
+    {
+        self::create($authorId, 'system',
+            'ยกเลิกการเผยแพร่บทความ',
+            'Paper Unpublished',
+            "บทความ {$paperCode} ถูกยกเลิกการเผยแพร่ชั่วคราว กรุณาติดต่อผู้ดูแลระบบ",
+            "Paper {$paperCode} has been temporarily unpublished. Please contact the administrator.",
+            $paperId, 'system'
+        );
+    }
+
+    /** Notify all admins (used when reviewer submits a review) */
+    public static function notifyAdmins(
+        string $type,
+        string $titleTh,
+        string $titleEn,
+        string $messageTh,
+        string $messageEn,
+        ?int   $paperId = null
+    ): void {
+        try {
+            $db    = Database::getInstance();
+            $stmt  = $db->query("SELECT id FROM users WHERE role = 'admin' AND account_status = 'active'");
+            $admins = $stmt->fetchAll();
+            foreach ($admins as $admin) {
+                self::create((int)$admin['id'], $type, $titleTh, $titleEn, $messageTh, $messageEn, $paperId, 'system');
+            }
+        } catch (\Throwable $e) {
+            error_log('Notification::notifyAdmins error: ' . $e->getMessage());
+        }
     }
 }

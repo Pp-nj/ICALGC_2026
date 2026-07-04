@@ -11,7 +11,8 @@ $_menu  = $activeMenu ?? '';
 ?>
 <aside class="sidebar">
   <div class="sidebar-logo">
-    <img src="<?= $appUrl ?>/assets/images/logo-swu.png" alt="SWU" onerror="this.style.display='none'">
+    <img src="<?= $appUrl ?>/assets/images/swu_Logo.png" alt="SWU" onerror="this.style.display='none'">
+    <img src="<?= $appUrl ?>/assets/images/Guangdong University of Foreign Studies.png" alt="Guangdong" onerror="this.style.display='none'">
     <h6>ICALGC 2026</h6>
     <div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-top:4px;">
       <?= e($user['name'] ?? '') ?>

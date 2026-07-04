@@ -89,23 +89,99 @@ $activeMenu = 'my-papers';
 
     <?= flashHtml() ?>
 
-    <!-- Status Filter Tabs -->
-    <div class="d-flex flex-wrap gap-2 mb-4">
-      <a href="?" class="btn btn-sm rounded-pill fw-bold <?= !$statusFilter?'btn-warning':'btn-outline-secondary' ?>"
-         style="<?= !$statusFilter?'background:var(--gold);color:var(--blue-dark);border-color:var(--gold);':'' ?>">
-        <?= t('common.all') ?>
-      </a>
-      <?php foreach ($statuses as $s):
-        $name = $_lang==='th' ? $s['name_th'] : $s['name_en'];
+    <!-- Horizontal Stepper: Submission Pipeline -->
+    <div class="content-card mb-4" style="padding:20px 28px;">
+      <div class="content-card-title mb-3">
+        <i class="fas fa-route me-2" style="color:var(--gold);"></i>
+        <?= $_lang==='th' ? 'ขั้นตอนการดำเนินการบทความ' : 'Submission Pipeline' ?>
+      </div>
+      <?php
+        $rejectedStatus = null;
+        $mainStatuses   = [];
+        foreach ($statuses as $s) {
+          if ($s['code'] === 'rejected') { $rejectedStatus = $s; }
+          else { $mainStatuses[] = $s; }
+        }
       ?>
-        <a href="?status=<?= urlencode($s['code']) ?>"
-           class="btn btn-sm rounded-pill fw-bold"
-           style="background:<?= $statusFilter===$s['code']?$s['color_hex']:'transparent' ?>;
-                  color:<?= $statusFilter===$s['code']?'#fff':'var(--gray-700)' ?>;
-                  border:2px solid <?= $s['color_hex'] ?>;">
-          <?= e($name) ?>
-        </a>
-      <?php endforeach; ?>
+      <?php $n = count($mainStatuses); ?>
+      <div class="progress-track pipeline-track" style="position:relative;margin:0;padding:8px 0 70px;">
+        <?php if ($n > 1): ?>
+          <div style="position:absolute;top:25px;left:<?= (0.5 / $n * 100) ?>%;right:<?= (0.5 / $n * 100) ?>%;height:2px;background:var(--gray-200);z-index:0;"></div>
+        <?php endif; ?>
+        <?php foreach ($mainStatuses as $i => $s):
+          $sName = $_lang==='th' ? $s['name_th'] : $s['name_en'];
+        ?>
+          <div class="progress-step" style="min-width:70px;position:relative;z-index:1;">
+            <div class="progress-circle"
+                 style="background:<?= e($s['color_hex']) ?>;border-color:<?= e($s['color_hex']) ?>;color:#fff;width:34px;height:34px;font-size:.75rem;">
+              <?= (int)$s['progress_step'] ?>
+            </div>
+            <div class="progress-label" style="color:var(--gray-700);font-size:.68rem;margin-top:6px;">
+              <?= e($sName) ?>
+            </div>
+
+            <?php if ($s['code'] === 'accepted' && $rejectedStatus): ?>
+              <div style="position:absolute;top:56px;left:50%;width:2px;height:16px;background:var(--gray-200);"></div>
+              <div style="position:absolute;top:72px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;min-width:70px;">
+                <div class="progress-circle"
+                     style="background:<?= e($rejectedStatus['color_hex']) ?>22;border-color:<?= e($rejectedStatus['color_hex']) ?>;color:<?= e($rejectedStatus['color_hex']) ?>;width:34px;height:34px;font-size:.75rem;">
+                  <?= (int)$rejectedStatus['progress_step'] ?>
+                </div>
+                <div class="progress-label" style="color:var(--gray-700);font-size:.68rem;margin-top:6px;white-space:nowrap;">
+                  <?= e($_lang==='th' ? $rejectedStatus['name_th'] : $rejectedStatus['name_en']) ?>
+                </div>
+              </div>
+            <?php endif; ?>
+          </div>
+        <?php endforeach; ?>
+      </div>
+    </div>
+
+    <!-- Status Filter Dropdown -->
+    <div class="d-flex align-items-center gap-3 mb-4 flex-wrap">
+      <label class="fw-bold" style="font-size:.85rem;color:var(--blue-dark);white-space:nowrap;">
+        <i class="fas fa-filter me-1" style="color:var(--gold);"></i>
+        <?= $_lang==='th' ? 'กรองตามสถานะ' : 'Filter by Status' ?>
+      </label>
+      <div class="dropdown">
+        <?php
+          $selectedLabel = $_lang==='th' ? 'ทั้งหมด' : 'All';
+          $selectedColor = 'var(--blue-dark)';
+          foreach ($statuses as $s) {
+            if ($statusFilter === $s['code']) {
+              $selectedLabel = $_lang==='th' ? $s['name_th'] : $s['name_en'];
+              $selectedColor = $s['color_hex'];
+            }
+          }
+        ?>
+        <button class="btn btn-sm dropdown-toggle fw-bold rounded-pill px-4"
+                type="button" data-bs-toggle="dropdown" aria-expanded="false"
+                style="border:2px solid <?= $selectedColor ?>;color:<?= $selectedColor ?>;background:#fff;min-width:160px;text-align:left;">
+          <?= e($selectedLabel) ?>
+        </button>
+        <ul class="dropdown-menu shadow-sm rounded" style="min-width:200px;">
+          <li>
+            <a class="dropdown-item fw-bold <?= !$statusFilter ? 'active' : '' ?>" href="?"
+               style="font-size:.88rem;">
+              <i class="fas fa-layer-group me-2" style="color:var(--blue-mid);"></i>
+              <?= $_lang==='th' ? 'ทั้งหมด' : 'All Statuses' ?>
+            </a>
+          </li>
+          <li><hr class="dropdown-divider"></li>
+          <?php foreach ($statuses as $s):
+            $sName = $_lang==='th' ? $s['name_th'] : $s['name_en'];
+          ?>
+            <li>
+              <a class="dropdown-item <?= $statusFilter===$s['code'] ? 'active' : '' ?>"
+                 href="?status=<?= urlencode($s['code']) ?>"
+                 style="font-size:.88rem;">
+                <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:<?= e($s['color_hex']) ?>;margin-right:8px;"></span>
+                <?= e($sName) ?>
+              </a>
+            </li>
+          <?php endforeach; ?>
+        </ul>
+      </div>
     </div>
 
     <!-- Papers Table -->
@@ -136,10 +212,15 @@ $activeMenu = 'my-papers';
               </tr>
             </thead>
             <tbody>
-              <?php foreach ($papers as $p): ?>
-                <tr>
-                  <td>
-                    <code style="font-size:.8rem;color:var(--blue-mid);"><?= e($p['paper_code']) ?></code>
+              <?php foreach ($papers as $p):
+                $detailUrl   = $appUrl . '/author/paper-detail.php?id='  . (int)$p['id'];
+                $historyUrl  = $appUrl . '/author/paper-history.php?id=' . (int)$p['id'];
+              ?>
+                <tr style="cursor:pointer;" onclick="window.location='<?= $historyUrl ?>'">
+                  <td onclick="event.stopPropagation()">
+                    <a href="<?= $historyUrl ?>" style="text-decoration:none;">
+                      <code style="font-size:.8rem;color:var(--blue-mid);"><?= e($p['paper_code']) ?></code>
+                    </a>
                   </td>
                   <td style="max-width:220px;">
                     <div style="font-weight:600;font-size:.88rem;">
@@ -156,21 +237,24 @@ $activeMenu = 'my-papers';
                     <?= humanDate($p['submitted_at']) ?>
                   </td>
                   <td><?= statusBadge($p['status_code']) ?></td>
-                  <td>
+                  <td onclick="event.stopPropagation()">
                     <div class="d-flex gap-1 flex-wrap">
-                      <a href="<?= $appUrl ?>/author/paper-detail.php?id=<?= (int)$p['id'] ?>"
-                         class="btn btn-sm btn-outline-primary rounded-pill" style="font-size:.75rem;">
-                        <i class="fas fa-eye"></i>
+                      <a href="<?= $historyUrl ?>"
+                         class="btn btn-sm btn-outline-primary rounded-pill" style="font-size:.75rem;"
+                         title="<?= $_lang==='th' ? 'ประวัติการส่ง' : 'Submission History' ?>">
+                        <i class="fas fa-history me-1"></i><?= $_lang==='th' ? 'ประวัติ' : 'History' ?>
                       </a>
                       <?php if (in_array($p['status_code'], ['revision_required'])): ?>
                         <a href="<?= $appUrl ?>/author/revise.php?id=<?= (int)$p['id'] ?>"
-                           class="btn btn-sm btn-warning rounded-pill" style="font-size:.75rem;color:#fff;">
+                           class="btn btn-sm btn-warning rounded-pill" style="font-size:.75rem;color:#fff;"
+                           title="<?= $_lang==='th' ? 'ส่งบทความแก้ไข' : 'Submit Revision' ?>">
                           <i class="fas fa-edit"></i>
                         </a>
                       <?php endif; ?>
                       <?php if ($p['status_code'] === 'published'): ?>
                         <a href="<?= $appUrl ?>/download.php?paper_id=<?= (int)$p['id'] ?>"
-                           class="btn btn-sm btn-success rounded-pill" style="font-size:.75rem;">
+                           class="btn btn-sm btn-success rounded-pill" style="font-size:.75rem;"
+                           title="<?= $_lang==='th' ? 'ดาวน์โหลด' : 'Download' ?>">
                           <i class="fas fa-download"></i>
                         </a>
                       <?php endif; ?>
@@ -207,19 +291,6 @@ $activeMenu = 'my-papers';
       <?php endif; ?>
     </div>
 
-    <!-- Progress Legend -->
-    <div class="content-card mt-4">
-      <div class="content-card-title"><i class="fas fa-info-circle me-2" style="color:var(--gold);"></i><?= $_lang==='th'?'คำอธิบายสถานะ':'Status Legend' ?></div>
-      <div class="d-flex flex-wrap gap-3">
-        <?php foreach ($statuses as $s): ?>
-          <div class="d-flex align-items-center gap-2">
-            <span class="status-badge" style="background:<?= e($s['color_hex']) ?>;color:#fff;">
-              <?= e($_lang==='th'?$s['name_th']:$s['name_en']) ?>
-            </span>
-          </div>
-        <?php endforeach; ?>
-      </div>
-    </div>
 
   </main>
 </div>

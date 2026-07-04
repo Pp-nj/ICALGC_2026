@@ -1,28 +1,76 @@
 <?php
 /**
  * Secure File Download Handler
- * Downloads are served through PHP — never via direct URL
- * Access control: Published papers are public; other papers require auth + ownership/role
+ * Serves paper files and certificate PDFs through PHP — never via direct URL.
+ * Access control:
+ *   cert_id  → owner or admin only
+ *   file_id  → admin | paper owner | assigned reviewer
+ *   paper_id → public if published, else admin | owner | reviewer
  */
 require_once __DIR__ . '/../app/helpers/init.php';
 
 use App\Core\Auth;
 use App\Core\Database;
 
-$paperId  = intGet('paper_id');
-$fileId   = intGet('file_id');
-$type     = sanitize(get('type', 'latest')); // 'latest' | 'id'
+$certId  = intGet('cert_id');
+$paperId = intGet('paper_id');
+$fileId  = intGet('file_id');
 
-if (!$paperId && !$fileId) {
+if (!$certId && !$paperId && !$fileId) {
     http_response_code(400);
     die('Invalid request.');
 }
 
 $db = Database::getInstance();
 
+/* ── Certificate download ─────────────────────────────── */
+if ($certId) {
+    Auth::require();
+    $user = Auth::user();
+
+    $stmt = $db->prepare("SELECT * FROM certificates WHERE id = :id LIMIT 1");
+    $stmt->execute([':id' => $certId]);
+    $cert = $stmt->fetch();
+
+    if (!$cert) {
+        http_response_code(404);
+        die('Certificate not found.');
+    }
+
+    if ((int)$cert['user_id'] !== (int)$user['id'] && !Auth::isAdmin()) {
+        http_response_code(403);
+        die('Access denied.');
+    }
+
+    if (empty($cert['pdf_path'])) {
+        http_response_code(404);
+        die('No file attached to this certificate.');
+    }
+
+    $fullPath = ROOT_PATH . '/' . $cert['pdf_path'];
+    if (!file_exists($fullPath)) {
+        http_response_code(404);
+        die('Certificate file not found on server.');
+    }
+
+    auditLog('download', 'certificate', 'cert_id=' . $certId . ' type=' . $cert['cert_type']);
+
+    $safeName = strtoupper($cert['cert_type']) . '_Certificate_'
+              . preg_replace('/[^A-Za-z0-9_\-]/', '_', $cert['recipient_name'])
+              . '.pdf';
+
+    header('Content-Type: application/pdf');
+    header('Content-Disposition: inline; filename="' . rawurlencode($safeName) . '"');
+    header('Content-Length: ' . filesize($fullPath));
+    header('Cache-Control: private, max-age=0, must-revalidate');
+    header('X-Content-Type-Options: nosniff');
+    readfile($fullPath);
+    exit;
+}
+
+/* ── Paper / file download ────────────────────────────── */
 try {
     if ($fileId) {
-        // Specific file by ID (dashboard users)
         Auth::require();
         $user = Auth::user();
 
@@ -38,28 +86,25 @@ try {
 
         if (!$file) { http_response_code(404); die('File not found.'); }
 
-        // Access: admin, assigned reviewer, or paper owner
         $canAccess = Auth::isAdmin()
-            || $file['submitter_id'] === $user['id']
-            || Auth::isReviewer();
+                  || (int)$file['submitter_id'] === (int)$user['id']
+                  || Auth::isReviewer();
 
         if (!$canAccess) { http_response_code(403); die('Access denied.'); }
 
     } else {
-        // By paper_id + type
         $stmt = $db->prepare("SELECT status_code, submitter_id FROM papers WHERE id = :pid LIMIT 1");
         $stmt->execute([':pid' => $paperId]);
         $paper = $stmt->fetch();
 
         if (!$paper) { http_response_code(404); die('Paper not found.'); }
 
-        // Public access only for published papers
         if ($paper['status_code'] !== 'published') {
             Auth::require();
             $user = Auth::user();
             $canAccess = Auth::isAdmin()
-                || $paper['submitter_id'] === $user['id']
-                || Auth::isReviewer();
+                      || (int)$paper['submitter_id'] === (int)$user['id']
+                      || Auth::isReviewer();
             if (!$canAccess) { http_response_code(403); die('Access denied.'); }
         }
 
@@ -75,7 +120,6 @@ try {
         if (!$file) { http_response_code(404); die('No file attached to this paper.'); }
     }
 
-    // Build absolute path (file is stored outside public/)
     $fullPath = ROOT_PATH . '/uploads/papers/' . $file['stored_name'];
 
     if (!file_exists($fullPath)) {
@@ -83,7 +127,6 @@ try {
         die('File not found on server.');
     }
 
-    // Increment download count for published papers
     if ($paperId) {
         $db->prepare("UPDATE publications SET download_count = download_count + 1 WHERE paper_id = :pid")
            ->execute([':pid' => $paperId]);
@@ -91,8 +134,8 @@ try {
 
     auditLog('download', 'paper', 'Downloaded: ' . $file['original_name']);
 
-    // Serve file
-    $mime = $file['file_type'] === 'pdf' ? 'application/pdf'
+    $mime = $file['file_type'] === 'pdf'
+          ? 'application/pdf'
           : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 
     header('Content-Type: ' . $mime);
@@ -100,7 +143,6 @@ try {
     header('Content-Length: ' . filesize($fullPath));
     header('Cache-Control: private, max-age=0, must-revalidate');
     header('X-Content-Type-Options: nosniff');
-
     readfile($fullPath);
     exit;
 

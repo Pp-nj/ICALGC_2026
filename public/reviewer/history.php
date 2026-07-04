@@ -19,7 +19,7 @@ try {
     $cntStmt = $db->prepare("
         SELECT COUNT(*) FROM review_assignments ra
         JOIN reviews r ON r.assignment_id = ra.id
-        WHERE ra.reviewer_id = :uid AND ra.status = 'completed'
+        WHERE ra.reviewer_id = :uid AND ra.assignment_status = 'completed'
     ");
     $cntStmt->execute([':uid' => $uid]);
     $total = (int)$cntStmt->fetchColumn();
@@ -30,15 +30,15 @@ try {
         SELECT ra.id AS assignment_id, ra.assigned_at, ra.due_date,
                p.paper_code, p.title_th, p.title_en,
                ct.name_th AS theme_th, ct.name_en AS theme_en,
-               r.overall_score, r.recommendation, r.submitted_at,
-               r.criterion_1_score, r.criterion_2_score, r.criterion_3_score,
-               r.criterion_4_score, r.criterion_5_score, r.criterion_6_score
+               r.score_overall, r.recommendation, r.reviewed_at,
+               r.score_relevance, r.score_methodology, r.score_originality,
+               r.score_contribution, r.score_writing
         FROM review_assignments ra
         JOIN papers p ON p.id = ra.paper_id
         JOIN conference_themes ct ON ct.id = p.theme_id
         JOIN reviews r ON r.assignment_id = ra.id
-        WHERE ra.reviewer_id = :uid AND ra.status = 'completed'
-        ORDER BY r.submitted_at DESC
+        WHERE ra.reviewer_id = :uid AND ra.assignment_status = 'completed'
+        ORDER BY r.reviewed_at DESC
         LIMIT :lim OFFSET :off
     ");
     $stmt->bindValue(':uid', $uid, \PDO::PARAM_INT);
@@ -51,13 +51,13 @@ try {
     $sStmt = $db->prepare("
         SELECT
             COUNT(*) AS total,
-            ROUND(AVG(r.overall_score)::numeric, 2) AS avg_score,
-            COUNT(*) FILTER (WHERE r.recommendation = 'accept') AS accepted,
-            COUNT(*) FILTER (WHERE r.recommendation IN ('minor_revision','major_revision')) AS revised,
-            COUNT(*) FILTER (WHERE r.recommendation = 'reject') AS rejected
+            ROUND(AVG(r.score_overall), 2) AS avg_score,
+            SUM(CASE WHEN r.recommendation = 'accept' THEN 1 ELSE 0 END) AS accepted,
+            SUM(CASE WHEN r.recommendation IN ('minor_revision','major_revision') THEN 1 ELSE 0 END) AS revised,
+            SUM(CASE WHEN r.recommendation = 'reject' THEN 1 ELSE 0 END) AS rejected
         FROM review_assignments ra
         JOIN reviews r ON r.assignment_id = ra.id
-        WHERE ra.reviewer_id = :uid AND ra.status = 'completed'
+        WHERE ra.reviewer_id = :uid AND ra.assignment_status = 'completed'
     ");
     $sStmt->execute([':uid' => $uid]);
     $summary = $sStmt->fetch();
@@ -159,7 +159,7 @@ $recLabels = ['accept'=>['th'=>'ยอมรับ','en'=>'Accept'],'minor_revis
                   </td>
                   <td>
                     <div class="text-center" style="background:var(--blue-dark);color:#fff;border-radius:50%;width:42px;height:42px;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;font-weight:800;font-size:.95rem;">
-                      <?= number_format($rv['overall_score'], 1) ?>
+                      <?= number_format($rv['score_overall'], 1) ?>
                     </div>
                   </td>
                   <td>
@@ -169,7 +169,7 @@ $recLabels = ['accept'=>['th'=>'ยอมรับ','en'=>'Accept'],'minor_revis
                       </span>
                     <?php endif; ?>
                   </td>
-                  <td style="font-size:.82rem;"><?= humanDate($rv['submitted_at'], $_lang) ?></td>
+                  <td style="font-size:.82rem;"><?= humanDate($rv['reviewed_at'], $_lang) ?></td>
                   <td>
                     <a href="<?= $appUrl ?>/reviewer/review.php?assignment_id=<?= (int)$rv['assignment_id'] ?>"
                        class="btn btn-sm btn-outline-primary rounded-pill" style="font-size:.75rem;">

@@ -46,87 +46,91 @@ try {
     redirect($appUrl . '/reviewer/assigned-papers.php');
 }
 
-$readOnly = ($assignment['status'] === 'completed' || $assignment['status'] === 'declined');
+$readOnly = ($assignment['assignment_status'] === 'completed' || $assignment['assignment_status'] === 'declined');
 $errors   = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$readOnly) {
     Auth::verifyCsrf(post('csrf_token'));
 
+    $scoreFields = ['score_relevance', 'score_methodology', 'score_originality', 'score_contribution', 'score_writing'];
+    $scoreMaxes  = [20, 20, 25, 25, 10];
     $scores = [];
-    for ($i = 1; $i <= 6; $i++) {
-        $scores["criterion_{$i}_score"] = intPost("criterion_{$i}_score");
-        if ($scores["criterion_{$i}_score"] < 1 || $scores["criterion_{$i}_score"] > 10)
-            $errors[] = ($_lang==='th' ? "เกณฑ์ที่ $i ต้องมีคะแนน 1-10" : "Criterion $i score must be 1-10.");
+    foreach ($scoreFields as $i => $field) {
+        $level = intPost($field);
+        $step  = $scoreMaxes[$i] / 5;
+        $scores[$field] = $level * $step;
+        if ($level < 1 || $level > 5)
+            $errors[] = ($_lang==='th' ? "เกณฑ์ที่ " . ($i+1) . " ต้องเลือกระดับคะแนน 1–5" : "Criterion " . ($i+1) . " must have a score level of 1–5.");
     }
 
-    $commentsAuthor = trim(post('comments_to_author'));
-    $commentsEditor = trim(post('comments_to_editor'));
+    $commentsAuthor = trim(post('comment_for_author'));
+    $commentsEditor = trim(post('comment_for_editor'));
     $recommendation = post('recommendation');
-    $isDraft        = post('save_draft') === '1';
 
     $allowedRec = ['accept', 'minor_revision', 'major_revision', 'reject'];
-    if (!$isDraft && !in_array($recommendation, $allowedRec))
+    if (!in_array($recommendation, $allowedRec))
         $errors[] = $_lang==='th' ? 'กรุณาเลือกข้อเสนอแนะ' : 'Please select a recommendation.';
-    if (!$isDraft && !$commentsAuthor)
+    if (!$commentsAuthor)
         $errors[] = $_lang==='th' ? 'กรุณากรอกความเห็นถึงผู้แต่ง' : 'Comments to author are required.';
 
     if (empty($errors)) {
         try {
-            $overallScore = array_sum(array_values($scores)) / 6;
+            $overallScore = array_sum(array_values($scores));
 
             if ($existingReview) {
                 $upd = $db->prepare("
                     UPDATE reviews SET
-                        criterion_1_score = :c1, criterion_2_score = :c2,
-                        criterion_3_score = :c3, criterion_4_score = :c4,
-                        criterion_5_score = :c5, criterion_6_score = :c6,
-                        overall_score = :os, recommendation = :rec,
-                        comments_to_author = :ca, comments_to_editor = :ce,
-                        is_draft = :dr, submitted_at = NOW()
+                        score_relevance = :sr, score_methodology = :sm,
+                        score_originality = :so, score_contribution = :sc,
+                        score_writing = :sw,
+                        score_overall = :os, recommendation = :rec,
+                        comment_for_author = :ca, comment_for_editor = :ce,
+                        review_status = 'submitted', reviewed_at = NOW()
                     WHERE id = :rid
                 ");
-                $upd->execute(array_merge($scores, [
+                $upd->execute([
+                    ':sr' => $scores['score_relevance'], ':sm' => $scores['score_methodology'],
+                    ':so' => $scores['score_originality'], ':sc' => $scores['score_contribution'],
+                    ':sw' => $scores['score_writing'],
                     ':os' => $overallScore, ':rec' => $recommendation,
                     ':ca' => $commentsAuthor, ':ce' => $commentsEditor,
-                    ':dr' => $isDraft ? 't' : 'f',
                     ':rid' => $existingReview['id'],
-                ]));
+                ]);
             } else {
                 $ins = $db->prepare("
                     INSERT INTO reviews
-                        (assignment_id, criterion_1_score, criterion_2_score,
-                         criterion_3_score, criterion_4_score, criterion_5_score,
-                         criterion_6_score, overall_score, recommendation,
-                         comments_to_author, comments_to_editor, is_draft)
+                        (assignment_id, paper_id, reviewer_id, score_relevance, score_methodology,
+                         score_originality, score_contribution, score_writing,
+                         score_overall, recommendation,
+                         comment_for_author, comment_for_editor, review_status, reviewed_at)
                     VALUES
-                        (:aid, :c1, :c2, :c3, :c4, :c5, :c6, :os, :rec, :ca, :ce, :dr)
+                        (:aid, :pid, :uid, :sr, :sm, :so, :sc, :sw, :os, :rec, :ca, :ce, 'submitted', NOW())
                 ");
-                $ins->execute(array_merge($scores, [
-                    ':aid' => $assignmentId, ':os' => $overallScore,
-                    ':rec' => $recommendation, ':ca' => $commentsAuthor,
-                    ':ce'  => $commentsEditor, ':dr' => $isDraft ? 't' : 'f',
-                ]));
+                $ins->execute([
+                    ':aid' => $assignmentId, ':pid' => $assignment['paper_id'], ':uid' => $uid,
+                    ':sr' => $scores['score_relevance'], ':sm' => $scores['score_methodology'],
+                    ':so' => $scores['score_originality'], ':sc' => $scores['score_contribution'],
+                    ':sw' => $scores['score_writing'],
+                    ':os' => $overallScore, ':rec' => $recommendation,
+                    ':ca' => $commentsAuthor, ':ce' => $commentsEditor,
+                ]);
             }
 
-            if (!$isDraft) {
-                // Mark assignment as completed
-                $db->prepare("UPDATE review_assignments SET status = 'completed' WHERE id = :aid")
-                   ->execute([':aid' => $assignmentId]);
+            // Mark assignment as completed
+            $db->prepare("UPDATE review_assignments SET assignment_status = 'completed' WHERE id = :aid")
+               ->execute([':aid' => $assignmentId]);
 
-                // Notify admin
-                Notification::create(
-                    null, 'review_result',
-                    'มีผลประเมินบทความใหม่',
-                    'New Review Submitted',
-                    "ผู้ทรงคุณวุฒิส่งผลประเมินบทความ {$assignment['paper_code']} แล้ว",
-                    "Reviewer has submitted review for {$assignment['paper_code']}.",
-                    $assignment['paper_id'], 'system'
-                );
-            }
+            // Notify all admins
+            Notification::notifyAdmins(
+                'review_result',
+                'มีผลประเมินบทความใหม่',
+                'New Review Submitted',
+                "ผู้ทรงคุณวุฒิส่งผลประเมินบทความ {$assignment['paper_code']} แล้ว",
+                "Reviewer has submitted review for {$assignment['paper_code']}.",
+                $assignment['paper_id']
+            );
 
-            $msg = $isDraft
-                ? ($_lang==='th' ? 'บันทึกฉบับร่างแล้ว' : 'Draft saved.')
-                : ($_lang==='th' ? 'ส่งผลประเมินเรียบร้อย' : 'Review submitted successfully.');
+            $msg = $_lang==='th' ? 'ส่งผลประเมินเรียบร้อย' : 'Review submitted successfully.';
             flashSet('success', $msg);
             redirect($appUrl . '/reviewer/review.php?assignment_id=' . $assignmentId);
 
@@ -140,27 +144,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$readOnly) {
 $pageTitle  = $_lang==='th' ? 'ประเมินบทความ' : 'Review Paper';
 $activeMenu = 'assigned';
 
+$scoreMaxes = [20, 20, 25, 25, 10];
 $criteria = $_lang==='th' ? [
-    ['key'=>'criterion_1_score', 'label'=>'ความเกี่ยวข้องกับหัวข้อประชุม', 'hint'=>'บทความสอดคล้องกับขอบเขตและหัวข้อของการประชุมมากเพียงใด'],
-    ['key'=>'criterion_2_score', 'label'=>'ความชัดเจนของวัตถุประสงค์และคำถามวิจัย', 'hint'=>'วัตถุประสงค์และคำถามวิจัยชัดเจนและมีความเป็นไปได้'],
-    ['key'=>'criterion_3_score', 'label'=>'ความเหมาะสมของวิธีการวิจัย', 'hint'=>'วิธีการวิจัยเหมาะสมและมีความน่าเชื่อถือ'],
-    ['key'=>'criterion_4_score', 'label'=>'คุณภาพของบทคัดย่อ', 'hint'=>'บทคัดย่อสรุปได้ครบถ้วน ชัดเจน และน่าสนใจ'],
-    ['key'=>'criterion_5_score', 'label'=>'ความเป็นต้นฉบับและคุณค่าทางวิชาการ', 'hint'=>'งานวิจัยมีความใหม่และสร้างคุณค่าให้วงการวิชาการ'],
-    ['key'=>'criterion_6_score', 'label'=>'คุณภาพการเขียนและการใช้ภาษา', 'hint'=>'การเขียนชัดเจน ถูกต้องตามหลักภาษา และเป็นมืออาชีพ'],
+    ['key'=>'score_relevance',    'label'=>'ความสอดคล้องกับหัวข้อการประชุม',              'hint'=>'มีความสอดคล้องกับประเด็นและเป้าหมายของการประชุมวิชาการ',          'max'=>20],
+    ['key'=>'score_methodology',  'label'=>'ความแปลกใหม่และความสำคัญของงาน',  'hint'=>'มีแนวคิดใหม่ ประโยชน์ทางวิชาการหรือสร้างองค์ความรู้ใหม่',            'max'=>20],
+    ['key'=>'score_originality',  'label'=>'คุณภาพทางวิชาการและระเบียบวิธีวิจัย',                            'hint'=>'วัตถุประสงค์ แนวคิด และวิธีดำเนินการมีความเหมาะสมและน่าเชื่อถือ',                          'max'=>25],
+    ['key'=>'score_contribution', 'label'=>'ความชัดเจนและการเรียบเรียง',                            'hint'=>'เนื้อหามีความเป็นระเบียบ เข้าในง่ายและเรียงลำดับได้ดี',                      'max'=>25],
+    ['key'=>'score_writing',      'label'=>'คุณภาพการใช้ภาษา',               'hint'=>'การใช้ภาษาอังกฤษถูกต้องเหมาะสม และสื่อสารได้ชัดเจน',                  'max'=>10],
 ] : [
-    ['key'=>'criterion_1_score', 'label'=>'Relevance to Conference Theme', 'hint'=>'How well does the paper align with the scope and themes of the conference?'],
-    ['key'=>'criterion_2_score', 'label'=>'Clarity of Objectives & Research Questions', 'hint'=>'Are the objectives and research questions clear and achievable?'],
-    ['key'=>'criterion_3_score', 'label'=>'Appropriateness of Research Methodology', 'hint'=>'Is the research methodology appropriate and credible?'],
-    ['key'=>'criterion_4_score', 'label'=>'Quality of the Abstract', 'hint'=>'Does the abstract accurately and concisely summarize the work?'],
-    ['key'=>'criterion_5_score', 'label'=>'Originality & Academic Contribution', 'hint'=>'Is the work original and does it add value to the field?'],
-    ['key'=>'criterion_6_score', 'label'=>'Writing Quality & Language', 'hint'=>'Is the writing clear, grammatically correct, and professional?'],
+    ['key'=>'score_relevance',    'label'=>'Relevance to Conference Theme',       'hint'=>'The extent to which the abstract aligns with the conference theme and objectives',  'max'=>20],
+    ['key'=>'score_methodology',  'label'=>'Originality and Significance ',   'hint'=>'The originality of the work and its potential contribution to knowledge ',   'max'=>20],
+    ['key'=>'score_originality',  'label'=>'Academic Quality and Methodology',            'hint'=>'The academic quality including objectives ,literature, and methodology are appropriate and reliable',             'max'=>25],
+    ['key'=>'score_contribution', 'label'=>'Clarity and Organization',               'hint'=>'The content is well-structured, clear,and easy to understand',                            'max'=>25],
+    ['key'=>'score_writing',      'label'=>'Language Quality',          'hint'=>'The quality of English usage including grammar, vocabulary,and overall readability',              'max'=>10],
 ];
 
 $recommendations = [
-    'accept'         => ['th'=>'ยอมรับ', 'en'=>'Accept', 'color'=>'#198754'],
-    'minor_revision' => ['th'=>'แก้ไขเล็กน้อย', 'en'=>'Minor Revision', 'color'=>'#fd7e14'],
-    'major_revision' => ['th'=>'แก้ไขหลัก', 'en'=>'Major Revision', 'color'=>'#dc3545'],
-    'reject'         => ['th'=>'ปฏิเสธ', 'en'=>'Reject', 'color'=>'#6c757d'],
+    'accept'         => ['th'=>'รับนำเสนอ', 'en'=>'Accept', 'color'=>'#198754'],
+    'minor_revision' => ['th'=>'รับนำเสนอโดยปรับแก้เล็กน้อย', 'en'=>'Accept with Minor Revision', 'color'=>'#fd7e14'],
+    'major_revision' => ['th'=>'รับนำเสนอโดยปรับแก้สาระสำคัญ', 'en'=>'Accept with Major Revision', 'color'=>'#dc3545'],
+    'reject'         => ['th'=>'ไม่รับนำเสนอ', 'en'=>'Reject', 'color'=>'#6c757d'],
 ];
 ?>
 <!DOCTYPE html>
@@ -193,7 +196,7 @@ $recommendations = [
           <code style="color:var(--blue-mid);"><?= e($assignment['paper_code']) ?></code>
         </p>
       </div>
-      <?php if ($readOnly && $assignment['status'] === 'completed'): ?>
+      <?php if ($readOnly && $assignment['assignment_status'] === 'completed'): ?>
         <span class="badge rounded-pill px-4 py-2" style="background:#198754;color:#fff;font-size:.85rem;">
           <i class="fas fa-check-circle me-1"></i><?= $_lang==='th' ? 'ส่งผลแล้ว' : 'Submitted' ?>
         </span>
@@ -262,30 +265,44 @@ $recommendations = [
           <!-- Criteria Scores -->
           <div class="content-card mb-4">
             <div class="content-card-title">
-              <i class="fas fa-star-half-alt me-2" style="color:var(--gold);"></i><?= $_lang==='th' ? 'เกณฑ์การประเมิน (1–10)' : 'Evaluation Criteria (1–10)' ?>
+              <i class="fas fa-star-half-alt me-2" style="color:var(--gold);"></i><?= $_lang==='th' ? 'เกณฑ์การประเมิน' : 'Evaluation Criteria' ?>
             </div>
             <div class="d-flex flex-column gap-4">
               <?php foreach ($criteria as $i => $crit):
-                $fieldName = $crit['key'];
-                $currentScore = $_POST[$fieldName] ?? ($existingReview[$fieldName] ?? 7);
+                $fieldName    = $crit['key'];
+                $maxScore     = $crit['max'];
+                $step         = $maxScore / 5;
+                $storedScore  = (float)($_POST[$fieldName] ?? ($existingReview[$fieldName] ?? 0));
+                $currentLevel = ($storedScore > 0) ? max(1, min(5, (int)round($storedScore / $step))) : 0;
               ?>
-                <div>
-                  <div class="d-flex justify-content-between align-items-center mb-1">
-                    <label class="form-label fw-bold mb-0" style="font-size:.85rem;color:var(--blue-dark);">
+                <div class="criterion-block">
+                  <div class="d-flex justify-content-between align-items-start mb-1">
+                    <label class="form-label fw-bold mb-0" style="font-size:1rem;color:var(--blue-dark);flex:1;padding-right:8px;">
                       <?= $i+1 ?>. <?= $crit['label'] ?>
                     </label>
-                    <span class="score-display fw-bold" id="disp_<?= $i ?>" style="color:var(--blue-dark);font-size:1.1rem;min-width:40px;text-align:right;">
-                      <?= $currentScore ?>
-                    </span>
+                    <div class="text-end" style="white-space:nowrap;">
+                      <span class="score-display fw-bold" id="disp_<?= $i ?>" style="color:var(--blue-dark);font-size:1.1rem;">
+                        <?= $currentLevel > 0 ? $currentLevel * $step : '–' ?>
+                      </span>
+                      <span style="color:var(--gray-400);font-size:.9rem;"> / <?= $maxScore ?></span>
+                    </div>
                   </div>
-                  <div style="font-size:.76rem;color:var(--gray-500);margin-bottom:8px;"><?= $crit['hint'] ?></div>
-                  <input type="range" class="score-slider" name="<?= $fieldName ?>"
-                         min="1" max="10" step="1"
-                         value="<?= (int)$currentScore ?>"
-                         id="slider_<?= $i ?>"
-                         oninput="document.getElementById('disp_<?= $i ?>').textContent=this.value"
-                         <?= $readOnly ? 'disabled' : '' ?>>
-                  <div class="d-flex justify-content-between" style="font-size:.72rem;color:var(--gray-400);">
+                  <div style="font-size:.76rem;color:var(--gray-500);margin-bottom:10px;"><?= $crit['hint'] ?></div>
+                  <input type="hidden" name="<?= $fieldName ?>" id="inp_<?= $i ?>" value="<?= $currentLevel ?>">
+                  <div class="score-btn-group d-flex gap-2" style="width:100%;justify-content:space-between;">
+                    <?php for ($lvl = 1; $lvl <= 5; $lvl++): ?>
+                      <button type="button"
+                              class="score-btn <?= $readOnly ? 'score-btn-readonly' : '' ?> <?= $currentLevel === $lvl ? 'score-btn-active' : '' ?>"
+                              data-criterion="<?= $i ?>"
+                              data-level="<?= $lvl ?>"
+                              data-score="<?= $lvl * $step ?>"
+                              data-max="<?= $maxScore ?>"
+                              <?= $readOnly ? 'disabled' : '' ?>>
+                        <?= $lvl ?>
+                      </button>
+                    <?php endfor; ?>
+                  </div>
+                  <div class="d-flex justify-content-between mt-1" style="font-size:.7rem;color:var(--gray-400);">
                     <span><?= $_lang==='th' ? 'ต่ำสุด' : 'Poor' ?></span>
                     <span><?= $_lang==='th' ? 'ดีเยี่ยม' : 'Excellent' ?></span>
                   </div>
@@ -294,11 +311,11 @@ $recommendations = [
 
               <!-- Overall Score Display -->
               <div class="p-3 rounded text-center" style="background:var(--blue-dark);color:#fff;">
-                <div style="font-size:.8rem;opacity:.7;"><?= $_lang==='th' ? 'คะแนนเฉลี่ยรวม' : 'Overall Average Score' ?></div>
+                <div style="font-size:.8rem;opacity:.7;"><?= $_lang==='th' ? 'คะแนนรวมทั้งหมด' : 'Total Score' ?></div>
                 <div style="font-size:2rem;font-weight:800;" id="overallScore">
-                  <?= $existingReview ? number_format($existingReview['overall_score'], 1) : '7.0' ?>
+                  <?= $existingReview ? number_format($existingReview['score_overall'], 0) : '–' ?>
                 </div>
-                <div style="font-size:.75rem;opacity:.6;">/10</div>
+                <div style="font-size:.75rem;opacity:.6;">/100</div>
               </div>
             </div>
           </div>
@@ -338,26 +355,23 @@ $recommendations = [
                   <?= $_lang==='th' ? 'ความเห็นถึงผู้แต่ง' : 'Comments to Author' ?>
                   <?php if (!$readOnly): ?><span class="text-danger">*</span><?php endif; ?>
                 </label>
-                <textarea name="comments_to_author" class="form-control" rows="5"
+                <textarea name="comment_for_author" class="form-control" rows="5"
                           placeholder="<?= $_lang==='th' ? 'ข้อเสนอแนะที่สร้างสรรค์สำหรับผู้แต่ง...' : 'Constructive feedback for the author...' ?>"
-                          <?= $readOnly ? 'readonly' : '' ?>><?= e($existingReview['comments_to_author'] ?? '') ?></textarea>
+                          <?= $readOnly ? 'readonly' : '' ?>><?= e($existingReview['comment_for_author'] ?? '') ?></textarea>
               </div>
               <div>
                 <label class="form-label fw-bold" style="font-size:.85rem;">
                   <?= $_lang==='th' ? 'ความเห็นถึงบรรณาธิการ (ลับ)' : 'Confidential Comments to Editor' ?>
                 </label>
-                <textarea name="comments_to_editor" class="form-control" rows="3"
+                <textarea name="comment_for_editor" class="form-control" rows="3"
                           placeholder="<?= $_lang==='th' ? 'ความเห็นที่ผู้แต่งจะไม่เห็น...' : 'Comments not visible to the author...' ?>"
-                          <?= $readOnly ? 'readonly' : '' ?>><?= e($existingReview['comments_to_editor'] ?? '') ?></textarea>
+                          <?= $readOnly ? 'readonly' : '' ?>><?= e($existingReview['comment_for_editor'] ?? '') ?></textarea>
               </div>
             </div>
           </div>
 
           <?php if (!$readOnly): ?>
             <div class="d-flex gap-3 justify-content-end">
-              <button type="submit" name="save_draft" value="1" class="btn-outline-custom">
-                <i class="fas fa-save me-2"></i><?= $_lang==='th' ? 'บันทึกฉบับร่าง' : 'Save Draft' ?>
-              </button>
               <button type="submit" class="btn-primary-custom" data-confirm="<?= $_lang==='th' ? 'ยืนยันการส่งผลประเมิน? ไม่สามารถแก้ไขได้ภายหลัง' : 'Submit this review? It cannot be edited after submission.' ?>">
                 <i class="fas fa-paper-plane me-2"></i><?= $_lang==='th' ? 'ส่งผลประเมิน' : 'Submit Review' ?>
               </button>
@@ -372,16 +386,47 @@ $recommendations = [
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="<?= $appUrl ?>/assets/js/main.js"></script>
 <script>
-// Live overall score update
-const sliders = document.querySelectorAll('.score-slider');
+// Score button logic
 const overallEl = document.getElementById('overallScore');
 function updateOverall() {
-  if (!sliders.length || !overallEl) return;
+  if (!overallEl) return;
   let sum = 0;
-  sliders.forEach(s => sum += parseInt(s.value || 7));
-  overallEl.textContent = (sum / sliders.length).toFixed(1);
+  let allSelected = true;
+  document.querySelectorAll('[id^="inp_"]').forEach(inp => {
+    const v = parseInt(inp.dataset.actualScore || 0);
+    if (!v) allSelected = false;
+    sum += v;
+  });
+  overallEl.textContent = allSelected ? sum : '–';
 }
-sliders.forEach(s => s.addEventListener('input', updateOverall));
+
+document.querySelectorAll('.score-btn:not([disabled])').forEach(btn => {
+  btn.addEventListener('click', function () {
+    const ci = this.dataset.criterion;
+    const level = parseInt(this.dataset.level);
+    const score = parseFloat(this.dataset.score);
+    const inp = document.getElementById('inp_' + ci);
+    inp.value = level;
+    inp.dataset.actualScore = score;
+    // Update display
+    const dispEl = document.getElementById('disp_' + ci);
+    if (dispEl) dispEl.textContent = score;
+    // Highlight active button
+    document.querySelectorAll(`.score-btn[data-criterion="${ci}"]`).forEach(b => b.classList.remove('score-btn-active'));
+    this.classList.add('score-btn-active');
+    updateOverall();
+  });
+});
+
+// Init actual scores from existing values
+document.querySelectorAll('[id^="inp_"]').forEach(inp => {
+  const level = parseInt(inp.value || 0);
+  if (level > 0) {
+    const ci = inp.id.replace('inp_', '');
+    const btn = document.querySelector(`.score-btn[data-criterion="${ci}"][data-level="${level}"]`);
+    if (btn) inp.dataset.actualScore = btn.dataset.score;
+  }
+});
 updateOverall();
 
 // Recommendation visual toggle

@@ -12,15 +12,16 @@ $uid    = $user['id'];
 
 try {
     $db = Database::getInstance();
+    $isMysql = $db->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql';
 
     // Stats
     $sStmt = $db->prepare("
         SELECT
             COUNT(*) AS total_assigned,
-            COUNT(*) FILTER (WHERE ra.status = 'pending') AS pending,
-            COUNT(*) FILTER (WHERE ra.status = 'accepted') AS accepted,
-            COUNT(*) FILTER (WHERE ra.status = 'completed') AS completed,
-            COUNT(*) FILTER (WHERE ra.due_date < NOW() AND ra.status NOT IN ('completed','declined')) AS overdue
+            SUM(CASE WHEN ra.assignment_status = 'pending' THEN 1 ELSE 0 END) AS pending,
+            SUM(CASE WHEN ra.assignment_status = 'in_progress' THEN 1 ELSE 0 END) AS accepted,
+            SUM(CASE WHEN ra.assignment_status = 'completed' THEN 1 ELSE 0 END) AS completed,
+            SUM(CASE WHEN ra.due_date < NOW() AND ra.assignment_status NOT IN ('completed','declined') THEN 1 ELSE 0 END) AS overdue
         FROM review_assignments ra
         WHERE ra.reviewer_id = :uid
     ");
@@ -28,15 +29,18 @@ try {
     $stats = $sStmt->fetch();
 
     // Pending assignments
+    $submitterNameExpr = $isMysql
+        ? "CONCAT(u.first_name, ' ', u.last_name)"
+        : "(u.first_name || ' ' || u.last_name)";
     $pendingStmt = $db->prepare("
         SELECT ra.*, p.paper_code, p.title_th, p.title_en, p.status_code,
                ct.name_th AS theme_th, ct.name_en AS theme_en,
-               u.name AS submitter_name
+               {$submitterNameExpr} AS submitter_name
         FROM review_assignments ra
         JOIN papers p ON p.id = ra.paper_id
         JOIN conference_themes ct ON ct.id = p.theme_id
         JOIN users u ON u.id = p.submitter_id
-        WHERE ra.reviewer_id = :uid AND ra.status IN ('pending','accepted')
+        WHERE ra.reviewer_id = :uid AND ra.assignment_status IN ('pending','in_progress')
         ORDER BY ra.due_date ASC
         LIMIT 10
     ");
@@ -46,12 +50,12 @@ try {
     // Recent completed reviews
     $recentStmt = $db->prepare("
         SELECT ra.id AS assignment_id, p.paper_code, p.title_th, p.title_en,
-               r.overall_score, r.recommendation, r.submitted_at
+               r.score_overall, r.recommendation, r.reviewed_at
         FROM review_assignments ra
         JOIN papers p ON p.id = ra.paper_id
         JOIN reviews r ON r.assignment_id = ra.id
         WHERE ra.reviewer_id = :uid
-        ORDER BY r.submitted_at DESC
+        ORDER BY r.reviewed_at DESC
         LIMIT 5
     ");
     $recentStmt->execute([':uid' => $uid]);
@@ -187,7 +191,7 @@ $activeMenu = 'dashboard';
                 </thead>
                 <tbody>
                   <?php foreach ($pendingAssignments as $ra):
-                    $isOverdue = $ra['due_date'] && strtotime($ra['due_date']) < time() && $ra['status'] !== 'completed';
+                    $isOverdue = $ra['due_date'] && strtotime($ra['due_date']) < time() && $ra['assignment_status'] !== 'completed';
                   ?>
                     <tr>
                       <td><code style="font-size:.8rem;color:var(--blue-mid);"><?= e($ra['paper_code']) ?></code></td>
@@ -208,10 +212,18 @@ $activeMenu = 'dashboard';
                         <?php endif; ?>
                       </td>
                       <td>
-                        <a href="<?= $appUrl ?>/reviewer/review.php?assignment_id=<?= (int)$ra['id'] ?>"
-                           class="btn btn-sm btn-outline-primary rounded-pill" style="font-size:.75rem;">
-                          <?= $_lang==='th' ? 'ประเมิน' : 'Review' ?>
-                        </a>
+                        <?php
+                          $badgeMap = [
+                            'pending'     => ['bg'=>'#ffc107','color'=>'#000','th'=>'รอตอบรับ',    'en'=>'Pending'],
+                            'in_progress' => ['bg'=>'#0d6efd','color'=>'#fff','th'=>'กำลังประเมิน','en'=>'In Progress'],
+                            'completed'   => ['bg'=>'#198754','color'=>'#fff','th'=>'เสร็จแล้ว',   'en'=>'Completed'],
+                            'declined'    => ['bg'=>'#bd3838','color'=>'#fff','th'=>'ปฏิเสธ',      'en'=>'Declined'],
+                          ];
+                          $b = $badgeMap[$ra['assignment_status']] ?? ['bg'=>'#6c757d','color'=>'#fff','th'=>$ra['assignment_status'],'en'=>$ra['assignment_status']];
+                        ?>
+                        <span style="font-size:.72rem;padding:3px 10px;border-radius:99px;background:<?= $b['bg'] ?>;color:<?= $b['color'] ?>;font-weight:600;white-space:nowrap;">
+                          <?= $_lang==='th' ? $b['th'] : $b['en'] ?>
+                        </span>
                       </td>
                     </tr>
                   <?php endforeach; ?>
@@ -247,11 +259,11 @@ $activeMenu = 'dashboard';
                     <div style="font-size:.83rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--blue-dark);">
                       <?= e($_lang==='th' ? $rr['title_th'] : $rr['title_en']) ?>
                     </div>
-                    <div style="font-size:.76rem;color:var(--gray-500);"><?= humanDate($rr['submitted_at'], $_lang) ?></div>
+                    <div style="font-size:.76rem;color:var(--gray-500);"><?= humanDate($rr['reviewed_at'], $_lang) ?></div>
                   </div>
                   <div class="text-end ms-2 flex-shrink-0">
-                    <?php if ($rr['overall_score']): ?>
-                      <div style="font-weight:800;color:var(--blue-dark);font-size:1rem;"><?= number_format($rr['overall_score'],1) ?><span style="font-size:.65rem;font-weight:400;">/10</span></div>
+                    <?php if ($rr['score_overall']): ?>
+                      <div style="font-weight:800;color:var(--blue-dark);font-size:1rem;"><?= number_format($rr['score_overall'],1) ?><span style="font-size:.65rem;font-weight:400;">/10</span></div>
                     <?php endif; ?>
                     <?php if ($rr['recommendation']): ?>
                       <span style="font-size:.7rem;padding:2px 8px;border-radius:99px;background:<?= $recColor ?>;color:#fff;">

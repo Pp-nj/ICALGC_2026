@@ -1,6 +1,6 @@
 <?php
 /**
- * Database - PDO singleton for PostgreSQL
+ * Database - PDO singleton for PostgreSQL or MySQL
  */
 
 namespace App\Core;
@@ -16,18 +16,33 @@ class Database
     {
         if (self::$instance === null) {
             $cfg = require APP_PATH . '/config/database.php';
+            $driver = $cfg['driver'] ?? 'pgsql';
 
-            $dsn = sprintf(
-                'pgsql:host=%s;port=%s;dbname=%s',
-                $cfg['host'],
-                $cfg['port'],
-                $cfg['dbname']
-            );
+            if ($driver === 'mysql') {
+                $dsn = sprintf(
+                    'mysql:host=%s;port=%s;dbname=%s;charset=%s',
+                    $cfg['host'],
+                    $cfg['port'],
+                    $cfg['dbname'],
+                    $cfg['charset'] ?? 'utf8mb4'
+                );
+            } else {
+                $dsn = sprintf(
+                    'pgsql:host=%s;port=%s;dbname=%s',
+                    $cfg['host'],
+                    $cfg['port'],
+                    $cfg['dbname']
+                );
+            }
 
             try {
                 self::$instance = new PDO($dsn, $cfg['username'], $cfg['password'], $cfg['options']);
-                // Set PostgreSQL timezone to Asia/Bangkok
-                self::$instance->exec("SET timezone = 'Asia/Bangkok'");
+                // Set session timezone to Asia/Bangkok
+                if ($driver === 'mysql') {
+                    self::$instance->exec("SET time_zone = '+07:00'");
+                } else {
+                    self::$instance->exec("SET timezone = 'Asia/Bangkok'");
+                }
             } catch (PDOException $e) {
                 if (APP_DEBUG) {
                     die('Database connection failed: ' . $e->getMessage());

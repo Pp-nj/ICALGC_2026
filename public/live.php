@@ -8,10 +8,11 @@ require_once __DIR__ . '/../app/helpers/header.php';
 ?>
 <div style="background:linear-gradient(135deg,var(--blue-dark),#0057b7);padding:60px 0;color:var(--white);text-align:center;">
   <div class="container">
-    <span class="section-label" style="background:rgba(255,255,255,.15);color:var(--gold-light);">Live</span>
+    <span class="section-label" style="background:rgba(255,255,255,.15);color:var(--gold-light);"><?= $_lang==='th'?'ถ่ายทอดสด':'Live' ?></span>
     <h1 style="font-size:2.2rem;font-weight:800;color:var(--white);margin-top:12px;">
       <?= $_lang==='th'?'ถ่ายทอดสดการประชุม':'Conference Live Streaming' ?>
     </h1>
+    <div class="section-divider"></div>
   </div>
 </div>
 <section class="page-section">

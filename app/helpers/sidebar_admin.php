@@ -4,20 +4,39 @@
  * Expects: $activeMenu (string) to mark current link
  */
 use App\Core\Auth;
+use App\Core\Notification;
 $user   = Auth::user();
 $appUrl = APP_URL;
 $_lang  = lang();
 $_menu  = $activeMenu ?? '';
+$_adminUnread = Notification::countUnread((int)$user['id']);
 ?>
-<aside class="sidebar">
+<!-- Mobile Sidebar Toggle Button -->
+<button class="sidebar-mobile-toggle d-lg-none" id="sidebarToggle" aria-label="Toggle sidebar">
+  <i class="fas fa-bars"></i>
+</button>
+
+<!-- Sidebar Overlay (mobile) -->
+<div class="sidebar-overlay d-lg-none" id="sidebarOverlay"></div>
+
+<aside class="sidebar" id="adminSidebar">
   <div class="sidebar-logo">
-    <img src="<?= $appUrl ?>/assets/images/logo-swu.png" alt="SWU" onerror="this.style.display='none'">
-    <h6>ICALGC 2026</h6>
-    <div style="font-size:.7rem;color:rgba(255,255,255,.4);margin-top:2px;text-transform:uppercase;letter-spacing:.05em;">
-      <?= $_lang==='th' ? 'ผู้ดูแลระบบ' : 'Administrator' ?>
-    </div>
-    <div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-top:4px;">
-      <?= e($user['name'] ?? '') ?>
+    <div class="d-flex align-items-center justify-content-between">
+      <div>
+        <img src="<?= $appUrl ?>/assets/images/swu_Logo.png" alt="SWU" onerror="this.style.display='none'">
+        <img src="<?= $appUrl ?>/assets/images/Guangdong University of Foreign Studies.png" alt="Guangdong" onerror="this.style.display='none'">
+        <h6>ICALGC 2026</h6>
+        <div style="font-size:.7rem;color:rgba(255,255,255,.4);margin-top:2px;text-transform:uppercase;letter-spacing:.05em;">
+          <?= $_lang==='th' ? 'ผู้ดูแลระบบ' : 'Administrator' ?>
+        </div>
+        <div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-top:4px;">
+          <?= e($user['name'] ?? '') ?>
+        </div>
+      </div>
+      <!-- Close button on mobile -->
+      <button class="sidebar-close-btn d-lg-none" id="sidebarClose" aria-label="Close sidebar">
+        <i class="fas fa-times"></i>
+      </button>
     </div>
   </div>
 
@@ -52,10 +71,19 @@ $_menu  = $activeMenu ?? '';
     <a class="sidebar-link <?= $_menu==='reviewers'?'active':'' ?>" href="<?= $appUrl ?>/admin/reviewers.php">
       <i class="fas fa-user-tie"></i><?= $_lang==='th'?'ผู้ทรงคุณวุฒิ':'Reviewers' ?>
     </a>
+    <a class="sidebar-link <?= $_menu==='admins'?'active':'' ?>" href="<?= $appUrl ?>/admin/admins.php">
+      <i class="fas fa-user-shield"></i><?= $_lang==='th'?'จัดการแอดมิน':'Manage Admins' ?>
+    </a>
   </div>
 
   <div class="sidebar-section">
     <div class="sidebar-section-label"><?= $_lang==='th'?'ระบบ':'System' ?></div>
+    <a class="sidebar-link <?= $_menu==='notifications'?'active':'' ?>" href="<?= $appUrl ?>/admin/notifications.php">
+      <i class="fas fa-bell"></i><?= $_lang==='th'?'การแจ้งเตือน':'Notifications' ?>
+      <?php if ($_adminUnread > 0): ?>
+        <span class="badge rounded-pill ms-auto" style="background:var(--gold);color:var(--blue-dark);font-size:.65rem;"><?= $_adminUnread ?></span>
+      <?php endif; ?>
+    </a>
     <a class="sidebar-link <?= $_menu==='certificates'?'active':'' ?>" href="<?= $appUrl ?>/admin/certificates.php">
       <i class="fas fa-certificate"></i><?= t('author.certificates') ?>
     </a>
@@ -79,3 +107,27 @@ $_menu  = $activeMenu ?? '';
     </a>
   </div>
 </aside>
+
+<script>
+(function() {
+  var toggle   = document.getElementById('sidebarToggle');
+  var close    = document.getElementById('sidebarClose');
+  var overlay  = document.getElementById('sidebarOverlay');
+  var sidebar  = document.getElementById('adminSidebar');
+
+  function openSidebar() {
+    sidebar.classList.add('sidebar-open');
+    overlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeSidebar() {
+    sidebar.classList.remove('sidebar-open');
+    overlay.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
+  if (toggle)  toggle.addEventListener('click', openSidebar);
+  if (close)   close.addEventListener('click', closeSidebar);
+  if (overlay) overlay.addEventListener('click', closeSidebar);
+})();
+</script>

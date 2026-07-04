@@ -7,19 +7,25 @@
 // ── Timezone ──────────────────────────────────────────────
 date_default_timezone_set('Asia/Bangkok');
 
-// ── Load .env (dependency-free) ───────────────────────────
-// Pulls KEY=VALUE pairs from the project-root .env file into the environment
-// so every getenv() call below picks them up. Real OS env vars still win.
-require_once __DIR__ . '/../helpers/env.php';
-loadEnv(dirname(__DIR__, 2) . '/.env');
-
 // ── Environment ───────────────────────────────────────────
 define('APP_ENV',     getenv('APP_ENV')  ?: 'development'); // 'production' in prod
 define('APP_DEBUG',   APP_ENV === 'development');
 
 // ── Application ───────────────────────────────────────────
 define('APP_NAME',    'ICALGC 2026');
-define('APP_URL',     getenv('APP_URL')  ?: 'http://localhost');
+$_detectedUrl = (
+    !empty(getenv('APP_URL'))
+        ? getenv('APP_URL')
+        : (function () {
+            $host   = $_SERVER['HTTP_X_FORWARDED_HOST'] ?? $_SERVER['HTTP_HOST'] ?? 'localhost';
+            $scheme = (!empty($_SERVER['HTTP_X_FORWARDED_PROTO'])
+                        ? $_SERVER['HTTP_X_FORWARDED_PROTO']
+                        : ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http'));
+            return $scheme . '://' . $host;
+        })()
+);
+define('APP_URL', rtrim($_detectedUrl, '/'));
+unset($_detectedUrl);
 define('APP_VERSION', '1.0.0');
 
 // ── Paths ─────────────────────────────────────────────────
@@ -64,29 +70,6 @@ define('PAPER_CODE_PREFIX', 'ICALGC2026-');
 // ── Email (override in mail.php) ──────────────────────────
 define('MAIL_FROM',       getenv('MAIL_FROM')      ?: 'noreply@icalgc2026.com');
 define('MAIL_FROM_NAME',  getenv('MAIL_FROM_NAME') ?: 'ICALGC 2026');
-
-// ── Feature Flags (Development vs Production) ──────────────
-// MAIL_ENABLED: when false, NO real email is sent. Outgoing messages are
-//   written to a log file instead (see MAIL_LOG_PATH). This is the single
-//   global switch for ALL email in the system (verification, password reset,
-//   paper notifications, etc.) because every send routes through Mail::send().
-// EMAIL_VERIFICATION_ENABLED: when false, new accounts are treated as already
-//   verified (email_verified = TRUE) and no verification email is generated.
-//
-// Defaults follow APP_ENV so localhost is safe out of the box:
-//   development → both flags OFF   |   production → both flags ON
-// Override either one explicitly via the .env file when needed.
-define('MAIL_ENABLED', filterEnvBool(
-    getenv('MAIL_ENABLED'),
-    APP_ENV === 'production'
-));
-define('EMAIL_VERIFICATION_ENABLED', filterEnvBool(
-    getenv('EMAIL_VERIFICATION_ENABLED'),
-    APP_ENV === 'production'
-));
-
-// Where captured (not sent) emails are written when MAIL_ENABLED is false.
-define('MAIL_LOG_PATH', getenv('MAIL_LOG_PATH') ?: ROOT_PATH . '/storage/maillog');
 
 // ── Error handling ────────────────────────────────────────
 if (APP_DEBUG) {

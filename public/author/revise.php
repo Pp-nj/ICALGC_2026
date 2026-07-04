@@ -33,18 +33,18 @@ try {
 
     // Most recent review with comments
     $reviewStmt = $db->prepare("
-        SELECT r.comments_to_author, r.recommendation, r.overall_score
+        SELECT r.comment_for_author, r.recommendation, r.score_overall
         FROM reviews r
         JOIN review_assignments ra ON ra.id = r.assignment_id
         WHERE ra.paper_id = :pid
-        ORDER BY r.submitted_at DESC
+        ORDER BY r.reviewed_at DESC NULLS LAST
         LIMIT 1
     ");
     $reviewStmt->execute([':pid' => $paperId]);
     $latestReview = $reviewStmt->fetch();
 
     // Existing co-authors
-    $coStmt = $db->prepare("SELECT * FROM paper_co_authors WHERE paper_id = :pid ORDER BY sort_order");
+    $coStmt = $db->prepare("SELECT id, full_name, email, institution, country, is_corresponding, sort_order FROM paper_co_authors WHERE paper_id = :pid ORDER BY sort_order");
     $coStmt->execute([':pid' => $paperId]);
     $coAuthors = $coStmt->fetchAll();
 
@@ -76,8 +76,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$hasFile) $errors[] = $_lang==='th' ? 'กรุณาอัปโหลดไฟล์บทความที่แก้ไขแล้ว' : 'Please upload the revised paper file.';
 
     if ($hasFile) {
-        $uploadResult = validateUpload($_FILES['paper_file']);
-        if (!$uploadResult['ok']) $errors[] = $uploadResult['error'];
+        $uploadErrors = validateUpload($_FILES['paper_file']);
+        if (!empty($uploadErrors)) $errors = array_merge($errors, $uploadErrors);
     }
 
     if (empty($errors)) {
@@ -107,16 +107,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $coCtries = $_POST['co_country'] ?? [];
             foreach ($coNames as $i => $cName) {
                 $cName = trim($cName);
-                $cEmail = trim($coEmails[$i] ?? '');
                 if ($cName) {
-                    $ciStmt = $db->prepare("
-                        INSERT INTO paper_co_authors (paper_id, name, email, affiliation, country, sort_order)
+                    $db->prepare("
+                        INSERT INTO paper_co_authors (paper_id, full_name, email, institution, country, sort_order)
                         VALUES (:pid, :name, :email, :aff, :ctry, :sort)
-                    ");
-                    $ciStmt->execute([
+                    ")->execute([
                         ':pid'   => $paperId,
                         ':name'  => $cName,
-                        ':email' => $cEmail,
+                        ':email' => trim($coEmails[$i] ?? ''),
                         ':aff'   => trim($coAffs[$i] ?? ''),
                         ':ctry'  => trim($coCtries[$i] ?? ''),
                         ':sort'  => $i,
@@ -125,21 +123,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             // Upload revised file
-            $filePath = moveUpload($_FILES['paper_file'], 'papers/' . $uid);
-            if (!$filePath) throw new \RuntimeException('File upload failed');
+            $storedName = moveUpload($_FILES['paper_file']);
+            if (!$storedName) throw new \RuntimeException('File upload failed');
 
-            $mime      = mime_content_type(UPLOADS_PATH . '/' . $filePath);
-            $ext       = strtolower(pathinfo($_FILES['paper_file']['name'], PATHINFO_EXTENSION));
-            $fileInsert = $db->prepare("
-                INSERT INTO paper_files (paper_id, file_path, original_name, file_size, file_type, is_revision)
-                VALUES (:pid, :fp, :orig, :sz, :ft, TRUE)
-            ");
-            $fileInsert->execute([
-                ':pid'  => $paperId,
-                ':fp'   => $filePath,
-                ':orig' => $_FILES['paper_file']['name'],
-                ':sz'   => $_FILES['paper_file']['size'],
-                ':ft'   => $ext,
+            $ext      = strtolower(pathinfo($_FILES['paper_file']['name'], PATHINFO_EXTENSION));
+            $fileType = $ext === 'pdf' ? 'pdf' : 'docx';
+            $db->prepare("
+                INSERT INTO paper_files (paper_id, file_type, file_category, original_name, stored_name, file_path, file_size, version_number, uploaded_by)
+                VALUES (:pid, :ft, 'revision', :on, :sn, :fp, :fs, 1, :uid)
+            ")->execute([
+                ':pid' => $paperId,
+                ':ft'  => $fileType,
+                ':on'  => $_FILES['paper_file']['name'],
+                ':sn'  => $storedName,
+                ':fp'  => 'uploads/papers/' . $storedName,
+                ':fs'  => $_FILES['paper_file']['size'],
+                ':uid' => $uid,
             ]);
 
             // Log revision note if provided
@@ -221,14 +220,14 @@ $activeMenu = 'my-papers';
     <?php endif; ?>
 
     <!-- Reviewer Comments -->
-    <?php if ($latestReview && $latestReview['comments_to_author']): ?>
+    <?php if ($latestReview && $latestReview['comment_for_author']): ?>
     <div class="content-card mb-4" style="border-left:4px solid var(--warning);">
       <div class="content-card-title">
         <i class="fas fa-comment-alt me-2" style="color:var(--warning);"></i>
         <?= $_lang==='th' ? 'ความเห็นจากผู้ทรงคุณวุฒิ' : 'Reviewer Comments' ?>
       </div>
       <div style="font-size:.9rem;line-height:1.8;padding:12px;background:var(--gray-100);border-radius:var(--radius);">
-        <?= nl2br(e($latestReview['comments_to_author'])) ?>
+        <?= nl2br(e($latestReview['comment_for_author'])) ?>
       </div>
     </div>
     <?php endif; ?>
@@ -315,7 +314,7 @@ $activeMenu = 'my-papers';
                 <div class="row g-2 align-items-end">
                   <div class="col-md-4">
                     <label class="form-label fw-bold" style="font-size:.78rem;"><?= $_lang==='th' ? 'ชื่อ-นามสกุล' : 'Full Name' ?> <span class="text-danger">*</span></label>
-                    <input type="text" name="co_name[]" class="form-control form-control-sm" value="<?= e($ca['name']) ?>">
+                    <input type="text" name="co_name[]" class="form-control form-control-sm" value="<?= e($ca['full_name']) ?>">
                   </div>
                   <div class="col-md-3">
                     <label class="form-label fw-bold" style="font-size:.78rem;"><?= $_lang==='th' ? 'อีเมล' : 'Email' ?></label>
@@ -323,7 +322,7 @@ $activeMenu = 'my-papers';
                   </div>
                   <div class="col-md-3">
                     <label class="form-label fw-bold" style="font-size:.78rem;"><?= $_lang==='th' ? 'สังกัด' : 'Affiliation' ?></label>
-                    <input type="text" name="co_affiliation[]" class="form-control form-control-sm" value="<?= e($ca['affiliation']) ?>">
+                    <input type="text" name="co_affiliation[]" class="form-control form-control-sm" value="<?= e($ca['institution']) ?>">
                   </div>
                   <div class="col-md-1">
                     <label class="form-label fw-bold" style="font-size:.78rem;"><?= $_lang==='th' ? 'ประเทศ' : 'Country' ?></label>

@@ -12,6 +12,37 @@ $appUrl = APP_URL;
 
 $errors = [];
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && post('action') === 'unpublish') {
+    Auth::verifyCsrf(post('csrf_token'));
+    $paperId = intPost('paper_id');
+    if ($paperId) {
+        try {
+            $db = Database::getInstance();
+            $pStmt = $db->prepare("SELECT * FROM papers WHERE id = :id AND status_code = 'published'");
+            $pStmt->execute([':id' => $paperId]);
+            $paper = $pStmt->fetch();
+            if ($paper) {
+                $db->beginTransaction();
+                $db->prepare("UPDATE papers SET status_code = 'accepted', updated_at = NOW() WHERE id = :id")
+                   ->execute([':id' => $paperId]);
+                $db->prepare("DELETE FROM publications WHERE paper_id = :pid")
+                   ->execute([':pid' => $paperId]);
+                Notification::paperUnpublished((int)$paper['submitter_id'], $paper['paper_code'], (int)$paperId);
+                auditLog('unpublish_paper', 'papers', "Unpublished paper {$paper['paper_code']}", Auth::id());
+                $db->commit();
+                flashSet('success', $_lang==='th' ? 'ยกเลิกการเผยแพร่บทความเรียบร้อย' : 'Paper unpublished successfully.');
+            } else {
+                flashSet('error', $_lang==='th' ? 'ไม่พบบทความหรือสถานะไม่ถูกต้อง' : 'Paper not found or not published.');
+            }
+        } catch (\Throwable $e) {
+            if (isset($db) && $db->inTransaction()) $db->rollBack();
+            error_log($e->getMessage());
+            flashSet('error', $_lang==='th' ? 'เกิดข้อผิดพลาด' : 'An error occurred.');
+        }
+    }
+    redirect($appUrl . '/admin/publications.php?tab=published');
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     Auth::verifyCsrf(post('csrf_token'));
 
@@ -45,30 +76,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 // Create publication record
                 $ins = $db->prepare("
-                    INSERT INTO publications (paper_id, doi, file_path, published_at)
-                    VALUES (:pid, :doi, :fp, NOW())
+                    INSERT INTO publications (paper_id, doi, published_by, published_at)
+                    VALUES (:pid, :doi, :by, NOW())
                     ON CONFLICT (paper_id) DO UPDATE SET doi = EXCLUDED.doi, published_at = NOW()
                 ");
-                $ins->execute([':pid' => $paperId, ':doi' => $doi ?: null, ':fp' => $file['file_path'] ?? null]);
+                $ins->execute([':pid' => $paperId, ':doi' => $doi ?: null, ':by' => Auth::id()]);
 
                 // Notify author
                 $submitterStmt = $db->prepare("SELECT * FROM users WHERE id = :uid");
                 $submitterStmt->execute([':uid' => $paper['submitter_id']]);
                 $submitter = $submitterStmt->fetch();
 
-                Notification::paperPublished($paper['submitter_id'], $paperId, $paper['paper_code']);
-                Mail::sendPublished($submitter['email'], $submitter['name'], $paper['paper_code']);
+                Notification::paperPublished((int)$paper['submitter_id'], $paper['paper_code'], (int)$paperId);
 
                 auditLog('publish_paper', 'papers', "Published paper {$paper['paper_code']}", Auth::id());
                 $db->commit();
+
+                try {
+                    Mail::sendPublished($submitter['email'], $submitter['first_name'] . ' ' . $submitter['last_name'], $paper['paper_code'], $paper['title_en']);
+                } catch (\Throwable $mailErr) {
+                    error_log('Mail::sendPublished failed: ' . $mailErr->getMessage());
+                }
 
                 flashSet('success', $_lang==='th' ? 'เผยแพร่บทความเรียบร้อย' : 'Paper published successfully.');
                 redirect($appUrl . '/admin/publications.php');
             }
         } catch (\Throwable $e) {
-            if ($db->inTransaction()) $db->rollBack();
+            if (isset($db) && $db->inTransaction()) $db->rollBack();
             error_log($e->getMessage());
-            $errors[] = $_lang==='th' ? 'เกิดข้อผิดพลาด' : 'An error occurred.';
+            $errors[] = 'DEBUG: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine();
         }
     }
 }
@@ -88,7 +124,7 @@ try {
     $pg = paginate($total, $perPage, $page);
 
     $stmt = $db->prepare("
-        SELECT p.*, u.name AS submitter_name,
+        SELECT p.*, CONCAT(u.first_name, ' ', u.last_name) AS submitter_name,
                pub.id AS pub_id, pub.doi, pub.published_at, pub.download_count, pub.view_count
         FROM papers p
         JOIN users u ON u.id = p.submitter_id
@@ -206,10 +242,16 @@ $activeMenu = 'publications';
                         <i class="fas fa-globe me-1"></i><?= $_lang==='th' ? 'เผยแพร่' : 'Publish' ?>
                       </button>
                     <?php else: ?>
-                      <a href="<?= $appUrl ?>/publication-detail.php?id=<?= (int)$p['pub_id'] ?>"
-                         class="btn btn-sm btn-outline-primary rounded-pill" style="font-size:.72rem;" target="_blank">
-                        <i class="fas fa-eye"></i>
-                      </a>
+                      <div class="d-flex gap-1 flex-wrap">
+                        <a href="<?= $appUrl ?>/publication-detail.php?id=<?= (int)$p['pub_id'] ?>"
+                           class="btn btn-sm btn-outline-primary rounded-pill" style="font-size:.72rem;" target="_blank">
+                          <i class="fas fa-eye"></i>
+                        </a>
+                        <button type="button" class="btn btn-sm btn-outline-danger rounded-pill" style="font-size:.72rem;"
+                                onclick="openUnpublishModal(<?= (int)$p['id'] ?>, '<?= e(addslashes($p['paper_code'])) ?>')">
+                          <i class="fas fa-ban me-1"></i><?= $_lang==='th' ? 'ยกเลิก' : 'Unpublish' ?>
+                        </button>
+                      </div>
                     <?php endif; ?>
                   </td>
                 </tr>
@@ -229,6 +271,35 @@ $activeMenu = 'publications';
           </div>
         <?php endif; ?>
       <?php endif; ?>
+    </div>
+
+    <!-- Unpublish Modal -->
+    <div class="modal fade" id="unpublishModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header" style="background:#dc3545;color:#fff;">
+            <h5 class="modal-title"><i class="fas fa-ban me-2"></i><?= $_lang==='th' ? 'ยกเลิกการเผยแพร่' : 'Unpublish Paper' ?></h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <form method="POST">
+            <input type="hidden" name="csrf_token" value="<?= Auth::csrfToken() ?>">
+            <input type="hidden" name="action" value="unpublish">
+            <input type="hidden" name="paper_id" id="unpublishPaperId">
+            <div class="modal-body">
+              <p><strong id="unpublishPaperCode"></strong></p>
+              <p style="font-size:.88rem;color:var(--gray-600);">
+                <?= $_lang==='th'
+                  ? 'บทความนี้จะถูกถอดออกจากหน้าสาธารณะและสถานะจะเปลี่ยนกลับเป็น "ยอมรับแล้ว" ผู้แต่งจะได้รับการแจ้งเตือน'
+                  : 'This paper will be removed from the public page and its status reverted to "Accepted". The author will be notified.' ?>
+              </p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"><?= $_lang==='th'?'ยกเลิก':'Cancel' ?></button>
+              <button type="submit" class="btn btn-danger"><i class="fas fa-ban me-2"></i><?= $_lang==='th'?'ยืนยันยกเลิกการเผยแพร่':'Confirm Unpublish' ?></button>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
 
     <!-- Publish Modal -->
@@ -273,6 +344,11 @@ function openPublishModal(paperId, paperCode) {
   document.getElementById('modalPaperId').value = paperId;
   document.getElementById('modalPaperCode').textContent = paperCode;
   new bootstrap.Modal(document.getElementById('publishModal')).show();
+}
+function openUnpublishModal(paperId, paperCode) {
+  document.getElementById('unpublishPaperId').value = paperId;
+  document.getElementById('unpublishPaperCode').textContent = paperCode;
+  new bootstrap.Modal(document.getElementById('unpublishModal')).show();
 }
 </script>
 </body>

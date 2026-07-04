@@ -227,3 +227,4 @@ function markAllNotifRead() {
     if (badge) badge.remove();
   }).catch(() => {});
 }
+

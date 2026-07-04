@@ -35,16 +35,6 @@ class Mail
      */
     public static function send(string $toEmail, string $toName, string $subject, string $htmlBody, string $plainBody = ''): bool
     {
-        // ── Feature flag: real sending disabled (e.g. local development) ──
-        // When MAIL_ENABLED is false we never open an SMTP connection. Instead
-        // the message is written to a log file so it can still be inspected,
-        // and we report success so the surrounding workflow proceeds normally.
-        // This single guard covers EVERY template method below.
-        if (!self::isEnabled()) {
-            self::logToFile($toEmail, $toName, $subject, $htmlBody);
-            return true;
-        }
-
         try {
             $mailer = self::createMailer();
             $mailer->addAddress($toEmail, $toName);
@@ -57,49 +47,6 @@ class Mail
         } catch (MailException $e) {
             error_log('Mail error: ' . $e->getMessage());
             return false;
-        }
-    }
-
-    /**
-     * Whether real email delivery is turned on.
-     * Defaults to true if the flag was somehow not defined, preserving the
-     * original always-send behaviour for any legacy include path.
-     */
-    private static function isEnabled(): bool
-    {
-        return !defined('MAIL_ENABLED') || MAIL_ENABLED === true;
-    }
-
-    /**
-     * Write an outgoing message to a log file instead of sending it.
-     * Used only when MAIL_ENABLED is false. Failures here must never break
-     * the calling workflow, so all errors are swallowed (logged to PHP log).
-     */
-    private static function logToFile(string $toEmail, string $toName, string $subject, string $htmlBody): void
-    {
-        try {
-            $dir = defined('MAIL_LOG_PATH') ? MAIL_LOG_PATH : sys_get_temp_dir();
-            if (!is_dir($dir)) {
-                @mkdir($dir, 0775, true);
-            }
-
-            $timestamp = date('Y-m-d H:i:s');
-            $separator = str_repeat('=', 70);
-            $entry =
-                $separator . "\n" .
-                "Time:    {$timestamp}\n" .
-                "To:      {$toName} <{$toEmail}>\n" .
-                "Subject: {$subject}\n" .
-                $separator . "\n" .
-                $htmlBody . "\n\n";
-
-            @file_put_contents(
-                rtrim($dir, '/') . '/emails-' . date('Y-m-d') . '.log',
-                $entry,
-                FILE_APPEND | LOCK_EX
-            );
-        } catch (\Throwable $e) {
-            error_log('Mail log error: ' . $e->getMessage());
         }
     }
 
@@ -223,6 +170,27 @@ class Mail
             </table>
             <p style='text-align:center;margin:30px 0;'>
                 <a href='{$link}' style='background:#0f5132;color:#fff;padding:12px 30px;text-decoration:none;border-radius:5px;font-weight:bold;'>View Publication</a>
+            </p>
+        ");
+        return self::send($email, $name, $subject, $html);
+    }
+
+    public static function sendCertificateReady(string $email, string $name, string $certTypeLabel, ?string $paperCode = null, string $role = 'author'): bool
+    {
+        $subject = '[ICALGC 2026] Your Certificate is Ready – ' . $certTypeLabel;
+        $link    = APP_URL . '/' . ($role === 'reviewer' ? 'reviewer' : 'author') . '/certificates.php';
+        $paperRow = $paperCode
+            ? "<tr><td style='padding:8px;border:1px solid #ddd;font-weight:bold;'>Paper Code</td><td style='padding:8px;border:1px solid #ddd;'>{$paperCode}</td></tr>"
+            : '';
+        $html    = self::wrapTemplate('Certificate Ready', "
+            <p>Dear {$name},</p>
+            <p>Your <strong>{$certTypeLabel}</strong> certificate has been issued and is ready to download.</p>
+            <table style='border-collapse:collapse;width:100%;margin:20px 0;'>
+                <tr><td style='padding:8px;border:1px solid #ddd;font-weight:bold;'>Certificate Type</td><td style='padding:8px;border:1px solid #ddd;'>{$certTypeLabel}</td></tr>
+                {$paperRow}
+            </table>
+            <p style='text-align:center;margin:30px 0;'>
+                <a href='{$link}' style='background:#003087;color:#fff;padding:12px 30px;text-decoration:none;border-radius:5px;font-weight:bold;'>Download Certificate</a>
             </p>
         ");
         return self::send($email, $name, $subject, $html);

@@ -11,14 +11,140 @@ $_lang  = lang();
 $appUrl = APP_URL;
 
 $paperId = intGet('paper_id') ?: intPost('paper_id');
-if (!$paperId) { redirect($appUrl . '/admin/papers.php'); }
 
 $errors = [];
+
+// ── No paper_id: show list of papers ready for decision ──────────
+if (!$paperId) {
+    try {
+        $db = Database::getInstance();
+        $isMysql = $db->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql';
+        $submitterNameExpr = $isMysql
+            ? "CONCAT(u.first_name, ' ', u.last_name)"
+            : "(u.first_name || ' ' || u.last_name)";
+        $decisionPapers = $db->query("
+            SELECT p.*, {$submitterNameExpr} AS submitter_name,
+                   ct.name_th AS theme_th, ct.name_en AS theme_en,
+                   COUNT(r.id) AS review_count,
+                   ROUND(AVG(r.score_overall), 1) AS avg_score
+            FROM papers p
+            LEFT JOIN users u ON u.id = p.submitter_id
+            LEFT JOIN conference_themes ct ON ct.id = p.theme_id
+            LEFT JOIN review_assignments ra ON ra.paper_id = p.id AND ra.assignment_status = 'completed'
+            LEFT JOIN reviews r ON r.assignment_id = ra.id
+            WHERE p.status_code = 'under_review'
+            GROUP BY p.id, u.first_name, u.last_name, ct.name_th, ct.name_en
+            ORDER BY p.submitted_at ASC
+        ")->fetchAll();
+    } catch (\Throwable $e) {
+        error_log($e->getMessage());
+        $decisionPapers = [];
+    }
+    $pageTitle  = $_lang==='th' ? 'ตัดสินผลบทความ' : 'Final Decision';
+    $activeMenu = 'final-decision';
+    ?>
+<!DOCTYPE html>
+<html lang="<?= $_lang ?>">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><?= e($pageTitle) ?> — ICALGC 2026</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;600;700;800&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="<?= $appUrl ?>/assets/css/style.css">
+</head>
+<body>
+<div class="dashboard-wrap">
+  <?php require_once __DIR__ . '/../../app/helpers/sidebar_admin.php'; ?>
+  <main class="dashboard-content">
+    <div class="dash-header d-flex align-items-center justify-content-between flex-wrap gap-3">
+      <div>
+        <h1 class="dash-title"><i class="fas fa-gavel me-2" style="color:var(--gold);"></i><?= e($pageTitle) ?></h1>
+        <p class="dash-breadcrumb"><?= $_lang==='th' ? 'เลือกบทความที่ต้องการตัดสินผล' : 'Select a paper to make final decision' ?></p>
+      </div>
+    </div>
+    <?= flashHtml() ?>
+    <div class="table-card">
+      <?php if (empty($decisionPapers)): ?>
+        <div class="p-5 text-center">
+          <i class="fas fa-inbox fa-3x mb-3" style="color:var(--gray-200);"></i>
+          <h5 style="color:var(--gray-500);"><?= $_lang==='th' ? 'ไม่มีบทความที่รอการตัดสินในขณะนี้' : 'No papers pending final decision.' ?></h5>
+          <p style="font-size:.85rem;color:var(--gray-500);">
+            <?= $_lang==='th' ? 'บทความต้องมีสถานะ "กำลังพิจารณา" เพื่อทำการตัดสิน' : 'Papers must be in "Under Review" status to make a decision.' ?>
+          </p>
+          <a href="<?= $appUrl ?>/admin/papers.php" class="btn-primary-custom mt-3 d-inline-block">
+            <i class="fas fa-file-alt me-2"></i><?= $_lang==='th' ? 'ดูบทความทั้งหมด' : 'View All Papers' ?>
+          </a>
+        </div>
+      <?php else: ?>
+        <div class="table-responsive">
+          <table class="table-custom">
+            <thead>
+              <tr>
+                <th><?= t('paper.code') ?></th>
+                <th><?= $_lang==='th' ? 'บทความ' : 'Paper' ?></th>
+                <th><?= $_lang==='th' ? 'ผู้ส่ง' : 'Submitter' ?></th>
+                <th><?= $_lang==='th' ? 'หัวข้อ' : 'Theme' ?></th>
+                <th><?= $_lang==='th' ? 'ผลประเมิน' : 'Reviews' ?></th>
+                <th><?= $_lang==='th' ? 'คะแนนเฉลี่ย' : 'Avg Score' ?></th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php foreach ($decisionPapers as $p): ?>
+                <tr>
+                  <td><code style="font-size:.78rem;color:var(--blue-mid);"><?= e($p['paper_code']) ?></code></td>
+                  <td style="max-width:180px;">
+                    <div style="font-weight:600;font-size:.83rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                      <?= e($_lang==='th' ? $p['title_th'] : $p['title_en']) ?>
+                    </div>
+                  </td>
+                  <td style="font-size:.82rem;"><?= e($p['submitter_name'] ?? '—') ?></td>
+                  <td style="font-size:.78rem;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                    <?= e($_lang==='th' ? $p['theme_th'] : $p['theme_en']) ?>
+                  </td>
+                  <td style="text-align:center;">
+                    <?php $rc = (int)$p['review_count']; ?>
+                    <span style="font-weight:700;color:<?= $rc>0?'#198754':'var(--gray-400)' ?>;">
+                      <?= $rc ?> <?= $_lang==='th'?'ผล':'review(s)' ?>
+                    </span>
+                  </td>
+                  <td style="text-align:center;">
+                    <?php if ($p['avg_score']): ?>
+                      <span style="font-weight:800;color:var(--blue-dark);"><?= $p['avg_score'] ?>/10</span>
+                    <?php else: ?>
+                      <span style="color:var(--gray-400);">—</span>
+                    <?php endif; ?>
+                  </td>
+                  <td>
+                    <a href="<?= $appUrl ?>/admin/final-decision.php?paper_id=<?= (int)$p['id'] ?>"
+                       class="btn btn-sm btn-warning rounded-pill" style="font-size:.72rem;color:var(--blue-dark);">
+                      <i class="fas fa-gavel me-1"></i><?= $_lang==='th' ? 'ตัดสิน' : 'Decide' ?>
+                    </a>
+                  </td>
+                </tr>
+              <?php endforeach; ?>
+            </tbody>
+          </table>
+        </div>
+      <?php endif; ?>
+    </div>
+  </main>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="<?= $appUrl ?>/assets/js/main.js"></script>
+</body>
+</html>
+    <?php
+    exit;
+}
+// ──────────────────────────────────────────────────────────────────
 
 try {
     $db    = Database::getInstance();
     $pStmt = $db->prepare("
-        SELECT p.*, u.name AS submitter_name, u.email AS submitter_email,
+        SELECT p.*, (u.first_name || ' ' || u.last_name) AS submitter_name, u.email AS submitter_email,
                ct.name_th AS theme_th, ct.name_en AS theme_en
         FROM papers p
         JOIN users u ON u.id = p.submitter_id
@@ -31,18 +157,18 @@ try {
 
     // Reviews
     $revStmt = $db->prepare("
-        SELECT r.*, u.name AS reviewer_name, ra.status AS assign_status
+        SELECT r.*, (u.first_name || ' ' || u.last_name) AS reviewer_name, ra.assignment_status AS assign_status
         FROM reviews r
         JOIN review_assignments ra ON ra.id = r.assignment_id
         JOIN users u ON u.id = ra.reviewer_id
-        WHERE ra.paper_id = :pid AND ra.status = 'completed'
-        ORDER BY r.submitted_at DESC
+        WHERE ra.paper_id = :pid AND ra.assignment_status = 'completed'
+        ORDER BY r.reviewed_at DESC
     ");
     $revStmt->execute([':pid' => $paperId]);
     $reviews = $revStmt->fetchAll();
 
     // Average score
-    $avgScore = empty($reviews) ? null : array_sum(array_column($reviews, 'overall_score')) / count($reviews);
+    $avgScore = empty($reviews) ? null : array_sum(array_column($reviews, 'score_overall')) / count($reviews);
 
 } catch (\Throwable $e) {
     error_log($e->getMessage());
@@ -65,44 +191,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $db->prepare("UPDATE papers SET status_code = :dec, updated_at = NOW() WHERE id = :pid")
                ->execute([':dec' => $decision, ':pid' => $pIdPost]);
 
-            // Log editor note
             if ($editorNote) {
                 auditLog("final_decision_{$decision}", 'papers', "Paper $pIdPost: $editorNote");
             }
+        } catch (\Throwable $e) {
+            error_log($e->getMessage());
+            $errors[] = $_lang==='th' ? 'เกิดข้อผิดพลาด กรุณาลองใหม่' : 'An error occurred. Please try again.';
+        }
 
-            // Notify author
-            $paper_code = $paper['paper_code'];
-            switch ($decision) {
-                case 'accepted':
-                    Notification::paperAccepted($paper['submitter_id'], $pIdPost, $paper_code);
-                    Mail::sendAccepted($paper['submitter_email'], $paper['submitter_name'], $paper_code);
-                    break;
-                case 'revision_required':
-                    Notification::revisionRequired($paper['submitter_id'], $pIdPost, $paper_code);
-                    break;
-                case 'rejected':
-                    Notification::create(
-                        $paper['submitter_id'], 'review_result',
-                        'บทความของท่านไม่ผ่านการพิจารณา',
-                        'Paper Not Accepted',
-                        "บทความ $paper_code ไม่ผ่านการพิจารณา",
-                        "Paper $paper_code was not accepted after review.",
-                        $pIdPost, 'both'
-                    );
-                    break;
+        if (empty($errors)) {
+            // Notify author (non-fatal — errors here don't block the decision)
+            $paper_code  = $paper['paper_code'];
+            $paper_title = $_lang === 'th' ? $paper['title_th'] : $paper['title_en'];
+            try {
+                switch ($decision) {
+                    case 'accepted':
+                        Notification::paperAccepted($paper['submitter_id'], $paper_code, $pIdPost);
+                        Mail::sendAccepted($paper['submitter_email'], $paper['submitter_name'], $paper_code, $paper_title);
+                        break;
+                    case 'revision_required':
+                        Notification::revisionRequired($paper['submitter_id'], $paper_code, $pIdPost);
+                        Mail::sendReviewResult($paper['submitter_email'], $paper['submitter_name'], $paper_code, $paper_title, 'Revision Required');
+                        break;
+                    case 'rejected':
+                        Notification::create(
+                            $paper['submitter_id'], 'review_result',
+                            'บทความของท่านไม่ผ่านการพิจารณา',
+                            'Paper Not Accepted',
+                            "บทความ $paper_code ไม่ผ่านการพิจารณา",
+                            "Paper $paper_code was not accepted after review.",
+                            $pIdPost, 'both'
+                        );
+                        Mail::sendReviewResult($paper['submitter_email'], $paper['submitter_name'], $paper_code, $paper_title, 'Not Accepted');
+                        break;
+                }
+            } catch (\Throwable $e) {
+                error_log('Notification/Mail error after decision: ' . $e->getMessage());
             }
 
             $decLabels = [
-                'accepted'         => [$_lang==='th'?'ยอมรับบทความแล้ว':'Paper accepted.'],
-                'rejected'         => [$_lang==='th'?'ปฏิเสธบทความแล้ว':'Paper rejected.'],
-                'revision_required'=> [$_lang==='th'?'ส่งคืนให้แก้ไขแล้ว':'Paper sent back for revision.'],
+                'accepted'         => $_lang==='th' ? 'ยอมรับบทความแล้ว'       : 'Paper accepted.',
+                'rejected'         => $_lang==='th' ? 'ปฏิเสธบทความแล้ว'        : 'Paper rejected.',
+                'revision_required'=> $_lang==='th' ? 'ส่งคืนให้แก้ไขแล้ว'     : 'Paper sent back for revision.',
             ];
-            flashSet('success', $decLabels[$decision][0] ?? 'Done.');
+            flashSet('success', $decLabels[$decision] ?? 'Done.');
             redirect($appUrl . '/admin/paper-detail.php?id=' . $pIdPost);
-
-        } catch (\Throwable $e) {
-            error_log($e->getMessage());
-            $errors[] = $_lang==='th' ? 'เกิดข้อผิดพลาด' : 'An error occurred.';
         }
     }
 }
@@ -171,11 +304,11 @@ $recLabels = ['accept'=>'Accept','minor_revision'=>'Minor Revision','major_revis
               <div class="d-flex justify-content-between align-items-start mb-3">
                 <div>
                   <div style="font-weight:700;color:var(--blue-dark);"><?= e($rv['reviewer_name']) ?></div>
-                  <div style="font-size:.78rem;color:var(--gray-500);"><?= humanDate($rv['submitted_at'], $_lang) ?></div>
+                  <div style="font-size:.78rem;color:var(--gray-500);"><?= humanDate($rv['reviewed_at'], $_lang) ?></div>
                 </div>
                 <div class="d-flex align-items-center gap-2">
                   <div style="background:var(--blue-dark);color:#fff;border-radius:50%;width:46px;height:46px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:800;">
-                    <?= number_format($rv['overall_score'],1) ?>
+                    <?= number_format($rv['score_overall'],1) ?>
                     <span style="font-size:.55rem;font-weight:400;">/10</span>
                   </div>
                   <?php if ($rv['recommendation']): ?>
@@ -185,15 +318,15 @@ $recLabels = ['accept'=>'Accept','minor_revision'=>'Minor Revision','major_revis
                   <?php endif; ?>
                 </div>
               </div>
-              <?php if ($rv['comments_to_author']): ?>
+              <?php if ($rv['comment_for_author']): ?>
                 <div style="font-size:.85rem;line-height:1.7;padding:10px;background:var(--gray-100);border-radius:var(--radius);border-left:3px solid var(--blue-mid);">
-                  <?= nl2br(e($rv['comments_to_author'])) ?>
+                  <?= nl2br(e($rv['comment_for_author'])) ?>
                 </div>
               <?php endif; ?>
-              <?php if ($rv['comments_to_editor']): ?>
+              <?php if ($rv['comment_for_editor']): ?>
                 <div class="mt-2 p-2 rounded" style="background:#fff3cd;border-left:3px solid var(--warning);font-size:.82rem;">
                   <strong style="font-size:.73rem;color:#856404;"><?= $_lang==='th'?'(ลับ - ถึงบรรณาธิการ):':'(Confidential - to editor):' ?></strong><br>
-                  <?= nl2br(e($rv['comments_to_editor'])) ?>
+                  <?= nl2br(e($rv['comment_for_editor'])) ?>
                 </div>
               <?php endif; ?>
             </div>

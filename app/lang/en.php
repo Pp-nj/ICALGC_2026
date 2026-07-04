@@ -72,6 +72,7 @@ return [
 
     // ── Publication ───────────────────────────────────────
     'pub.title'             => 'Publication Repository',
+    'pub.label'             => 'Repository',
     'pub.search'            => 'Search',
     'pub.search_placeholder'=> 'Search by title, author, or keyword...',
     'pub.filter_theme'      => 'Filter by Theme',
@@ -156,7 +157,6 @@ return [
     'review.minor'          => 'Minor Revision',
     'review.major'          => 'Major Revision',
     'review.reject'         => 'Reject',
-    'review.save_draft'     => 'Save Draft',
     'review.submit'         => 'Submit Review',
 
     // ── Admin ─────────────────────────────────────────────

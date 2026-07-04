@@ -13,6 +13,7 @@ require_once __DIR__ . '/../app/helpers/header.php';
     <span class="section-label" style="background:rgba(255,255,255,.15);color:var(--gold-light);"><?= $_lang==='th'?'ข้อมูลการประชุม':'Conference Info' ?></span>
     <h1 style="font-size:2.2rem;font-weight:800;color:var(--white);margin-top:12px;"><?= $_lang==='th'?'เกี่ยวกับการประชุม':'About the Conference' ?></h1>
     <p style="color:rgba(255,255,255,.8);font-size:1rem;"><?= e(CONF_NAME_EN) ?></p>
+    <div class="section-divider"></div>
   </div>
 </div>
 
@@ -110,7 +111,7 @@ require_once __DIR__ . '/../app/helpers/header.php';
           <div class="row g-3">
             <div class="col-md-6">
               <div class="p-3 rounded text-center" style="border:1px solid var(--gray-200);">
-                <img src="<?= $appUrl ?>/assets/images/logo-swu.png" alt="SWU" style="height:60px;margin-bottom:12px;" onerror="this.style.display='none'">
+                <img src="<?= $appUrl ?>/assets/images/swu_Logo.png" alt="SWU" style="height:60px;margin-bottom:12px;" onerror="this.style.display='none'">
                 <div style="font-weight:700;color:var(--blue-dark);font-size:.9rem;">
                   <?= $_lang==='th'
                     ? 'คณะมนุษยศาสตร์ มหาวิทยาลัยศรีนครินทรวิโรฒ'
@@ -121,7 +122,7 @@ require_once __DIR__ . '/../app/helpers/header.php';
             </div>
             <div class="col-md-6">
               <div class="p-3 rounded text-center" style="border:1px solid var(--gray-200);">
-                <img src="<?= $appUrl ?>/assets/images/logo-gduf.png" alt="GDUF" style="height:60px;margin-bottom:12px;" onerror="this.style.display='none'">
+                <img src="<?= $appUrl ?>/assets/images/Guangdong University of Foreign Studies 02.png" alt="GDUF" style="height:60px;margin-bottom:12px;" onerror="this.style.display='none'">
                 <div style="font-weight:700;color:var(--blue-dark);font-size:.9rem;">
                   Guangdong University of Foreign Studies
                 </div>

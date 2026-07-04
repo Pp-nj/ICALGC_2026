@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/../app/helpers/init.php';
-$pageTitle = lang()==='th' ? 'วิทยากรหลัก' : 'Keynote Speakers';
+$pageTitle = lang()==='th' ? 'ผู้บรรยายพิเศษ' : 'Keynote Speakers';
 $activeNav = 'keynote';
 $_lang     = lang();
 $appUrl    = APP_URL;
@@ -8,9 +8,11 @@ require_once __DIR__ . '/../app/helpers/header.php';
 ?>
 <div style="background:linear-gradient(135deg,var(--blue-dark),#0057b7);padding:60px 0;color:var(--white);text-align:center;">
   <div class="container">
-    <span class="section-label" style="background:rgba(255,255,255,.15);color:var(--gold-light);">Keynote</span>
+    <span class="section-label" style="background:rgba(255,255,255,.15);color:var(--gold-light);">
+      <?= $_lang==='th'?'ผู้บรรยาย':'Keynote' ?>
+    </span>
     <h1 style="font-size:2.2rem;font-weight:800;color:var(--white);margin-top:12px;">
-      <?= $_lang==='th'?'วิทยากรหลัก':'Keynote Speakers' ?>
+      <?= $_lang==='th'?'ผู้บรรยายพิเศษ':'Keynote Speakers' ?>
     </h1>
     <p style="color:rgba(255,255,255,.8);">ICALGC 2026 — <?= e(CONF_DATE_EN) ?></p>
   </div>
@@ -20,8 +22,6 @@ require_once __DIR__ . '/../app/helpers/header.php';
   <div class="container">
     <!-- Poster placeholder area -->
     <div class="section-header">
-      <span class="section-label"><?= $_lang==='th'?'ผู้บรรยายพิเศษ':'Distinguished Speakers' ?></span>
-      <h2 class="section-title"><?= $_lang==='th'?'วิทยากรหลัก ICALGC 2026':'ICALGC 2026 Keynote Speakers' ?></h2>
       <div class="section-divider"></div>
     </div>
 
@@ -52,22 +52,6 @@ require_once __DIR__ . '/../app/helpers/header.php';
         </div>
       <?php endfor; ?>
     </div>
-
-    <div class="text-center mt-5 p-4 rounded" style="background:var(--blue-light);">
-      <i class="fas fa-bell fa-2x mb-3" style="color:var(--blue-dark);"></i>
-      <h4 style="color:var(--blue-dark);">
-        <?= $_lang==='th'?'ติดตามประกาศรายชื่อวิทยากร':'Stay Tuned for Speaker Announcements' ?>
-      </h4>
-      <p style="color:var(--gray-700);">
-        <?= $_lang==='th'
-          ? 'รายชื่อวิทยากรหลักจะประกาศเร็วๆ นี้ ติดตามข่าวสารผ่านเว็บไซต์และโซเชียลมีเดียของเรา'
-          : 'Keynote speakers will be announced soon. Follow our website and social media for updates.' ?>
-      </p>
-      <a href="<?= $appUrl ?>/announcements.php" class="btn-primary-custom mt-2">
-        <i class="fas fa-bullhorn me-2"></i><?= t('nav.announcements') ?>
-      </a>
-    </div>
-
   </div>
 </section>
 <?php require_once __DIR__ . '/../app/helpers/footer.php'; ?>

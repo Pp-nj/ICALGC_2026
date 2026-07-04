@@ -17,10 +17,10 @@ try {
     $statsQuery = $db->prepare("
         SELECT
             COUNT(*) AS total,
-            COUNT(*) FILTER (WHERE status_code IN ('under_review','screening')) AS under_review,
-            COUNT(*) FILTER (WHERE status_code = 'accepted') AS accepted,
-            COUNT(*) FILTER (WHERE status_code = 'published') AS published,
-            COUNT(*) FILTER (WHERE status_code = 'revision_required') AS revisions
+            SUM(CASE WHEN status_code IN ('under_review','screening') THEN 1 ELSE 0 END) AS under_review,
+            SUM(CASE WHEN status_code = 'accepted' THEN 1 ELSE 0 END) AS accepted,
+            SUM(CASE WHEN status_code = 'published' THEN 1 ELSE 0 END) AS published,
+            SUM(CASE WHEN status_code = 'revision_required' THEN 1 ELSE 0 END) AS revisions
         FROM papers WHERE submitter_id = :uid
     ");
     $statsQuery->execute([':uid' => $uid]);

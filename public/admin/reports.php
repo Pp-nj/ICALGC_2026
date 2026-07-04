@@ -61,7 +61,7 @@ try {
             (SELECT COALESCE(SUM(download_count),0) FROM publications) AS total_downloads,
             (SELECT COALESCE(SUM(view_count),0) FROM publications) AS total_views,
             (SELECT COUNT(DISTINCT country) FROM users WHERE country IS NOT NULL AND country != '') AS countries,
-            (SELECT ROUND(AVG(overall_score)::numeric,2) FROM reviews) AS avg_review_score
+            (SELECT ROUND(AVG(score_overall),2) FROM reviews) AS avg_review_score
     ")->fetch();
 
 } catch (\Throwable $e) {

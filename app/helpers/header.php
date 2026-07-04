@@ -90,15 +90,15 @@ $appUrl = APP_URL;
      NAVBAR
      ════════════════════════════════════ -->
 <nav class="navbar navbar-expand-lg navbar-main" id="mainNavbar">
-  <div class="container">
+  <div class="container-fluid px-4">
     <!-- Brand Logos -->
     <a class="navbar-brand" href="<?= $appUrl ?>/">
-      <img src="<?= $appUrl ?>/assets/images/logo-swu.png"
+      <img src="<?=$appUrl ?>/assets/images/swu_Logo.png"
            alt="Srinakharinwirot University"
            class="brand-logo"
            onerror="this.style.display='none'">
       <span class="brand-divider d-none d-sm-block"></span>
-      <img src="<?= $appUrl ?>/assets/images/logo-gduf.png"
+      <img src="<?= $appUrl ?>/assets/images/Guangdong University of Foreign Studies.png"
            alt="Guangdong University of Foreign Studies"
            class="brand-logo"
            onerror="this.style.display='none'">
@@ -111,15 +111,12 @@ $appUrl = APP_URL;
     </button>
 
     <div class="collapse navbar-collapse" id="navMenu">
-      <ul class="navbar-nav mx-auto gap-1">
+      <ul class="navbar-nav ms-auto gap-1">
         <li class="nav-item">
           <a class="nav-link <?= $_activeNav==='home'?'active':'' ?>" href="<?= $appUrl ?>/"><?= t('nav.home') ?></a>
         </li>
         <li class="nav-item">
-          <a class="nav-link <?= $_activeNav==='about'?'active':'' ?>" href="<?= $appUrl ?>/#about"><?= t('nav.about') ?></a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link <?= $_activeNav==='cfa'?'active':'' ?>" href="<?= $appUrl ?>/call-for-abstract.php"><?= t('nav.call_abstract') ?></a>
+          <a class="nav-link <?= $_activeNav==='about'?'active':'' ?>" href="<?= $appUrl ?>/about.php"><?= t('nav.about') ?></a>
         </li>
         <li class="nav-item">
           <a class="nav-link <?= $_activeNav==='pub'?'active':'' ?>" href="<?= $appUrl ?>/publication.php"><?= t('nav.publication') ?></a>
@@ -132,7 +129,7 @@ $appUrl = APP_URL;
         </li>
       </ul>
 
-      <ul class="navbar-nav gap-2 align-items-center">
+      <ul class="navbar-nav  gap-2 align-items-center">
         <!-- Language Switcher -->
         <li class="nav-item d-flex align-items-center gap-1">
           <a href="?lang=th" class="nav-link nav-lang-switch <?= $_lang==='th'?'active-lang':'' ?>"
@@ -151,7 +148,7 @@ $appUrl = APP_URL;
                 <span class="notification-badge"><?= $unreadCount > 9 ? '9+' : $unreadCount ?></span>
               <?php endif; ?>
             </a>
-            <div class="dropdown-menu notif-dropdown p-0" aria-labelledby="notifToggle">
+            <div class="dropdown-menu dropdown-menu-end notif-dropdown p-0" aria-labelledby="notifToggle">
               <div class="d-flex align-items-center justify-content-between p-3 border-bottom">
                 <strong style="font-size:.9rem;color:var(--blue-dark);"><?= t('notif.title') ?></strong>
                 <?php if ($unreadCount > 0): ?>
@@ -186,8 +183,8 @@ $appUrl = APP_URL;
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" data-bs-toggle="dropdown">
               <span class="rounded-circle bg-gold text-blue d-inline-flex align-items-center justify-content-center"
-                    style="width:32px;height:32px;font-size:.75rem;font-weight:700;background:var(--gold);color:var(--blue-dark);">
-                <?= strtoupper(substr($currentUser['name'], 0, 1)) ?>
+                    style="width:32px;height:32px;font-size:.9rem;background:var(--gold);color:var(--blue-dark);">
+                <i class="fas fa-user"></i>
               </span>
               <span class="d-none d-lg-inline text-white" style="font-size:.85rem;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
                 <?= e($currentUser['name']) ?>

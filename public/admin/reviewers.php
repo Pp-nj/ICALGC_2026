@@ -33,12 +33,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && post('form_type') === 'create') {
             if ($chk->fetch()) {
                 $errors[] = $_lang==='th' ? 'อีเมลนี้ถูกใช้งานแล้ว' : 'Email already in use.';
             } else {
-                $hash = password_hash($pw, PASSWORD_BCRYPT, ['cost' => 12]);
+                $hash      = password_hash($pw, PASSWORD_BCRYPT, ['cost' => 12]);
+                $nameParts = explode(' ', $name, 2);
+                $firstName = $nameParts[0];
+                $lastName  = $nameParts[1] ?? '-';
                 $ins  = $db->prepare("
-                    INSERT INTO users (name, email, password_hash, role, affiliation, country, email_verified)
-                    VALUES (:n, :em, :ph, 'reviewer', :aff, :ctry, TRUE)
+                    INSERT INTO users (first_name, last_name, email, password_hash, role, affiliation, country, email_verified)
+                    VALUES (:fn, :ln, :em, :ph, 'reviewer', :aff, :ctry, TRUE)
                 ");
-                $ins->execute([':n'=>$name,':em'=>$email,':ph'=>$hash,':aff'=>$affil,':ctry'=>$country]);
+                $ins->execute([':fn'=>$firstName,':ln'=>$lastName,':em'=>$email,':ph'=>$hash,':aff'=>$affil,':ctry'=>$country]);
                 auditLog('create_reviewer', 'users', "Created reviewer: $email", Auth::id());
                 flashSet('success', $_lang==='th' ? 'สร้างบัญชีผู้ทรงคุณวุฒิเรียบร้อย' : 'Reviewer account created.');
                 redirect($appUrl . '/admin/reviewers.php');
@@ -58,8 +61,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && post('form_type') === 'toggle') {
     if ($uid && in_array($action, ['suspend','activate'])) {
         try {
             $db  = Database::getInstance();
-            $val = $action === 'suspend' ? 't' : 'f';
-            $db->prepare("UPDATE users SET is_suspended = :v WHERE id = :uid AND role = 'reviewer'")
+            $val = $action === 'suspend' ? 'suspended' : 'active';
+            $db->prepare("UPDATE users SET account_status = :v WHERE id = :uid AND role = 'reviewer'")
                ->execute([':v'=>$val, ':uid'=>$uid]);
             flashSet('success', $action==='suspend' ? ($_lang==='th'?'ระงับแล้ว':'Suspended.') : ($_lang==='th'?'เปิดใช้งานแล้ว':'Activated.'));
         } catch (\Throwable $e) { error_log($e->getMessage()); }
@@ -72,12 +75,12 @@ try {
     $reviewers = $db->query("
         SELECT u.*,
                COUNT(DISTINCT ra.id) AS total_assigned,
-               COUNT(DISTINCT CASE WHEN ra.status = 'completed' THEN ra.id END) AS completed
+               COUNT(DISTINCT CASE WHEN ra.assignment_status = 'completed' THEN ra.id END) AS completed
         FROM users u
         LEFT JOIN review_assignments ra ON ra.reviewer_id = u.id
         WHERE u.role = 'reviewer'
         GROUP BY u.id
-        ORDER BY u.name ASC
+        ORDER BY u.first_name ASC, u.last_name ASC
     ")->fetchAll();
 } catch (\Throwable $e) {
     error_log($e->getMessage());
@@ -182,7 +185,7 @@ $activeMenu = 'reviewers';
                   <?php foreach ($reviewers as $rv): ?>
                     <tr>
                       <td>
-                        <div style="font-weight:700;font-size:.88rem;"><?= e($rv['name']) ?></div>
+                        <div style="font-weight:700;font-size:.88rem;"><?= e($rv['first_name'] . ' ' . $rv['last_name']) ?></div>
                         <div style="font-size:.75rem;color:var(--gray-500);"><?= e($rv['email']) ?></div>
                       </td>
                       <td style="font-size:.82rem;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
@@ -191,7 +194,7 @@ $activeMenu = 'reviewers';
                       <td style="text-align:center;font-weight:700;"><?= (int)$rv['total_assigned'] ?></td>
                       <td style="text-align:center;font-weight:700;color:#198754;"><?= (int)$rv['completed'] ?></td>
                       <td>
-                        <?php if ($rv['is_suspended']): ?>
+                        <?php if ($rv['account_status'] === 'suspended'): ?>
                           <span class="badge" style="background:#dc3545;color:#fff;font-size:.72rem;"><?= $_lang==='th'?'ระงับ':'Suspended' ?></span>
                         <?php else: ?>
                           <span class="badge" style="background:#198754;color:#fff;font-size:.72rem;"><?= $_lang==='th'?'ใช้งาน':'Active' ?></span>
@@ -202,7 +205,7 @@ $activeMenu = 'reviewers';
                           <input type="hidden" name="csrf_token" value="<?= Auth::csrfToken() ?>">
                           <input type="hidden" name="form_type" value="toggle">
                           <input type="hidden" name="user_id" value="<?= (int)$rv['id'] ?>">
-                          <?php if ($rv['is_suspended']): ?>
+                          <?php if ($rv['account_status'] === 'suspended'): ?>
                             <input type="hidden" name="action" value="activate">
                             <button type="submit" class="btn btn-sm btn-outline-success rounded-pill" style="font-size:.72rem;">
                               <i class="fas fa-check"></i>

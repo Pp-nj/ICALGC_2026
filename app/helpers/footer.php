@@ -16,16 +16,20 @@ $appUrl = APP_URL;
 
       <!-- Column 1: Brand -->
       <div class="col-lg-4 col-md-6">
-        <img src="<?= $appUrl ?>/assets/images/logo-swu.png"
+        <img src="<?= $appUrl ?>/assets/images/swu_Logo.png"
              alt="SWU Logo"
              class="footer-logo"
              onerror="this.style.display='none'">
+          <img src="<?= $appUrl ?>/assets/images/Guangdong University of Foreign Studies.png"
+            alt="Guangdong University of Foreign Studies"
+            class="footer-logo"
+            onerror="this.style.display='none'">
         <p class="footer-desc">
           <?php if ($_lang === 'th'): ?>
             <?= e(CONF_NAME_TH) ?>
             <br><br>
             คณะมนุษยศาสตร์ มหาวิทยาลัยศรีนครินทรวิโรฒ<br>
-            ร่วมกับ มหาวิทยาลัยกวางตุ้งเพื่อการศึกษาต่างประเทศ
+            ร่วมกับ Guangdong University of Foreign Studies
           <?php else: ?>
             <?= e(CONF_NAME_EN) ?>
             <br><br>
@@ -34,17 +38,14 @@ $appUrl = APP_URL;
           <?php endif; ?>
         </p>
         <div class="footer-social">
-          <a href="#" class="social-btn" title="Facebook" aria-label="Facebook">
+          <a href="https://www.facebook.com/swu.humanities" class="social-btn" title="Facebook" aria-label="Facebook">
             <i class="fab fa-facebook-f"></i>
           </a>
-          <a href="#" class="social-btn" title="Twitter/X" aria-label="Twitter">
-            <i class="fab fa-x-twitter"></i>
+          <a href="https://www.instagram.com/swu.humanities" class="social-btn" title="Instagram" aria-label="Instagram">
+            <i class="fab fa-instagram"></i>
           </a>
-          <a href="#" class="social-btn" title="YouTube" aria-label="YouTube">
-            <i class="fab fa-youtube"></i>
-          </a>
-          <a href="#" class="social-btn" title="Line" aria-label="Line">
-            <i class="fab fa-line"></i>
+          <a href="https://hu.swu.ac.th/" class="social-btn" title="Website" aria-label="Website">
+            <i class="fas fa-globe"></i>
           </a>
           <a href="mailto:icalgc@swu.ac.th" class="social-btn" title="Email" aria-label="Email">
             <i class="fas fa-envelope"></i>

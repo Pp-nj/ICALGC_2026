@@ -19,15 +19,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $formType = post('form_type');
 
     if ($formType === 'profile') {
-        $name    = trim(post('name'));
+        $firstName  = trim(post('first_name'));
+        $middleName = trim(post('middle_name'));
+        $lastName   = trim(post('last_name'));
         $email   = sanitizeEmail(post('email'));
         $phone   = trim(post('phone'));
         $affil   = trim(post('affiliation'));
         $country = trim(post('country'));
         $addr    = trim(post('mailing_address'));
         $pos     = trim(post('position'));
+        $exp     = trim(post('expertise'));
 
-        if (!$name)  $errors[] = $_lang==='th' ? 'กรุณากรอกชื่อ' : 'Name is required.';
+        $name = trim($firstName . ' ' . $lastName);
+
+        if (!$firstName || !$lastName) $errors[] = $_lang==='th' ? 'กรุณากรอกชื่อและนามสกุล' : 'First and last name are required.';
         if (!$email) $errors[] = $_lang==='th' ? 'อีเมลไม่ถูกต้อง' : 'Invalid email.';
 
         if (empty($errors)) {
@@ -47,27 +52,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
 
                 if (empty($errors)) {
-                    if ($emailChanged && EMAIL_VERIFICATION_ENABLED) {
+                    if ($emailChanged) {
                         $token = generateToken();
-                        $db->prepare("UPDATE users SET name=:n, email=:em, phone=:ph, affiliation=:af, country=:co, mailing_address=:ma, position=:po, email_verified=FALSE WHERE id=:id")
-                           ->execute([':n'=>$name,':em'=>$email,':ph'=>$phone,':af'=>$affil,':co'=>$country,':ma'=>$addr,':po'=>$pos,':id'=>$uid]);
+                        $db->prepare("UPDATE users SET first_name=:fn, middle_name=:mn, last_name=:ln, email=:em, phone=:ph, affiliation=:af, country=:co, mailing_address=:ma, position=:po, expertise=:ex, email_verified=FALSE WHERE id=:id")
+                           ->execute([':fn'=>$firstName,':mn'=>($middleName ?: null),':ln'=>$lastName,':em'=>$email,':ph'=>$phone,':af'=>$affil,':co'=>$country,':ma'=>$addr,':po'=>$pos,':ex'=>$exp,':id'=>$uid]);
                         $db->prepare("INSERT INTO email_verifications (user_id, token, expires_at) VALUES (:uid, :tok, NOW() + INTERVAL '24 hours')")
                            ->execute([':uid'=>$uid, ':tok'=>$token]);
                         Mail::sendEmailVerification($email, $name, $token);
-                        $_SESSION['user']['email'] = $email;
+                        $_SESSION['user_email'] = $email;
                         flashSet('success', $_lang==='th' ? 'อัปเดตโปรไฟล์แล้ว กรุณายืนยันอีเมลใหม่' : 'Profile updated. Please verify your new email.');
-                    } elseif ($emailChanged) {
-                        // Verification disabled (dev): update the email but keep the
-                        // account verified and send no email.
-                        $db->prepare("UPDATE users SET name=:n, email=:em, phone=:ph, affiliation=:af, country=:co, mailing_address=:ma, position=:po, email_verified=TRUE WHERE id=:id")
-                           ->execute([':n'=>$name,':em'=>$email,':ph'=>$phone,':af'=>$affil,':co'=>$country,':ma'=>$addr,':po'=>$pos,':id'=>$uid]);
-                        $_SESSION['user']['email'] = $email;
-                        $_SESSION['user']['name']  = $name;
-                        flashSet('success', $_lang==='th' ? 'อัปเดตโปรไฟล์แล้ว' : 'Profile updated.');
                     } else {
-                        $db->prepare("UPDATE users SET name=:n, phone=:ph, affiliation=:af, country=:co, mailing_address=:ma, position=:po WHERE id=:id")
-                           ->execute([':n'=>$name,':ph'=>$phone,':af'=>$affil,':co'=>$country,':ma'=>$addr,':po'=>$pos,':id'=>$uid]);
-                        $_SESSION['user']['name'] = $name;
+                        $db->prepare("UPDATE users SET first_name=:fn, middle_name=:mn, last_name=:ln, phone=:ph, affiliation=:af, country=:co, mailing_address=:ma, position=:po, expertise=:ex WHERE id=:id")
+                           ->execute([':fn'=>$firstName,':mn'=>($middleName ?: null),':ln'=>$lastName,':ph'=>$phone,':af'=>$affil,':co'=>$country,':ma'=>$addr,':po'=>$pos,':ex'=>$exp,':id'=>$uid]);
+                        $_SESSION['user_name'] = $name;
                         flashSet('success', $_lang==='th' ? 'อัปเดตโปรไฟล์แล้ว' : 'Profile updated.');
                     }
                     auditLog('update_profile', 'users', 'Reviewer updated own profile', $uid);
@@ -184,9 +181,17 @@ $activeMenu = 'profile';
               <input type="hidden" name="csrf_token" value="<?= Auth::csrfToken() ?>">
               <input type="hidden" name="form_type" value="profile">
               <div class="row g-3">
-                <div class="col-md-6">
-                  <label class="form-label fw-bold" style="font-size:.85rem;"><?= $_lang==='th'?'ชื่อ-นามสกุล':'Full Name' ?> <span class="text-danger">*</span></label>
-                  <input type="text" name="name" class="form-control" value="<?= e($user['name'] ?? '') ?>" required>
+                <div class="col-md-4">
+                  <label class="form-label fw-bold" style="font-size:.85rem;"><?= $_lang==='th'?'ชื่อ':'First Name' ?> <span class="text-danger">*</span></label>
+                  <input type="text" name="first_name" class="form-control" value="<?= e($user['first_name'] ?? '') ?>" required>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label fw-bold" style="font-size:.85rem;"><?= $_lang==='th'?'ชื่อกลาง':'Middle Name' ?></label>
+                  <input type="text" name="middle_name" class="form-control" value="<?= e($user['middle_name'] ?? '') ?>">
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label fw-bold" style="font-size:.85rem;"><?= $_lang==='th'?'นามสกุล':'Last Name' ?> <span class="text-danger">*</span></label>
+                  <input type="text" name="last_name" class="form-control" value="<?= e($user['last_name'] ?? '') ?>" required>
                 </div>
                 <div class="col-md-6">
                   <label class="form-label fw-bold" style="font-size:.85rem;"><?= $_lang==='th'?'อีเมล':'Email' ?> <span class="text-danger">*</span></label>
@@ -214,6 +219,10 @@ $activeMenu = 'profile';
                 <div class="col-12">
                   <label class="form-label fw-bold" style="font-size:.85rem;"><?= $_lang==='th'?'ที่อยู่':'Mailing Address' ?></label>
                   <textarea name="mailing_address" class="form-control" rows="2"><?= e($user['mailing_address'] ?? '') ?></textarea>
+                </div>
+                <div class="col-12">
+                  <label class="form-label fw-bold" style="font-size:.85rem;"><?= $_lang==='th'?'สาขาความเชี่ยวชาญ':'Areas of Expertise' ?></label>
+                  <textarea name="expertise" class="form-control" rows="2" placeholder="<?= $_lang==='th'?'เช่น ปัญญาประดิษฐ์, วิศวกรรมซอฟต์แวร์':'e.g. Artificial Intelligence, Software Engineering' ?>"><?= e($user['expertise'] ?? '') ?></textarea>
                 </div>
                 <div class="col-12">
                   <button type="submit" class="btn-primary-custom">
@@ -252,7 +261,7 @@ $activeMenu = 'profile';
               </div>
               <div>
                 <div style="font-size:.75rem;color:var(--gray-500);margin-bottom:2px;"><?= $_lang==='th'?'สถานะบัญชี':'Account Status' ?></div>
-                <?php if ($user['is_suspended'] ?? false): ?>
+                <?php if (($user['account_status'] ?? '') === 'suspended'): ?>
                   <span class="badge" style="background:#dc3545;color:#fff;font-size:.78rem;"><?= $_lang==='th'?'ถูกระงับ':'Suspended' ?></span>
                 <?php else: ?>
                   <span class="badge" style="background:#198754;color:#fff;font-size:.78rem;"><?= $_lang==='th'?'ใช้งานได้':'Active' ?></span>

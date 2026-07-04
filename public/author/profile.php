@@ -20,6 +20,9 @@ try {
     $stmt = $db->prepare("SELECT * FROM users WHERE id = :uid");
     $stmt->execute([':uid' => $uid]);
     $dbUser = $stmt->fetch();
+    if (!$dbUser) {
+        $dbUser = $user;
+    }
 } catch (\Throwable $e) {
     error_log($e->getMessage());
     $dbUser = $user;
@@ -29,16 +32,22 @@ try {
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && post('form_type') === 'profile') {
     Auth::verifyCsrf(post('csrf_token'));
 
-    $name      = trim(post('name'));
+    $firstName  = trim(post('first_name'));
+    $middleName = trim(post('middle_name'));
+    $lastName   = trim(post('last_name'));
+    $certName   = trim(post('cert_name'));
     $phone     = trim(post('phone'));
     $address   = trim(post('mailing_address'));
     $position  = trim(post('position'));
     $affil     = trim(post('affiliation'));
+    $department = trim(post('department'));
     $country   = trim(post('country'));
-    $attend    = post('attend_conference') === '1' ? true : false;
+    $partType  = trim(post('participation_type'));
+    $dietary   = trim(post('dietary'));
+    $dietaryAllergy = trim(post('dietary_allergy'));
     $newEmail  = sanitizeEmail(post('email'));
 
-    if (!$name)     $errors[] = $_lang==='th' ? 'กรุณากรอกชื่อ-นามสกุล' : 'Name is required.';
+    if (!$firstName || !$lastName) $errors[] = $_lang==='th' ? 'กรุณากรอกชื่อและนามสกุล' : 'First and last name are required.';
     if (!$newEmail) $errors[] = $_lang==='th' ? 'อีเมลไม่ถูกต้อง' : 'Invalid email address.';
 
     // Check email uniqueness if changed
@@ -55,35 +64,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && post('form_type') === 'profile') {
         try {
             $upd = $db->prepare("
                 UPDATE users SET
-                    name = :name, phone = :phone, mailing_address = :addr,
-                    position = :pos, affiliation = :aff, country = :ctry,
-                    attend_conference = :att, email = :em,
+                    first_name = :fn, middle_name = :mn, last_name = :ln, cert_name = :cn,
+                    phone = :phone, mailing_address = :addr,
+                    position = :pos, affiliation = :aff, department = :dept, country = :ctry,
+                    participation_type = :pt, dietary = :diet, dietary_allergy = :dietal,
+                    email = :em,
                     email_verified = :ev,
                     updated_at = NOW()
                 WHERE id = :uid
             ");
             $upd->execute([
-                ':name' => $name, ':phone' => $phone,
+                ':fn' => $firstName, ':mn' => $middleName ?: null, ':ln' => $lastName,
+                ':cn' => $certName ?: null,
+                ':phone' => $phone,
                 ':addr' => $address, ':pos' => $position,
-                ':aff'  => $affil, ':ctry' => $country,
-                ':att'  => $attend ? 't' : 'f',
+                ':aff'  => $affil, ':dept' => $department ?: null, ':ctry' => $country,
+                ':pt'   => $partType ?: null,
+                ':diet' => $dietary ?: null,
+                ':dietal' => ($dietary === 'allergy' && $dietaryAllergy) ? $dietaryAllergy : null,
                 ':em'   => $newEmail,
-                // When verification is disabled (dev), the account stays verified
-                // even if the email changes. When enabled (prod), a changed email
-                // resets verification exactly as before.
-                ':ev'   => !EMAIL_VERIFICATION_ENABLED
-                            ? 't'
-                            : ($emailChanged ? 'f' : ($dbUser['email_verified'] ? 't' : 'f')),
+                ':ev'   => $emailChanged ? 'f' : ($dbUser['email_verified'] ? 't' : 'f'),
                 ':uid'  => $uid,
             ]);
 
-            // Re-verify email if changed (only when verification is enabled)
-            if ($emailChanged && EMAIL_VERIFICATION_ENABLED) {
+            // Re-verify email if changed
+            if ($emailChanged) {
                 $token   = generateToken();
                 $expires = date('Y-m-d H:i:s', strtotime('+24 hours'));
                 $db->prepare("INSERT INTO email_verifications (user_id, token, expires_at) VALUES (:uid, :tk, :ex)")
                    ->execute([':uid' => $uid, ':tk' => $token, ':ex' => $expires]);
-                Mail::sendEmailVerification($newEmail, $name, $token);
+                Mail::sendEmailVerification($newEmail, trim("$firstName $lastName"), $token);
                 flashSet('info', $_lang==='th'
                     ? 'อัปเดตโปรไฟล์แล้ว กรุณายืนยันอีเมลใหม่'
                     : 'Profile updated. Please verify your new email address.');
@@ -206,13 +216,21 @@ $activeMenu = 'profile';
               <i class="fas fa-id-card me-2" style="color:var(--gold);"></i><?= $_lang==='th' ? 'ข้อมูลส่วนตัว' : 'Personal Information' ?>
             </div>
             <div class="row g-3">
-              <div class="col-12">
-                <label class="form-label fw-bold" style="font-size:.85rem;"><?= $_lang==='th' ? 'ชื่อ-นามสกุล' : 'Full Name' ?> <span class="text-danger">*</span></label>
-                <input type="text" name="name" class="form-control" value="<?= e($dbUser['name']) ?>" required>
+              <div class="col-md-4">
+                <label class="form-label fw-bold" style="font-size:.85rem;"><?= $_lang==='th' ? 'ชื่อ' : 'First Name' ?> <span class="text-danger">*</span></label>
+                <input type="text" name="first_name" class="form-control" value="<?= e($dbUser['first_name'] ?? '') ?>" required>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label fw-bold" style="font-size:.85rem;"><?= $_lang==='th' ? 'ชื่อกลาง' : 'Middle Name' ?></label>
+                <input type="text" name="middle_name" class="form-control" value="<?= e($dbUser['middle_name'] ?? '') ?>">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label fw-bold" style="font-size:.85rem;"><?= $_lang==='th' ? 'นามสกุล' : 'Last Name' ?> <span class="text-danger">*</span></label>
+                <input type="text" name="last_name" class="form-control" value="<?= e($dbUser['last_name'] ?? '') ?>" required>
               </div>
               <div class="col-md-6">
                 <label class="form-label fw-bold" style="font-size:.85rem;"><?= $_lang==='th' ? 'อีเมล' : 'Email' ?> <span class="text-danger">*</span></label>
-                <input type="email" name="email" class="form-control" value="<?= e($dbUser['email']) ?>" required>
+                <input type="email" name="email" class="form-control" value="<?= e($dbUser['email'] ?? '') ?>" required>
                 <?php if (!$dbUser['email_verified']): ?>
                   <div class="form-text text-warning">
                     <i class="fas fa-exclamation-triangle me-1"></i>
@@ -228,6 +246,11 @@ $activeMenu = 'profile';
               <div class="col-md-6">
                 <label class="form-label fw-bold" style="font-size:.85rem;"><?= $_lang==='th' ? 'เบอร์โทรศัพท์' : 'Phone' ?></label>
                 <input type="tel" name="phone" class="form-control" value="<?= e($dbUser['phone'] ?? '') ?>">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-bold" style="font-size:.85rem;"><?= $_lang==='th' ? 'ชื่อสำหรับใบประกาศนียบัตร' : 'Name for Certificate' ?></label>
+                <input type="text" name="cert_name" class="form-control" value="<?= e($dbUser['cert_name'] ?? '') ?>"
+                       placeholder="<?= $_lang==='th' ? 'ชื่อ-นามสกุลที่จะพิมพ์บนใบประกาศนียบัตร' : 'Full name as printed on the certificate' ?>">
               </div>
               <div class="col-12">
                 <label class="form-label fw-bold" style="font-size:.85rem;"><?= $_lang==='th' ? 'ที่อยู่ติดต่อ' : 'Mailing Address' ?></label>
@@ -252,23 +275,49 @@ $activeMenu = 'profile';
                 <input type="text" name="affiliation" class="form-control" value="<?= e($dbUser['affiliation'] ?? '') ?>">
               </div>
               <div class="col-md-6">
+                <label class="form-label fw-bold" style="font-size:.85rem;"><?= $_lang==='th' ? 'ภาควิชา' : 'Department' ?></label>
+                <input type="text" name="department" class="form-control" value="<?= e($dbUser['department'] ?? '') ?>">
+              </div>
+              <div class="col-md-6">
                 <label class="form-label fw-bold" style="font-size:.85rem;"><?= $_lang==='th' ? 'ประเทศ' : 'Country' ?></label>
                 <input type="text" name="country" class="form-control" value="<?= e($dbUser['country'] ?? '') ?>">
               </div>
               <div class="col-md-6">
-                <label class="form-label fw-bold d-block" style="font-size:.85rem;"><?= $_lang==='th' ? 'เข้าร่วมงานด้วยตัวเอง' : 'Attending in person?' ?></label>
-                <div class="d-flex gap-3 mt-1">
-                  <div class="form-check">
-                    <input class="form-check-input" type="radio" name="attend_conference" value="1" id="attendYes"
-                      <?= ($dbUser['attend_conference'] ?? false) ? 'checked' : '' ?>>
-                    <label class="form-check-label" for="attendYes"><?= $_lang==='th' ? 'ใช่' : 'Yes' ?></label>
-                  </div>
-                  <div class="form-check">
-                    <input class="form-check-input" type="radio" name="attend_conference" value="0" id="attendNo"
-                      <?= !($dbUser['attend_conference'] ?? false) ? 'checked' : '' ?>>
-                    <label class="form-check-label" for="attendNo"><?= $_lang==='th' ? 'ไม่' : 'No' ?></label>
-                  </div>
-                </div>
+                <label class="form-label fw-bold" style="font-size:.85rem;"><?= $_lang==='th' ? 'ประเภทการเข้าร่วม' : 'Participation Type' ?></label>
+                <select name="participation_type" class="form-select">
+                  <option value=""><?= $_lang==='th' ? '— เลือก —' : '— Select —' ?></option>
+                  <?php
+                  $partTypes = [
+                      'presenter'   => $_lang==='th' ? 'ผู้นำเสนอผลงาน' : 'Presenter',
+                      'coauthor'    => $_lang==='th' ? 'ผู้ร่วมแต่ง' : 'Co-author',
+                      'participant' => $_lang==='th' ? 'ผู้เข้าร่วม' : 'Participant',
+                      'student'     => $_lang==='th' ? 'นักศึกษา' : 'Student',
+                  ];
+                  foreach ($partTypes as $val => $label): ?>
+                    <option value="<?= $val ?>" <?= ($dbUser['participation_type'] ?? '') === $val ? 'selected' : '' ?>><?= e($label) ?></option>
+                  <?php endforeach; ?>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-bold" style="font-size:.85rem;"><?= $_lang==='th' ? 'ความต้องการด้านอาหาร' : 'Dietary Requirements' ?></label>
+                <select name="dietary" id="dietarySelect" class="form-select" onchange="document.getElementById('dietAllergyWrap').style.display = this.value==='allergy' ? 'block' : 'none';">
+                  <option value=""><?= $_lang==='th' ? '— เลือก —' : '— Select —' ?></option>
+                  <?php
+                  $dietOpts = [
+                      'none'       => $_lang==='th' ? 'ไม่มีข้อจำกัด' : 'No Restriction',
+                      'vegetarian' => $_lang==='th' ? 'มังสวิรัติ' : 'Vegetarian',
+                      'halal'      => $_lang==='th' ? 'ฮาลาล' : 'Halal',
+                      'allergy'    => $_lang==='th' ? 'แพ้อาหาร' : 'Food Allergy',
+                  ];
+                  foreach ($dietOpts as $val => $label): ?>
+                    <option value="<?= $val ?>" <?= ($dbUser['dietary'] ?? '') === $val ? 'selected' : '' ?>><?= e($label) ?></option>
+                  <?php endforeach; ?>
+                </select>
+              </div>
+              <div class="col-md-6" id="dietAllergyWrap" style="display:<?= ($dbUser['dietary'] ?? '') === 'allergy' ? 'block' : 'none' ?>;">
+                <label class="form-label fw-bold" style="font-size:.85rem;"><?= $_lang==='th' ? 'ระบุอาหารที่แพ้' : 'Specify Food Allergy' ?></label>
+                <input type="text" name="dietary_allergy" class="form-control" value="<?= e($dbUser['dietary_allergy'] ?? '') ?>"
+                       placeholder="<?= $_lang==='th' ? 'เช่น กุ้ง ถั่ว นม...' : 'e.g. shrimp, peanuts, dairy...' ?>">
               </div>
             </div>
           </div>
@@ -303,7 +352,7 @@ $activeMenu = 'profile';
                   <span style="color:#dc3545;font-weight:600;"><i class="fas fa-times-circle me-1"></i><?= $_lang==='th' ? 'ยังไม่ยืนยัน' : 'Unverified' ?></span>
                 <?php endif; ?>
               </div>
-              <?php if ($dbUser['is_suspended'] ?? false): ?>
+              <?php if (($dbUser['account_status'] ?? '') === 'suspended'): ?>
               <div class="alert alert-danger p-2 mb-0" style="font-size:.82rem;">
                 <i class="fas fa-ban me-1"></i><?= $_lang==='th' ? 'บัญชีถูกระงับ' : 'Account suspended' ?>
               </div>

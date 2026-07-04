@@ -25,14 +25,18 @@ if ($themeFilter) {
     $where[]        = "p.theme_id = :tid";
     $params[':tid'] = $themeFilter;
 }
-if ($search) {
-    $where[]       = "(p.paper_code ILIKE :q OR p.title_th ILIKE :q OR p.title_en ILIKE :q OR u.name ILIKE :q)";
-    $params[':q']  = "%{$search}%";
-}
-$whereStr = implode(' AND ', $where);
 
 try {
     $db = Database::getInstance();
+    $isMysql = $db->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql';
+
+    if ($search) {
+        $where[] = $isMysql
+            ? "(p.paper_code LIKE :q OR p.title_th LIKE :q OR p.title_en LIKE :q OR CONCAT(u.first_name, ' ', u.last_name) LIKE :q)"
+            : "(p.paper_code ILIKE :q OR p.title_th ILIKE :q OR p.title_en ILIKE :q OR (u.first_name || ' ' || u.last_name) ILIKE :q)";
+        $params[':q']  = "%{$search}%";
+    }
+    $whereStr = implode(' AND ', $where);
 
     $cntStmt = $db->prepare("SELECT COUNT(*) FROM papers p JOIN users u ON u.id = p.submitter_id WHERE {$whereStr}");
     $cntStmt->execute($params);
@@ -41,10 +45,10 @@ try {
     $pg = paginate($total, $perPage, $page);
 
     $stmt = $db->prepare("
-        SELECT p.*, u.name AS submitter_name, u.affiliation,
+        SELECT p.*, (u.first_name || ' ' || u.last_name) AS submitter_name, u.affiliation,
                ct.name_th AS theme_th, ct.name_en AS theme_en,
                ps.color_hex,
-               (SELECT COUNT(*) FROM review_assignments ra WHERE ra.paper_id = p.id AND ra.status = 'completed') AS review_count
+               (SELECT COUNT(*) FROM review_assignments ra WHERE ra.paper_id = p.id AND ra.assignment_status = 'completed') AS review_count
         FROM papers p
         JOIN users u ON u.id = p.submitter_id
         JOIN conference_themes ct ON ct.id = p.theme_id
@@ -204,7 +208,7 @@ $activeMenu = 'papers';
                          class="btn btn-sm btn-outline-primary rounded-pill" style="font-size:.72rem;">
                         <i class="fas fa-eye"></i>
                       </a>
-                      <?php if (in_array($p['status_code'], ['submitted','screening'])): ?>
+                      <?php if ($p['status_code'] === 'submitted'): ?>
                         <a href="<?= $appUrl ?>/admin/assign-reviewer.php?paper_id=<?= (int)$p['id'] ?>"
                            class="btn btn-sm btn-outline-secondary rounded-pill" style="font-size:.72rem;">
                           <i class="fas fa-user-plus"></i>
