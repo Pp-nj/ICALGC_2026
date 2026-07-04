@@ -77,7 +77,7 @@ try {
     $assignments = []; $total = 0; $pg = paginate(0, $perPage, 1);
 }
 
-$pageTitle  = $_lang==='th' ? 'บทความที่ได้รับมอบหมาย' : 'Assigned Papers';
+$pageTitle  = $_lang==='th' ? 'บทคัดย่อที่ได้รับมอบหมาย' : 'Assigned Papers';
 $activeMenu = 'assigned';
 
 $statuses = [
@@ -108,7 +108,7 @@ $statuses = [
       <h1 class="dash-title">
         <i class="fas fa-tasks me-2" style="color:var(--gold);"></i><?= e($pageTitle) ?>
       </h1>
-      <p class="dash-breadcrumb"><?= $total ?> <?= $_lang==='th' ? 'บทความ' : 'assignment(s)' ?></p>
+      <p class="dash-breadcrumb"><?= $total ?> <?= $_lang==='th' ? 'บทคัดย่อ' : 'assignment(s)' ?></p>
     </div>
 
     <?= flashHtml() ?>
@@ -134,7 +134,7 @@ $statuses = [
     <?php if (empty($assignments)): ?>
       <div class="content-card p-5 text-center">
         <i class="fas fa-inbox fa-3x mb-3" style="color:var(--gray-200);"></i>
-        <h5 style="color:var(--gray-500);"><?= $_lang==='th' ? 'ไม่มีบทความที่ตรงกัน' : 'No assignments found' ?></h5>
+        <h5 style="color:var(--gray-500);"><?= $_lang==='th' ? 'ไม่มีบทคัดย่อที่ตรงกัน' : 'No assignments found' ?></h5>
       </div>
     <?php else: ?>
       <div class="d-flex flex-column gap-3">
@@ -198,7 +198,7 @@ $statuses = [
               <?php elseif ($ra['assignment_status'] === 'in_progress'): ?>
                 <a href="<?= $appUrl ?>/reviewer/review.php?assignment_id=<?= (int)$ra['id'] ?>"
                    class="btn-primary-custom" style="font-size:.82rem;padding:8px 18px;">
-                  <i class="fas fa-star me-1"></i><?= $_lang==='th' ? 'ประเมินบทความ' : 'Write Review' ?>
+                  <i class="fas fa-star me-1"></i><?= $_lang==='th' ? 'ประเมินบทคัดย่อ' : 'Write Review' ?>
                 </a>
               <?php elseif ($ra['assignment_status'] === 'completed'): ?>
                 <a href="<?= $appUrl ?>/reviewer/review.php?assignment_id=<?= (int)$ra['id'] ?>"

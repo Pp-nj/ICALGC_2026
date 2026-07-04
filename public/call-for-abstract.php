@@ -53,7 +53,7 @@ require_once __DIR__ . '/../app/helpers/header.php';
           <div class="content-card-title"><i class="fas fa-file-alt me-2" style="color:var(--gold);"></i><?= t('cfa.submission_details') ?></div>
 
           <?php if ($_lang==='th'): ?>
-            <p>ขอเชิญนักวิชาการ นักวิจัย อาจารย์ นักศึกษาระดับบัณฑิตศึกษา และผู้สนใจจากทั่วโลก ส่งบทคัดย่อเพื่อนำเสนอในการประชุม ICALGC 2026 ทั้งในรูปแบบบรรยาย (Oral Presentation) และโปสเตอร์ (Poster Presentation)</p>
+            <p>ขอเชิญนักวิชาการ นักวิจัย อาจารย์ นักศึกษาระดับบัณฑิตศึกษา และผู้สนใจจากทั่วโลก ส่งบทคัดย่อเพื่อนำเสนอในการประชุม ICALGC 2026 ในรูปแบบบรรยาย (Oral Presentation) </p>
             <ul style="line-height:2;color:var(--gray-700);">
               <li><strong>ภาษาที่ใช้:</strong> ไทยหรืออังกฤษ</li>
               <li><strong>ความยาวบทคัดย่อ:</strong> 250–350 คำ</li>
@@ -61,7 +61,7 @@ require_once __DIR__ . '/../app/helpers/header.php';
               <li><strong>ขนาดไฟล์:</strong> ไม่เกิน 20 MB</li>
             </ul>
           <?php else: ?>
-            <p>We invite academics, researchers, lecturers, graduate students, and interested parties from around the world to submit abstracts for presentation at ICALGC 2026 in both oral and poster presentation formats.</p>
+            <p>We invite academics, researchers, lecturers, graduate students, and interested parties from around the world to submit abstracts for presentation at ICALGC 2026.</p>
             <ul style="line-height:2;color:var(--gray-700);">
               <li><strong>Language:</strong> Thai or English</li>
               <li><strong>Abstract Length:</strong> 250–350 words</li>
@@ -302,15 +302,10 @@ require_once __DIR__ . '/../app/helpers/header.php';
               : 'Download the abstract template in the required format.' ?>
           </p>
           <div class="d-flex flex-wrap gap-3">
-            <a href="<?= $appUrl ?>/assets/templates/abstract-template-en.docx"
+            <a href="<?= $appUrl ?>/assets/template/Template-Abstract.docx"
                class="btn-primary-custom d-flex align-items-center gap-2" download>
               <i class="fas fa-file-word"></i>
-              <?= $_lang==='th'?'รูปแบบบทคัดย่อภาษาอังกฤษ (DOCX)':'English Template (DOCX)' ?>
-            </a>
-            <a href="<?= $appUrl ?>/assets/templates/abstract-template-th.docx"
-               class="btn-outline-custom d-flex align-items-center gap-2" download>
-              <i class="fas fa-file-word"></i>
-              <?= $_lang==='th'?'รูปแบบบทคัดย่อภาษาไทย (DOCX)':'Thai Template (DOCX)' ?>
+              <?= $_lang==='th'?'รูปแบบบทคัดย่อ (DOCX)':'Template-Abstract (DOCX)' ?>
             </a>
           </div>
         </div>
@@ -322,19 +317,19 @@ require_once __DIR__ . '/../app/helpers/header.php';
             <ol style="line-height:2;color:var(--gray-700);padding-left:20px;">
               <li>บทคัดย่อต้องเป็นผลงานวิจัยต้นฉบับ ยังไม่เคยตีพิมพ์หรือนำเสนอที่ใดมาก่อน</li>
               <li>บทคัดย่อต้องมีความยาว 250–350 คำ และระบุคำสำคัญ 3–5 คำ</li>
-              <li>ต้องระบุชื่อบทความทั้งในภาษาไทยและภาษาอังกฤษ</li>
+              <li>ต้องระบุชื่อบทคัดย่อทั้งในภาษาไทย/ภาษาอาเซียนและภาษาอังกฤษ</li>
               <li>ต้องระบุชื่อผู้แต่งทุกคน สังกัด และอีเมลของผู้แต่งผู้รับผิดชอบ</li>
-              <li>ส่งบทคัดย่อในรูปแบบ PDF หรือ DOCX เท่านั้น ขนาดไม่เกิน 20 MB</li>
-              <li>ไม่ใส่ตรางรูปภาพและแผนภูมิ</li>
-              <li>ผลการพิจารณาถือเป็นที่สิ้นสุด</li>
+              <li>ส่งบทคัดย่อในรูปแบบ PDF และ DOCX เท่านั้น ขนาดไม่เกิน 20 MB</li>
+              <li>ไม่ใส่ตารางรูปภาพและแผนภูมิ</li>
+              <li>ผลการพิจารณาจากผู้ทรงคุณวุฒิถือเป็นที่สิ้นสุด</li>
             </ol>
           <?php else: ?>
             <ol style="line-height:2;color:var(--gray-700);padding-left:20px;">
               <li>The abstract must be an original research work, not previously published or presented.</li>
               <li>The abstract must be 250–350 words and include 3–5 keywords.</li>
-              <li>The title must be provided in both Thai and English.</li>
+              <li>The title must be provided in both Thai/ASEAN languages ​​and English.</li>
               <li>All authors must be listed with affiliations and the corresponding author's email.</li>
-              <li>Submit in PDF or DOCX format only, maximum 20 MB.</li>
+              <li>Submit in PDF and DOCX format only, maximum 20 MB.</li>
               <li>Do not include tables, images, or charts.</li>
               <li>The review committee's decision is final.</li>
             </ol>
@@ -428,17 +423,17 @@ require_once __DIR__ . '/../app/helpers/header.php';
             <ul style="line-height:2.2;color:var(--gray-700);">
               <li>ผู้แต่งต้องลงทะเบียนในระบบก่อนส่งบทคัดย่อ</li>
               <li>บทคัดย่อที่ได้รับการยอมรับต้องนำเสนอในการประชุม มิฉะนั้นจะไม่ได้รับการตีพิมพ์</li>
-              <li>ผู้แต่งต้องชำระค่าลงทะเบียนก่อนวันประชุม</li>
-              <li>บทความที่นำเสนอและได้รับการยอมรับจะได้รับการเผยแพร่ใน Proceedings ของการประชุม</li>
-              <li>คณะกรรมการสงวนสิทธิ์ในการปฏิเสธบทความที่ไม่ตรงตามเกณฑ์ที่กำหนด</li>
+              <li>บทคัดย่อที่นำเสนอและได้รับการยอมรับจะได้รับการเผยแพร่ใน Handbook ของการประชุม</li>
+              <li>คณะกรรมการสงวนสิทธิ์ในการปฏิเสธบทคัดย่อที่ไม่ตรงตามเกณฑ์ที่กำหนด</li>
+              <li>ไม่เสียค่าใช้จ่ายในการส่งบทคัดย่อและการนำเสนอ</li>
             </ul>
           <?php else: ?>
             <ul style="line-height:2.2;color:var(--gray-700);">
               <li>Authors must register in the system before submitting an abstract.</li>
               <li>Accepted abstracts must be presented at the conference; otherwise, they will not be published.</li>
-              <li>Authors must pay the registration fee before the conference date.</li>
-              <li>Accepted and presented papers will be published in the conference proceedings.</li>
+              <li>Accepted and presented papers will be published in the conference handbook.</li>
               <li>The committee reserves the right to reject papers that do not meet the specified criteria.</li>
+              <li>There are no fees for submitting abstracts and presentations.</li>
             </ul>
           <?php endif; ?>
 

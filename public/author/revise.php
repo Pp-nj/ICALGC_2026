@@ -27,7 +27,7 @@ try {
     $paper = $stmt->fetch();
 
     if (!$paper) {
-        flashSet('error', $_lang==='th' ? 'ไม่พบบทความหรือไม่อยู่ในสถานะที่ต้องแก้ไข' : 'Paper not found or not requiring revision.');
+        flashSet('error', $_lang==='th' ? 'ไม่พบบทคัดย่อหรือไม่อยู่ในสถานะที่ต้องแก้ไข' : 'Paper not found or not requiring revision.');
         redirect($appUrl . '/author/my-papers.php');
     }
 
@@ -65,15 +65,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $keywords   = trim(post('keywords'));
     $note       = trim(post('revision_note'));
 
-    if (!$titleTh)    $errors[] = $_lang==='th' ? 'กรุณากรอกชื่อบทความภาษาไทย' : 'Thai title is required.';
-    if (!$titleEn)    $errors[] = $_lang==='th' ? 'กรุณากรอกชื่อบทความภาษาอังกฤษ' : 'English title is required.';
+    if (!$titleTh)    $errors[] = $_lang==='th' ? 'กรุณากรอกชื่อบทคัดย่อภาษาไทย' : 'Thai title is required.';
+    if (!$titleEn)    $errors[] = $_lang==='th' ? 'กรุณากรอกชื่อบทคัดย่อภาษาอังกฤษ' : 'English title is required.';
     if (!$abstractTh) $errors[] = $_lang==='th' ? 'กรุณากรอกบทคัดย่อภาษาไทย' : 'Thai abstract is required.';
     if (!$abstractEn) $errors[] = $_lang==='th' ? 'กรุณากรอกบทคัดย่อภาษาอังกฤษ' : 'English abstract is required.';
     if (!$keywords)   $errors[] = $_lang==='th' ? 'กรุณากรอกคำสำคัญ' : 'Keywords are required.';
 
     // File upload required
     $hasFile = !empty($_FILES['paper_file']['name']);
-    if (!$hasFile) $errors[] = $_lang==='th' ? 'กรุณาอัปโหลดไฟล์บทความที่แก้ไขแล้ว' : 'Please upload the revised paper file.';
+    if (!$hasFile) $errors[] = $_lang==='th' ? 'กรุณาอัปโหลดไฟล์บทคัดย่อที่แก้ไขแล้ว' : 'Please upload the revised paper file.';
 
     if ($hasFile) {
         $uploadErrors = validateUpload($_FILES['paper_file']);
@@ -149,9 +149,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Notify admin
             Notification::create(
                 null, 'revision_submitted',
-                'บทความส่งแก้ไขแล้ว',
+                'บทคัดย่อส่งแก้ไขแล้ว',
                 'Paper Revision Submitted',
-                "บทความ {$paper['paper_code']} ส่งการแก้ไขแล้ว",
+                "บทคัดย่อ {$paper['paper_code']} ส่งการแก้ไขแล้ว",
                 "Paper {$paper['paper_code']} has been revised and resubmitted.",
                 $paperId, 'system'
             );
@@ -159,7 +159,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $db->commit();
 
             flashSet('success', $_lang==='th'
-                ? 'ส่งบทความที่แก้ไขแล้วเรียบร้อย อยู่ระหว่างการพิจารณาใหม่'
+                ? 'ส่งบทคัดย่อที่แก้ไขแล้วเรียบร้อย อยู่ระหว่างการพิจารณาใหม่'
                 : 'Revised paper submitted successfully. It is now under review again.');
             redirect($appUrl . '/author/paper-detail.php?id=' . $paperId);
 
@@ -171,7 +171,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$pageTitle  = $_lang==='th' ? 'ส่งบทความแก้ไข' : 'Submit Revision';
+$pageTitle  = $_lang==='th' ? 'ส่งบทคัดย่อแก้ไข' : 'Submit Revision';
 $activeMenu = 'my-papers';
 ?>
 <!DOCTYPE html>
@@ -242,19 +242,19 @@ $activeMenu = 'my-papers';
           <!-- Titles -->
           <div class="content-card mb-4">
             <div class="content-card-title">
-              <i class="fas fa-heading me-2" style="color:var(--gold);"></i><?= $_lang==='th' ? 'ชื่อบทความ' : 'Paper Title' ?>
+              <i class="fas fa-heading me-2" style="color:var(--gold);"></i><?= $_lang==='th' ? 'ชื่อบทคัดย่อ' : 'Paper Title' ?>
             </div>
             <div class="row g-3">
               <div class="col-12">
                 <label class="form-label fw-bold" style="font-size:.85rem;">
-                  <?= $_lang==='th' ? 'ชื่อบทความ (ภาษาไทย)' : 'Title (Thai)' ?> <span class="text-danger">*</span>
+                  <?= $_lang==='th' ? 'ชื่อบทคัดย่อ (ภาษาไทย)' : 'Title (Thai)' ?> <span class="text-danger">*</span>
                 </label>
                 <input type="text" name="title_th" class="form-control"
                        value="<?= e(post('title_th', $paper['title_th'])) ?>" required>
               </div>
               <div class="col-12">
                 <label class="form-label fw-bold" style="font-size:.85rem;">
-                  <?= $_lang==='th' ? 'ชื่อบทความ (ภาษาอังกฤษ)' : 'Title (English)' ?> <span class="text-danger">*</span>
+                  <?= $_lang==='th' ? 'ชื่อบทคัดย่อ (ภาษาอังกฤษ)' : 'Title (English)' ?> <span class="text-danger">*</span>
                 </label>
                 <input type="text" name="title_en" class="form-control"
                        value="<?= e(post('title_en', $paper['title_en'])) ?>" required>
@@ -342,7 +342,7 @@ $activeMenu = 'my-papers';
           <!-- Revised File Upload -->
           <div class="content-card mb-4">
             <div class="content-card-title">
-              <i class="fas fa-file-upload me-2" style="color:var(--gold);"></i><?= $_lang==='th' ? 'ไฟล์บทความที่แก้ไขแล้ว' : 'Revised Paper File' ?>
+              <i class="fas fa-file-upload me-2" style="color:var(--gold);"></i><?= $_lang==='th' ? 'ไฟล์บทคัดย่อที่แก้ไขแล้ว' : 'Revised Paper File' ?>
             </div>
             <div class="upload-zone" id="uploadZone">
               <i class="fas fa-cloud-upload-alt fa-2x mb-2" style="color:var(--blue-mid);"></i>
@@ -372,7 +372,7 @@ $activeMenu = 'my-papers';
               <i class="fas fa-times me-2"></i><?= $_lang==='th' ? 'ยกเลิก' : 'Cancel' ?>
             </a>
             <button type="submit" class="btn-primary-custom">
-              <i class="fas fa-paper-plane me-2"></i><?= $_lang==='th' ? 'ส่งบทความแก้ไข' : 'Submit Revision' ?>
+              <i class="fas fa-paper-plane me-2"></i><?= $_lang==='th' ? 'ส่งบทคัดย่อแก้ไข' : 'Submit Revision' ?>
             </button>
           </div>
 
@@ -382,7 +382,7 @@ $activeMenu = 'my-papers';
         <div class="col-lg-4">
           <div class="content-card mb-4" style="border-left:4px solid var(--gold);">
             <div class="content-card-title">
-              <i class="fas fa-info-circle me-2" style="color:var(--gold);"></i><?= $_lang==='th' ? 'ข้อมูลบทความเดิม' : 'Current Paper Info' ?>
+              <i class="fas fa-info-circle me-2" style="color:var(--gold);"></i><?= $_lang==='th' ? 'ข้อมูลบทคัดย่อเดิม' : 'Current Paper Info' ?>
             </div>
             <div style="font-size:.85rem;">
               <div class="mb-2"><code style="color:var(--blue-mid);"><?= e($paper['paper_code']) ?></code></div>

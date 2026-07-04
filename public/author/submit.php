@@ -134,7 +134,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 auditLog('submit_paper', 'paper', 'Submitted: ' . $paperCode, $user['id']);
 
                 flashSet('success', $_lang==='th'
-                    ? "ส่งบทความสำเร็จ! รหัสบทความ: {$paperCode}"
+                    ? "ส่งบทคัดย่อสำเร็จ! รหัสบทคัดย่อ: {$paperCode}"
                     : "Paper submitted successfully! Code: {$paperCode}");
                 redirect('/author/my-papers.php');
 
@@ -194,13 +194,13 @@ $activeMenu = 'submit';
       <div class="content-card mb-4">
         <div class="content-card-title">
           <i class="fas fa-file-alt me-2" style="color:var(--gold);"></i>
-          <?= $_lang==='th'?'ข้อมูลบทความ':'Paper Information' ?>
+          <?= $_lang==='th'?'ข้อมูลบทคัดย่อ':'Paper Information' ?>
         </div>
         <div class="row g-3">
           <div class="col-md-6">
             <label class="form-label"><?= t('paper.title_th') ?> <span class="required">*</span></label>
             <input type="text" name="title_th" class="form-control" value="<?= e(post('title_th')) ?>" required
-                   placeholder="ชื่อบทความภาษาไทย">
+                   placeholder="ชื่อบทคัดย่อภาษาไทย">
           </div>
           <div class="col-md-6">
             <label class="form-label"><?= t('paper.title_en') ?> <span class="required">*</span></label>

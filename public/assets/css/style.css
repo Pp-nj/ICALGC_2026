@@ -56,6 +56,7 @@ a:hover { color: var(--gold); }
   background: var(--blue-dark);
   color: var(--gold-light);
   padding: 10px 0;
+  padding-left: 160px;
   overflow: hidden;
   position: relative;
   z-index: 1100;
@@ -80,13 +81,15 @@ a:hover { color: var(--gold); }
 
 .ticker-content {
   display: flex;
-  animation: ticker-scroll 35s linear infinite;
+  width: max-content;
+  animation: ticker-scroll 60s linear infinite;
   white-space: nowrap;
-  padding-left: 160px;
+  will-change: transform;
 }
 
 .ticker-item {
   display: inline-flex;
+  flex-shrink: 0;
   align-items: center;
   padding: 0 40px;
   font-size: .85rem;
@@ -99,8 +102,8 @@ a:hover { color: var(--gold); }
 }
 
 @keyframes ticker-scroll {
-  0%   { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
+  0%   { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-50%, 0, 0); }
 }
 
 .ticker-wrap:hover .ticker-content { animation-play-state: paused; }

@@ -53,7 +53,7 @@ if (!$paperId) {
     <div class="dash-header d-flex align-items-center justify-content-between flex-wrap gap-3">
       <div>
         <h1 class="dash-title"><i class="fas fa-user-check me-2" style="color:var(--gold);"></i><?= e($pageTitle) ?></h1>
-        <p class="dash-breadcrumb"><?= $_lang==='th' ? 'เลือกบทความที่ต้องการมอบหมายผู้ทรงคุณวุฒิ' : 'Select a paper to assign a reviewer' ?></p>
+        <p class="dash-breadcrumb"><?= $_lang==='th' ? 'เลือกบทคัดย่อที่ต้องการมอบหมายผู้ทรงคุณวุฒิ' : 'Select a paper to assign a reviewer' ?></p>
       </div>
     </div>
     <?= flashHtml() ?>
@@ -61,9 +61,9 @@ if (!$paperId) {
       <?php if (empty($pendingPapers)): ?>
         <div class="p-5 text-center">
           <i class="fas fa-check-circle fa-3x mb-3" style="color:#198754;"></i>
-          <h5 style="color:var(--gray-500);"><?= $_lang==='th' ? 'ไม่มีบทความที่รอมอบหมายในขณะนี้' : 'No papers pending reviewer assignment.' ?></h5>
+          <h5 style="color:var(--gray-500);"><?= $_lang==='th' ? 'ไม่มีบทคัดย่อรอมอบหมายในขณะนี้' : 'No papers pending reviewer assignment.' ?></h5>
           <a href="<?= $appUrl ?>/admin/papers.php" class="btn-primary-custom mt-3 d-inline-block">
-            <i class="fas fa-file-alt me-2"></i><?= $_lang==='th' ? 'ดูบทความทั้งหมด' : 'View All Papers' ?>
+            <i class="fas fa-file-alt me-2"></i><?= $_lang==='th' ? 'ดูบทคัดย่อทั้งหมด' : 'View All Papers' ?>
           </a>
         </div>
       <?php else: ?>
@@ -72,7 +72,7 @@ if (!$paperId) {
             <thead>
               <tr>
                 <th><?= t('paper.code') ?></th>
-                <th><?= $_lang==='th' ? 'บทความ' : 'Paper' ?></th>
+                <th><?= $_lang==='th' ? 'บทคัดย่อ' : 'Paper' ?></th>
                 <th><?= $_lang==='th' ? 'ผู้ส่ง' : 'Submitter' ?></th>
                 <th><?= $_lang==='th' ? 'หัวข้อ' : 'Theme' ?></th>
                 <th><?= t('paper.status') ?></th>
@@ -289,7 +289,7 @@ $activeMenu = 'assign-reviewer';
       <div class="col-lg-7">
         <div class="content-card mb-4">
           <div class="content-card-title">
-            <i class="fas fa-file-alt me-2" style="color:var(--gold);"></i><?= $_lang==='th' ? 'บทความ' : 'Paper' ?>
+            <i class="fas fa-file-alt me-2" style="color:var(--gold);"></i><?= $_lang==='th' ? 'บทคัดย่อ' : 'Paper' ?>
           </div>
           <code style="color:var(--blue-mid);"><?= e($paper['paper_code']) ?></code>
           <h5 style="font-weight:700;color:var(--blue-dark);margin:8px 0 4px;font-size:.95rem;"><?= e($_lang==='th'?$paper['title_th']:$paper['title_en']) ?></h5>

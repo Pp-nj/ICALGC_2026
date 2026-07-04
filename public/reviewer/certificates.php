@@ -11,7 +11,7 @@ $appUrl = APP_URL;
 $uid    = $user['id'];
 
 $certTypeMeta = [
-    'acceptance'   => ['th' => 'ใบตอบรับบทความ',        'en' => 'Certificate of Acceptance',   'icon' => 'fa-file-contract',      'color' => '#0057b7'],
+    'acceptance'   => ['th' => 'ใบตอบรับบทคัดย่อ',        'en' => 'Certificate of Acceptance',   'icon' => 'fa-file-contract',      'color' => '#0057b7'],
     'presentation' => ['th' => 'ใบรับรองการนำเสนอ',     'en' => 'Certificate of Presentation', 'icon' => 'fa-chalkboard-teacher', 'color' => '#198754'],
     'attendance'   => ['th' => 'ใบรับรองการเข้าร่วม',   'en' => 'Certificate of Attendance',   'icon' => 'fa-users',              'color' => '#6f42c1'],
     'reviewer'     => ['th' => 'ใบรับรองผู้ทรงคุณวุฒิ', 'en' => 'Certificate of Reviewer',     'icon' => 'fa-user-tie',           'color' => '#a07c10'],
@@ -156,7 +156,7 @@ $activeMenu = 'certificates';
         <?php if ($completedCount > 0): ?>
           <div style="font-size:1.05rem;font-weight:700;">
             <?= $_lang === 'th'
-              ? "ท่านได้ประเมินบทความแล้ว <span style='color:var(--gold);'>{$completedCount}</span> บทความ"
+              ? "ท่านได้ประเมินบทคัดย่อแล้ว <span style='color:var(--gold);'>{$completedCount}</span> บทคัดย่อ"
               : "You have completed <span style='color:var(--gold);'>{$completedCount}</span> review(s)" ?>
           </div>
           <div style="font-size:.83rem;color:rgba(255,255,255,.75);margin-top:4px;">
@@ -170,14 +170,14 @@ $activeMenu = 'certificates';
           </div>
           <div style="font-size:.83rem;color:rgba(255,255,255,.7);margin-top:4px;">
             <?= $_lang === 'th'
-              ? 'ใบรับรองจะพร้อมออกหลังจากท่านทำการประเมินบทความเสร็จสิ้น'
+              ? 'ใบรับรองจะพร้อมออกหลังจากท่านทำการประเมินบทคัดย่อเสร็จสิ้น'
               : 'Certificates become available after completing at least one paper review.' ?>
           </div>
         <?php endif; ?>
       </div>
       <div class="eligibility-badge">
         <i class="fas fa-<?= $completedCount > 0 ? 'check-circle' : 'hourglass-half' ?>"></i>
-        <?= $completedCount ?> <?= $_lang === 'th' ? 'บทความ' : 'reviewed' ?>
+        <?= $completedCount ?> <?= $_lang === 'th' ? 'บทคัดย่อ' : 'reviewed' ?>
       </div>
     </div>
 
@@ -198,7 +198,7 @@ $activeMenu = 'certificates';
         <?php if ($completedCount === 0): ?>
           <a href="<?= $appUrl ?>/reviewer/assigned-papers.php" class="btn-primary-custom mt-3" style="display:inline-block;">
             <i class="fas fa-tasks me-2"></i>
-            <?= $_lang === 'th' ? 'ดูบทความที่ได้รับมอบหมาย' : 'View Assigned Papers' ?>
+            <?= $_lang === 'th' ? 'ดูบทคัดย่อที่ได้รับมอบหมาย' : 'View Assigned Papers' ?>
           </a>
         <?php endif; ?>
       </div>

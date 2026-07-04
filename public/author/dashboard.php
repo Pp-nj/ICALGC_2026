@@ -130,14 +130,14 @@ $bodyClass  = '';
       <div class="alert d-flex align-items-center gap-3 mb-4" style="background:#fff3cd;border-left:4px solid var(--warning);border-radius:var(--radius);color:#856404;">
         <i class="fas fa-exclamation-triangle fa-lg"></i>
         <div>
-          <strong><?= $_lang==='th'?'บทความต้องการแก้ไข':'Papers Require Revision' ?></strong><br>
+          <strong><?= $_lang==='th'?'บทคัดย่อต้องการแก้ไข':'Papers Require Revision' ?></strong><br>
           <span style="font-size:.88rem;">
             <?= $_lang==='th'
-              ? "คุณมี {$stats['revisions']} บทความที่ต้องแก้ไข กรุณาตรวจสอบความเห็นของผู้ทรงคุณวุฒิ"
+              ? "คุณมี {$stats['revisions']} บทคัดย่อที่ต้องแก้ไข กรุณาตรวจสอบความเห็นของผู้ทรงคุณวุฒิ"
               : "You have {$stats['revisions']} paper(s) requiring revision. Please review the comments." ?>
           </span>
           <a href="<?= $appUrl ?>/author/my-papers.php" class="ms-2 fw-bold" style="color:inherit;">
-            <?= $_lang==='th'?'ดูบทความ':'View Papers' ?> →
+            <?= $_lang==='th'?'ดูบทคัดย่อ':'View Papers' ?> →
           </a>
         </div>
       </div>
@@ -158,7 +158,7 @@ $bodyClass  = '';
           <?php if (empty($recentPapers)): ?>
             <div class="p-5 text-center">
               <i class="fas fa-file-circle-plus fa-3x mb-3" style="color:var(--gray-200);"></i>
-              <h5 style="color:var(--gray-500);font-size:1rem;"><?= $_lang==='th'?'ยังไม่มีบทความ':'No papers submitted yet' ?></h5>
+              <h5 style="color:var(--gray-500);font-size:1rem;"><?= $_lang==='th'?'ยังไม่มีบทคัดย่อ':'No papers submitted yet' ?></h5>
               <a href="<?= $appUrl ?>/author/submit.php" class="btn-primary-custom mt-3">
                 <i class="fas fa-file-upload me-2"></i><?= t('author.submit_paper') ?>
               </a>
@@ -169,7 +169,7 @@ $bodyClass  = '';
                 <thead>
                   <tr>
                     <th><?= t('paper.code') ?></th>
-                    <th><?= $_lang==='th'?'ชื่อบทความ':'Title' ?></th>
+                    <th><?= $_lang==='th'?'ชื่อบทคัดย่อ':'Title' ?></th>
                     <th><?= t('paper.status') ?></th>
                     <th><?= t('paper.actions') ?></th>
                   </tr>

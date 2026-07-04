@@ -47,9 +47,9 @@ $_rvUnread = Notification::countUnread((int)$user['id']);
   </div>
 
   <div class="sidebar-section">
-    <div class="sidebar-section-label"><?= $_lang==='th'?'บทความ':'Papers' ?></div>
+    <div class="sidebar-section-label"><?= $_lang==='th'?'บทคัดย่อ':'Papers' ?></div>
     <a class="sidebar-link <?= $_menu==='assigned'?'active':'' ?>" href="<?= $appUrl ?>/reviewer/assigned-papers.php">
-      <i class="fas fa-tasks"></i><?= $_lang==='th'?'บทความที่ได้รับมอบหมาย':'Assigned Papers' ?>
+      <i class="fas fa-tasks"></i><?= $_lang==='th'?'บทคัดย่อที่ได้รับมอบหมาย':'Assigned Papers' ?>
     </a>
     <a class="sidebar-link <?= $_menu==='history'?'active':'' ?>" href="<?= $appUrl ?>/reviewer/history.php">
       <i class="fas fa-history"></i><?= $_lang==='th'?'ประวัติการประเมิน':'Review History' ?>

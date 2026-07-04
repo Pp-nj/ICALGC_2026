@@ -48,18 +48,18 @@ $_adminUnread = Notification::countUnread((int)$user['id']);
   </div>
 
   <div class="sidebar-section">
-    <div class="sidebar-section-label"><?= $_lang==='th'?'บทความ':'Papers' ?></div>
+    <div class="sidebar-section-label"><?= $_lang==='th'?'บทคัดย่อ':'Papers' ?></div>
     <a class="sidebar-link <?= $_menu==='papers'?'active':'' ?>" href="<?= $appUrl ?>/admin/papers.php">
-      <i class="fas fa-file-alt"></i><?= $_lang==='th'?'จัดการบทความ':'Manage Papers' ?>
+      <i class="fas fa-file-alt"></i><?= $_lang==='th'?'จัดการบทคัดย่อ':'Manage Papers' ?>
     </a>
     <a class="sidebar-link <?= $_menu==='assign-reviewer'?'active':'' ?>" href="<?= $appUrl ?>/admin/assign-reviewer.php">
       <i class="fas fa-user-check"></i><?= $_lang==='th'?'มอบหมายผู้ทรงคุณวุฒิ':'Assign Reviewer' ?>
     </a>
     <a class="sidebar-link <?= $_menu==='final-decision'?'active':'' ?>" href="<?= $appUrl ?>/admin/final-decision.php">
-      <i class="fas fa-gavel"></i><?= $_lang==='th'?'ตัดสินผลบทความ':'Final Decision' ?>
+      <i class="fas fa-gavel"></i><?= $_lang==='th'?'ตัดสินผลบทคัดย่อ':'Final Decision' ?>
     </a>
     <a class="sidebar-link <?= $_menu==='publications'?'active':'' ?>" href="<?= $appUrl ?>/admin/publications.php">
-      <i class="fas fa-globe"></i><?= $_lang==='th'?'เผยแพร่บทความ':'Publish Papers' ?>
+      <i class="fas fa-globe"></i><?= $_lang==='th'?'เผยแพร่บทคัดย่อ':'Publish Papers' ?>
     </a>
   </div>
 

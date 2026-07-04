@@ -40,7 +40,7 @@ if (!$paperId) {
         error_log($e->getMessage());
         $decisionPapers = [];
     }
-    $pageTitle  = $_lang==='th' ? 'ตัดสินผลบทความ' : 'Final Decision';
+    $pageTitle  = $_lang==='th' ? 'ตัดสินผลบทคัดย่อ' : 'Final Decision';
     $activeMenu = 'final-decision';
     ?>
 <!DOCTYPE html>
@@ -61,7 +61,7 @@ if (!$paperId) {
     <div class="dash-header d-flex align-items-center justify-content-between flex-wrap gap-3">
       <div>
         <h1 class="dash-title"><i class="fas fa-gavel me-2" style="color:var(--gold);"></i><?= e($pageTitle) ?></h1>
-        <p class="dash-breadcrumb"><?= $_lang==='th' ? 'เลือกบทความที่ต้องการตัดสินผล' : 'Select a paper to make final decision' ?></p>
+        <p class="dash-breadcrumb"><?= $_lang==='th' ? 'เลือกบทคัดย่อที่ต้องการตัดสินผล' : 'Select a paper to make final decision' ?></p>
       </div>
     </div>
     <?= flashHtml() ?>
@@ -69,12 +69,12 @@ if (!$paperId) {
       <?php if (empty($decisionPapers)): ?>
         <div class="p-5 text-center">
           <i class="fas fa-inbox fa-3x mb-3" style="color:var(--gray-200);"></i>
-          <h5 style="color:var(--gray-500);"><?= $_lang==='th' ? 'ไม่มีบทความที่รอการตัดสินในขณะนี้' : 'No papers pending final decision.' ?></h5>
+          <h5 style="color:var(--gray-500);"><?= $_lang==='th' ? 'ไม่มีบทคัดย่อที่รอการตัดสินในขณะนี้' : 'No papers pending final decision.' ?></h5>
           <p style="font-size:.85rem;color:var(--gray-500);">
-            <?= $_lang==='th' ? 'บทความต้องมีสถานะ "กำลังพิจารณา" เพื่อทำการตัดสิน' : 'Papers must be in "Under Review" status to make a decision.' ?>
+            <?= $_lang==='th' ? 'บทคัดย่อต้องมีสถานะ "กำลังพิจารณา" เพื่อทำการตัดสิน' : 'Papers must be in "Under Review" status to make a decision.' ?>
           </p>
           <a href="<?= $appUrl ?>/admin/papers.php" class="btn-primary-custom mt-3 d-inline-block">
-            <i class="fas fa-file-alt me-2"></i><?= $_lang==='th' ? 'ดูบทความทั้งหมด' : 'View All Papers' ?>
+            <i class="fas fa-file-alt me-2"></i><?= $_lang==='th' ? 'ดูบทคัดย่อทั้งหมด' : 'View All Papers' ?>
           </a>
         </div>
       <?php else: ?>
@@ -83,7 +83,7 @@ if (!$paperId) {
             <thead>
               <tr>
                 <th><?= t('paper.code') ?></th>
-                <th><?= $_lang==='th' ? 'บทความ' : 'Paper' ?></th>
+                <th><?= $_lang==='th' ? 'บทคัดย่อ' : 'Paper' ?></th>
                 <th><?= $_lang==='th' ? 'ผู้ส่ง' : 'Submitter' ?></th>
                 <th><?= $_lang==='th' ? 'หัวข้อ' : 'Theme' ?></th>
                 <th><?= $_lang==='th' ? 'ผลประเมิน' : 'Reviews' ?></th>
@@ -216,9 +216,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     case 'rejected':
                         Notification::create(
                             $paper['submitter_id'], 'review_result',
-                            'บทความของท่านไม่ผ่านการพิจารณา',
+                            'บทคัดย่อของท่านไม่ผ่านการพิจารณา',
                             'Paper Not Accepted',
-                            "บทความ $paper_code ไม่ผ่านการพิจารณา",
+                            "บทคัดย่อ $paper_code ไม่ผ่านการพิจารณา",
                             "Paper $paper_code was not accepted after review.",
                             $pIdPost, 'both'
                         );
@@ -230,8 +230,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             $decLabels = [
-                'accepted'         => $_lang==='th' ? 'ยอมรับบทความแล้ว'       : 'Paper accepted.',
-                'rejected'         => $_lang==='th' ? 'ปฏิเสธบทความแล้ว'        : 'Paper rejected.',
+                'accepted'         => $_lang==='th' ? 'ยอมรับบทคัดย่อแล้ว'       : 'Paper accepted.',
+                'rejected'         => $_lang==='th' ? 'ปฏิเสธบทคัดย่อแล้ว'        : 'Paper rejected.',
                 'revision_required'=> $_lang==='th' ? 'ส่งคืนให้แก้ไขแล้ว'     : 'Paper sent back for revision.',
             ];
             flashSet('success', $decLabels[$decision] ?? 'Done.');
@@ -240,7 +240,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$pageTitle  = $_lang==='th' ? 'ตัดสินผลบทความ' : 'Final Decision';
+$pageTitle  = $_lang==='th' ? 'ตัดสินผลบทคัดย่อ' : 'Final Decision';
 $activeMenu = 'final-decision';
 
 $recColors = ['accept'=>'#198754','minor_revision'=>'#fd7e14','major_revision'=>'#dc3545','reject'=>'#6c757d'];
@@ -287,7 +287,7 @@ $recLabels = ['accept'=>'Accept','minor_revision'=>'Minor Revision','major_revis
       <div class="col-lg-7">
         <div class="content-card mb-4">
           <div class="content-card-title">
-            <i class="fas fa-file-alt me-2" style="color:var(--gold);"></i><?= $_lang==='th' ? 'บทความ' : 'Paper' ?>
+            <i class="fas fa-file-alt me-2" style="color:var(--gold);"></i><?= $_lang==='th' ? 'บทคัดย่อ' : 'Paper' ?>
           </div>
           <code style="color:var(--blue-mid);"><?= e($paper['paper_code']) ?></code>
           <h5 style="font-weight:700;color:var(--blue-dark);margin:8px 0 4px;"><?= e($_lang==='th'?$paper['title_th']:$paper['title_en']) ?></h5>
@@ -374,9 +374,9 @@ $recLabels = ['accept'=>'Accept','minor_revision'=>'Minor Revision','major_revis
                 <div class="d-flex flex-column gap-2">
                   <?php
                   $decisions = [
-                    'accepted'          => ['color'=>'#198754','icon'=>'fa-check-circle','th'=>'ยอมรับบทความ','en'=>'Accept Paper'],
+                    'accepted'          => ['color'=>'#198754','icon'=>'fa-check-circle','th'=>'ยอมรับบทคัดย่อ','en'=>'Accept Paper'],
                     'revision_required' => ['color'=>'#fd7e14','icon'=>'fa-edit','th'=>'ส่งคืนให้แก้ไข','en'=>'Require Revision'],
-                    'rejected'          => ['color'=>'#dc3545','icon'=>'fa-times-circle','th'=>'ปฏิเสธบทความ','en'=>'Reject Paper'],
+                    'rejected'          => ['color'=>'#dc3545','icon'=>'fa-times-circle','th'=>'ปฏิเสธบทคัดย่อ','en'=>'Reject Paper'],
                   ];
                   foreach ($decisions as $dc => $di): ?>
                     <label style="cursor:pointer;">

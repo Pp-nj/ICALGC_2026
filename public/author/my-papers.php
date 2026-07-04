@@ -80,7 +80,7 @@ $activeMenu = 'my-papers';
     <div class="dash-header d-flex align-items-center justify-content-between flex-wrap gap-3">
       <div>
         <h1 class="dash-title"><i class="fas fa-file-alt me-2" style="color:var(--gold);"></i><?= e($pageTitle) ?></h1>
-        <p class="dash-breadcrumb"><?= $total ?> <?= $_lang==='th'?'บทความ':'paper(s)' ?></p>
+        <p class="dash-breadcrumb"><?= $total ?> <?= $_lang==='th'?'บทคัดย่อ':'paper(s)' ?></p>
       </div>
       <a href="<?= $appUrl ?>/author/submit.php" class="btn-primary-custom">
         <i class="fas fa-file-upload me-2"></i><?= t('author.submit_paper') ?>
@@ -93,7 +93,7 @@ $activeMenu = 'my-papers';
     <div class="content-card mb-4" style="padding:20px 28px;">
       <div class="content-card-title mb-3">
         <i class="fas fa-route me-2" style="color:var(--gold);"></i>
-        <?= $_lang==='th' ? 'ขั้นตอนการดำเนินการบทความ' : 'Submission Pipeline' ?>
+        <?= $_lang==='th' ? 'ขั้นตอนการดำเนินการบทคัดย่อ' : 'Submission Pipeline' ?>
       </div>
       <?php
         $rejectedStatus = null;
@@ -204,7 +204,7 @@ $activeMenu = 'my-papers';
             <thead>
               <tr>
                 <th><?= t('paper.code') ?></th>
-                <th><?= $_lang==='th'?'ชื่อบทความ':'Paper Title' ?></th>
+                <th><?= $_lang==='th'?'ชื่อบทคัดย่อ':'Paper Title' ?></th>
                 <th><?= $_lang==='th'?'หัวข้อ':'Theme' ?></th>
                 <th><?= t('paper.submitted_date') ?></th>
                 <th><?= t('paper.status') ?></th>
@@ -247,7 +247,7 @@ $activeMenu = 'my-papers';
                       <?php if (in_array($p['status_code'], ['revision_required'])): ?>
                         <a href="<?= $appUrl ?>/author/revise.php?id=<?= (int)$p['id'] ?>"
                            class="btn btn-sm btn-warning rounded-pill" style="font-size:.75rem;color:#fff;"
-                           title="<?= $_lang==='th' ? 'ส่งบทความแก้ไข' : 'Submit Revision' ?>">
+                           title="<?= $_lang==='th' ? 'ส่งบทคัดย่อแก้ไข' : 'Submit Revision' ?>">
                           <i class="fas fa-edit"></i>
                         </a>
                       <?php endif; ?>

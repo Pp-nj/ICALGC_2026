@@ -94,7 +94,7 @@ $recLabels = ['accept'=>['th'=>'ยอมรับ','en'=>'Accept'],'minor_revis
       <h1 class="dash-title">
         <i class="fas fa-history me-2" style="color:var(--gold);"></i><?= e($pageTitle) ?>
       </h1>
-      <p class="dash-breadcrumb"><?= $total ?> <?= $_lang==='th' ? 'บทความที่ประเมินแล้ว' : 'completed review(s)' ?></p>
+      <p class="dash-breadcrumb"><?= $total ?> <?= $_lang==='th' ? 'บทคัดย่อที่ประเมินแล้ว' : 'completed review(s)' ?></p>
     </div>
 
     <!-- Summary Stats -->
@@ -140,7 +140,7 @@ $recLabels = ['accept'=>['th'=>'ยอมรับ','en'=>'Accept'],'minor_revis
             <thead>
               <tr>
                 <th><?= t('paper.code') ?></th>
-                <th><?= $_lang==='th' ? 'บทความ' : 'Paper' ?></th>
+                <th><?= $_lang==='th' ? 'บทคัดย่อ' : 'Paper' ?></th>
                 <th><?= $_lang==='th' ? 'คะแนน' : 'Score' ?></th>
                 <th><?= $_lang==='th' ? 'ข้อเสนอแนะ' : 'Recommendation' ?></th>
                 <th><?= $_lang==='th' ? 'วันที่ส่ง' : 'Submitted' ?></th>

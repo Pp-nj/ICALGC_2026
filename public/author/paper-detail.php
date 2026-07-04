@@ -76,7 +76,7 @@ try {
     redirect($appUrl . '/author/my-papers.php');
 }
 
-$pageTitle  = $_lang === 'th' ? 'รายละเอียดบทความ' : 'Paper Detail';
+$pageTitle  = $_lang === 'th' ? 'รายละเอียดบทคัดย่อ' : 'Paper Detail';
 $activeMenu = 'my-papers';
 
 $recommendationLabel = function($rec) use ($_lang) {
@@ -130,7 +130,7 @@ $recommendationColor = function($rec) {
       <div class="d-flex gap-2 flex-wrap">
         <?php if ($paper['status_code'] === 'revision_required'): ?>
           <a href="<?= $appUrl ?>/author/revise.php?id=<?= $paperId ?>" class="btn-primary-custom">
-            <i class="fas fa-edit me-2"></i><?= $_lang==='th' ? 'ส่งบทความแก้ไข' : 'Submit Revision' ?>
+            <i class="fas fa-edit me-2"></i><?= $_lang==='th' ? 'ส่งบทคัดย่อแก้ไข' : 'Submit Revision' ?>
           </a>
         <?php endif; ?>
         <?php if ($paper['status_code'] === 'published'): ?>
@@ -201,16 +201,16 @@ $recommendationColor = function($rec) {
         <!-- Paper Info -->
         <div class="content-card mb-4">
           <div class="content-card-title">
-            <i class="fas fa-info-circle me-2" style="color:var(--gold);"></i><?= $_lang==='th' ? 'ข้อมูลบทความ' : 'Paper Information' ?>
+            <i class="fas fa-info-circle me-2" style="color:var(--gold);"></i><?= $_lang==='th' ? 'ข้อมูลบทคัดย่อ' : 'Paper Information' ?>
           </div>
 
           <div class="row g-3">
             <div class="col-12">
-              <label class="form-label fw-bold" style="color:var(--blue-dark);font-size:.82rem;"><?= $_lang==='th' ? 'ชื่อบทความ (ภาษาไทย)' : 'Title (Thai)' ?></label>
+              <label class="form-label fw-bold" style="color:var(--blue-dark);font-size:.82rem;"><?= $_lang==='th' ? 'ชื่อบทคัดย่อ (ภาษาไทย)' : 'Title (Thai)' ?></label>
               <div style="font-size:.95rem;padding:10px 14px;background:var(--gray-100);border-radius:var(--radius);"><?= e($paper['title_th']) ?></div>
             </div>
             <div class="col-12">
-              <label class="form-label fw-bold" style="color:var(--blue-dark);font-size:.82rem;"><?= $_lang==='th' ? 'ชื่อบทความ (ภาษาอังกฤษ)' : 'Title (English)' ?></label>
+              <label class="form-label fw-bold" style="color:var(--blue-dark);font-size:.82rem;"><?= $_lang==='th' ? 'ชื่อบทคัดย่อ (ภาษาอังกฤษ)' : 'Title (English)' ?></label>
               <div style="font-size:.95rem;padding:10px 14px;background:var(--gray-100);border-radius:var(--radius);"><?= e($paper['title_en']) ?></div>
             </div>
             <div class="col-12">
@@ -270,7 +270,7 @@ $recommendationColor = function($rec) {
         <!-- Uploaded Files -->
         <div class="content-card mb-4">
           <div class="content-card-title">
-            <i class="fas fa-paperclip me-2" style="color:var(--gold);"></i><?= $_lang==='th' ? 'ไฟล์บทความ' : 'Submitted Files' ?>
+            <i class="fas fa-paperclip me-2" style="color:var(--gold);"></i><?= $_lang==='th' ? 'ไฟล์บทคัดย่อ' : 'Submitted Files' ?>
           </div>
           <?php if (empty($files)): ?>
             <div class="p-3 text-center" style="color:var(--gray-500);font-size:.88rem;">
@@ -470,7 +470,7 @@ $recommendationColor = function($rec) {
           <div class="d-flex flex-column gap-2">
             <?php if ($paper['status_code'] === 'revision_required'): ?>
               <a href="<?= $appUrl ?>/author/revise.php?id=<?= $paperId ?>" class="btn-primary-custom text-center">
-                <i class="fas fa-edit me-2"></i><?= $_lang==='th' ? 'ส่งบทความแก้ไข' : 'Submit Revision' ?>
+                <i class="fas fa-edit me-2"></i><?= $_lang==='th' ? 'ส่งบทคัดย่อแก้ไข' : 'Submit Revision' ?>
               </a>
             <?php endif; ?>
             <?php if ($paper['status_code'] === 'published'): ?>
@@ -495,7 +495,7 @@ $recommendationColor = function($rec) {
           </div>
           <p style="font-size:.85rem;color:var(--gray-600);">
             <?= $_lang==='th'
-              ? 'ดาวน์โหลดหนังสือรับรองการนำเสนอบทความ'
+              ? 'ดาวน์โหลดหนังสือรับรองการนำเสนอบทคัดย่อ'
               : 'Download your presentation/acceptance certificate.' ?>
           </p>
           <a href="<?= $appUrl ?>/author/certificates.php?paper_id=<?= $paperId ?>"

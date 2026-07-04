@@ -12,7 +12,7 @@ require_once __DIR__ . '/../app/helpers/header.php';
   <div class="container">
     <span class="section-label" style="background:rgba(255,255,255,.15);color:var(--gold-light);"><?= $_lang==='th'?'ข้อมูลการประชุม':'Conference Info' ?></span>
     <h1 style="font-size:2.2rem;font-weight:800;color:var(--white);margin-top:12px;"><?= $_lang==='th'?'เกี่ยวกับการประชุม':'About the Conference' ?></h1>
-    <p style="color:rgba(255,255,255,.8);font-size:1rem;"><?= e(CONF_NAME_EN) ?></p>
+    <p style="color:rgba(255,255,255,.8);font-size:1rem;"><?= e($_lang==='th'?CONF_NAME_TH:CONF_NAME_EN) ?></p>
     <div class="section-divider"></div>
   </div>
 </div>
@@ -24,6 +24,11 @@ require_once __DIR__ . '/../app/helpers/header.php';
       <!-- Main Content -->
       <div class="col-lg-8">
 
+        <!-- About Image -->
+        <div class="mb-4">
+          <img src="<?= $appUrl ?>/assets/images/about-conference.jpg" alt="<?= e($_lang==='th'?'เกี่ยวกับการประชุม':'About the Conference') ?>" class="w-100 rounded" style="max-height:360px;object-fit:cover;">
+        </div>
+
         <!-- Background -->
         <div class="content-card" id="background">
           <div class="content-card-title">
@@ -32,13 +37,13 @@ require_once __DIR__ . '/../app/helpers/header.php';
           </div>
 
           <?php if ($_lang === 'th'): ?>
-            <p>การประชุมวิชาการนานาชาติว่าด้วยภาษาอาเซียนในบริบทโลก 2026 (ICALGC 2026) เป็นการประชุมวิชาการนานาชาติที่จัดขึ้นโดยคณะมนุษยศาสตร์ มหาวิทยาลัยศรีนครินทรวิโรฒ ร่วมกับมหาวิทยาลัยกวางตุ้งเพื่อการศึกษาต่างประเทศ สาธารณรัฐประชาชนจีน</p>
+            <p>การประชุมวิชาการนานาชาติ หัวข้อภาษาอาเซียนในบริบทโลก 2026 (ICALGC 2026) เป็นการประชุมวิชาการนานาชาติที่จัดขึ้นโดยคณะมนุษยศาสตร์ มหาวิทยาลัยศรีนครินทรวิโรฒ ร่วมกับ Guangdong University of Foreign Studies</p>
             <p>ในยุคโลกาภิวัตน์ที่โลกเชื่อมโยงกันมากขึ้น ภาษาอาเซียนกลายเป็นเครื่องมือสำคัญในการสื่อสาร การแลกเปลี่ยนวัฒนธรรม และการพัฒนาความร่วมมือระหว่างประเทศ การประชุมนี้จึงมุ่งสร้างพื้นที่ให้นักวิชาการจากทั่วโลกได้มาแลกเปลี่ยนองค์ความรู้และประสบการณ์ด้านภาษาศาสตร์ การสอนภาษา วรรณกรรม และวัฒนธรรมอาเซียน</p>
-            <p>ICALGC 2026 จะจัดขึ้น ณ มหาวิทยาลัยศรีนครินทรวิโรฒ ประสานมิตร กรุงเทพมหานคร ในวันที่ 25 พฤศจิกายน 2569 โดยมีรูปแบบการนำเสนอทั้งแบบ Onsite และ Online</p>
+            <p>ICALGC 2026 จะจัดขึ้น ในวันที่ 25 พฤศจิกายน 2569 ณ มหาวิทยาลัยศรีนครินทรวิโรฒ ประสานมิตร กรุงเทพมหานคร</p>
           <?php else: ?>
             <p>The International Conference on ASEAN Languages in Global Contexts 2026 (ICALGC 2026) is an international academic conference organized by the Faculty of Humanities, Srinakharinwirot University, in collaboration with Guangdong University of Foreign Studies, People's Republic of China.</p>
             <p>In an increasingly interconnected world, ASEAN languages serve as vital instruments for communication, cultural exchange, and international cooperation. This conference aims to provide a platform for scholars worldwide to exchange knowledge and experiences in linguistics, language teaching, literature, and ASEAN culture.</p>
-            <p>ICALGC 2026 will take place at Srinakharinwirot University Prasarnmit Campus, Bangkok, on November 25, 2026, featuring both onsite and online presentation formats.</p>
+            <p>ICALGC 2026 will be held on November 25, 2026, at Srinakharinwirot University Prasarnmit Campus, Bangkok.</p>
           <?php endif; ?>
         </div>
 
@@ -78,7 +83,7 @@ require_once __DIR__ . '/../app/helpers/header.php';
             <?= $_lang==='th' ? 'ขอบเขตการนำเสนอ' : 'Scope of the Conference' ?>
           </div>
           <?php if ($_lang==='th'): ?>
-            <p>การประชุมรับบทความวิจัยและบทความวิชาการที่เกี่ยวข้องกับ:</p>
+            <p>รับบทคัดย่อที่เกี่ยวข้องกับ:</p>
             <ul style="line-height:2;color:var(--gray-700);">
               <li>ภาษาศาสตร์และการสื่อสารข้ามวัฒนธรรมในอาเซียน</li>
               <li>การเรียนการสอนภาษาในบริบทโลกาภิวัตน์</li>
@@ -144,11 +149,11 @@ require_once __DIR__ . '/../app/helpers/header.php';
 
         <!-- Conference Details Card -->
         <div class="content-card mt-3">
-          <div class="content-card-title"><i class="fas fa-calendar-alt me-2" style="color:var(--gold);"></i>Conference Details</div>
+          <div class="content-card-title"><i class="fas fa-calendar-alt me-2" style="color:var(--gold);"></i><?= $_lang==='th'?'รายละเอียดการประชุม':'Conference Details' ?></div>
           <div style="font-size:.88rem;color:var(--gray-700);line-height:2;">
-            <div class="mb-2"><i class="fas fa-calendar text-blue me-2" style="color:var(--blue-mid);"></i><strong><?= $_lang==='th'?'วันที่':'Date' ?>:</strong><br>&nbsp;&nbsp;<?= e(CONF_DATE_EN) ?></div>
+            <div class="mb-2"><i class="fas fa-calendar text-blue me-2" style="color:var(--blue-mid);"></i><strong><?= $_lang==='th'?'วันที่':'Date' ?>:</strong><br>&nbsp;&nbsp;<?= e($_lang==='th'?CONF_DATE_TH:CONF_DATE_EN) ?></div>
             <div class="mb-2"><i class="fas fa-clock text-blue me-2" style="color:var(--blue-mid);"></i><strong><?= $_lang==='th'?'เวลา':'Time' ?>:</strong><br>&nbsp;&nbsp;<?= e(CONF_TIME) ?></div>
-            <div><i class="fas fa-map-marker-alt text-blue me-2" style="color:var(--blue-mid);"></i><strong><?= $_lang==='th'?'สถานที่':'Venue' ?>:</strong><br>&nbsp;&nbsp;<?= e(CONF_VENUE_EN) ?></div>
+            <div><i class="fas fa-map-marker-alt text-blue me-2" style="color:var(--blue-mid);"></i><strong><?= $_lang==='th'?'สถานที่':'Venue' ?>:</strong><br>&nbsp;&nbsp;<?= e($_lang==='th'?CONF_VENUE_TH:CONF_VENUE_EN) ?></div>
           </div>
           <a href="<?= $appUrl ?>/register.php" class="btn-primary-custom d-block text-center mt-3">
             <i class="fas fa-user-plus me-2"></i><?= t('nav.register') ?>

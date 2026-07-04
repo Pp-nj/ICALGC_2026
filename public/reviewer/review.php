@@ -53,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$readOnly) {
     Auth::verifyCsrf(post('csrf_token'));
 
     $scoreFields = ['score_relevance', 'score_methodology', 'score_originality', 'score_contribution', 'score_writing'];
-    $scoreMaxes  = [20, 20, 25, 25, 10];
+    $scoreMaxes  = [10, 25, 25, 25, 15];
     $scores = [];
     foreach ($scoreFields as $i => $field) {
         $level = intPost($field);
@@ -123,9 +123,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$readOnly) {
             // Notify all admins
             Notification::notifyAdmins(
                 'review_result',
-                'มีผลประเมินบทความใหม่',
+                'มีผลประเมินบทคัดย่อใหม่',
                 'New Review Submitted',
-                "ผู้ทรงคุณวุฒิส่งผลประเมินบทความ {$assignment['paper_code']} แล้ว",
+                "ผู้ทรงคุณวุฒิส่งผลประเมินบทคัดย่อ {$assignment['paper_code']} แล้ว",
                 "Reviewer has submitted review for {$assignment['paper_code']}.",
                 $assignment['paper_id']
             );
@@ -141,22 +141,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$readOnly) {
     }
 }
 
-$pageTitle  = $_lang==='th' ? 'ประเมินบทความ' : 'Review Paper';
+$pageTitle  = $_lang==='th' ? 'ประเมินบทคัดย่อ' : 'Evaluate Abstract';
 $activeMenu = 'assigned';
 
-$scoreMaxes = [20, 20, 25, 25, 10];
+$scoreMaxes = [10, 25, 25, 25, 15];
 $criteria = $_lang==='th' ? [
-    ['key'=>'score_relevance',    'label'=>'ความสอดคล้องกับหัวข้อการประชุม',              'hint'=>'มีความสอดคล้องกับประเด็นและเป้าหมายของการประชุมวิชาการ',          'max'=>20],
-    ['key'=>'score_methodology',  'label'=>'ความแปลกใหม่และความสำคัญของงาน',  'hint'=>'มีแนวคิดใหม่ ประโยชน์ทางวิชาการหรือสร้างองค์ความรู้ใหม่',            'max'=>20],
-    ['key'=>'score_originality',  'label'=>'คุณภาพทางวิชาการและระเบียบวิธีวิจัย',                            'hint'=>'วัตถุประสงค์ แนวคิด และวิธีดำเนินการมีความเหมาะสมและน่าเชื่อถือ',                          'max'=>25],
-    ['key'=>'score_contribution', 'label'=>'ความชัดเจนและการเรียบเรียง',                            'hint'=>'เนื้อหามีความเป็นระเบียบ เข้าในง่ายและเรียงลำดับได้ดี',                      'max'=>25],
-    ['key'=>'score_writing',      'label'=>'คุณภาพการใช้ภาษา',               'hint'=>'การใช้ภาษาอังกฤษถูกต้องเหมาะสม และสื่อสารได้ชัดเจน',                  'max'=>10],
+    ['key'=>'score_relevance',    'label'=>'ความสอดคล้องของบทคัดย่อกับหัวข้อการประชุม',                       'max'=>10],
+    ['key'=>'score_methodology',  'label'=>'ความคิดริเริ่มและประโยชน์ต่อวงการวิชาการหรือวิชาชีพ',              'max'=>25],
+    ['key'=>'score_originality',  'label'=>'ความเหมาะสมของแนวคิดหรือทฤษฎีที่ใช้',                                                      'max'=>25],
+    ['key'=>'score_contribution', 'label'=>'ระเบียบวิธีวิจัยมีความเหมาะสมและความสอดคล้องกับวัตถุประสงค์',                                              'max'=>25],
+    ['key'=>'score_writing',      'label'=>'การใช้ภาษาและสามารถสื่อสารเชิงวิชาการได้อย่างถูกต้องและเหมาะสม',                               'max'=>15],
 ] : [
-    ['key'=>'score_relevance',    'label'=>'Relevance to Conference Theme',       'hint'=>'The extent to which the abstract aligns with the conference theme and objectives',  'max'=>20],
-    ['key'=>'score_methodology',  'label'=>'Originality and Significance ',   'hint'=>'The originality of the work and its potential contribution to knowledge ',   'max'=>20],
-    ['key'=>'score_originality',  'label'=>'Academic Quality and Methodology',            'hint'=>'The academic quality including objectives ,literature, and methodology are appropriate and reliable',             'max'=>25],
-    ['key'=>'score_contribution', 'label'=>'Clarity and Organization',               'hint'=>'The content is well-structured, clear,and easy to understand',                            'max'=>25],
-    ['key'=>'score_writing',      'label'=>'Language Quality',          'hint'=>'The quality of English usage including grammar, vocabulary,and overall readability',              'max'=>10],
+    ['key'=>'score_relevance',    'label'=>'Relevance of the Abstract to the Conference Theme',         'max'=>10],
+    ['key'=>'score_methodology',  'label'=>'Originality and Benefit to the Academic or Professional Field',   'max'=>25],
+    ['key'=>'score_originality',  'label'=>'Appropriateness of the Concept or Theory Used',                         'max'=>25],
+    ['key'=>'score_contribution', 'label'=>'Appropriateness of Research Methodology',                                   'max'=>25],
+    ['key'=>'score_writing',      'label'=>'Language Use and Academic Communication',                  'max'=>15],
 ];
 
 $recommendations = [
@@ -190,7 +190,7 @@ $recommendations = [
         </h1>
         <p class="dash-breadcrumb">
           <a href="<?= $appUrl ?>/reviewer/assigned-papers.php" style="color:var(--blue-mid);">
-            <?= $_lang==='th' ? 'บทความที่ได้รับ' : 'Assigned Papers' ?>
+            <?= $_lang==='th' ? 'บทคัดย่อที่ได้รับ' : 'Assigned Papers' ?>
           </a>
           <i class="fas fa-chevron-right mx-1" style="font-size:.7rem;"></i>
           <code style="color:var(--blue-mid);"><?= e($assignment['paper_code']) ?></code>
@@ -218,7 +218,7 @@ $recommendations = [
       <div class="col-lg-5">
         <div class="content-card mb-4" style="position:sticky;top:20px;">
           <div class="content-card-title">
-            <i class="fas fa-file-alt me-2" style="color:var(--gold);"></i><?= $_lang==='th' ? 'ข้อมูลบทความ' : 'Paper Information' ?>
+            <i class="fas fa-file-alt me-2" style="color:var(--gold);"></i><?= $_lang==='th' ? 'ข้อมูลบทคัดย่อ' : 'Paper Information' ?>
           </div>
           <code style="font-size:.82rem;color:var(--blue-mid);"><?= e($assignment['paper_code']) ?></code>
           <h5 style="font-weight:800;color:var(--blue-dark);margin:8px 0 4px;font-size:.95rem;">
@@ -243,7 +243,7 @@ $recommendations = [
             <div class="mt-4 pt-3" style="border-top:1px solid var(--gray-200);">
               <a href="<?= $appUrl ?>/download.php?file_id=<?= (int)$latestFile['id'] ?>"
                  class="btn-primary-custom d-block text-center" style="font-size:.85rem;">
-                <i class="fas fa-download me-2"></i><?= $_lang==='th' ? 'ดาวน์โหลดไฟล์บทความ' : 'Download Paper File' ?>
+                <i class="fas fa-download me-2"></i><?= $_lang==='th' ? 'ดาวน์โหลดไฟล์บทคัดย่อ' : 'Download Paper File' ?>
               </a>
             </div>
           <?php endif; ?>

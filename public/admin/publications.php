@@ -30,9 +30,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && post('action') === 'unpublish') {
                 Notification::paperUnpublished((int)$paper['submitter_id'], $paper['paper_code'], (int)$paperId);
                 auditLog('unpublish_paper', 'papers', "Unpublished paper {$paper['paper_code']}", Auth::id());
                 $db->commit();
-                flashSet('success', $_lang==='th' ? 'ยกเลิกการเผยแพร่บทความเรียบร้อย' : 'Paper unpublished successfully.');
+                flashSet('success', $_lang==='th' ? 'ยกเลิกการเผยแพร่บทคัดย่อเรียบร้อย' : 'Paper unpublished successfully.');
             } else {
-                flashSet('error', $_lang==='th' ? 'ไม่พบบทความหรือสถานะไม่ถูกต้อง' : 'Paper not found or not published.');
+                flashSet('error', $_lang==='th' ? 'ไม่พบบทคัดย่อหรือสถานะไม่ถูกต้อง' : 'Paper not found or not published.');
             }
         } catch (\Throwable $e) {
             if (isset($db) && $db->inTransaction()) $db->rollBack();
@@ -50,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $doi     = trim(post('doi'));
     $note    = trim(post('note'));
 
-    if (!$paperId) $errors[] = $_lang==='th' ? 'ไม่พบบทความ' : 'Paper not found.';
+    if (!$paperId) $errors[] = $_lang==='th' ? 'ไม่พบบทคัดย่อ' : 'Paper not found.';
 
     if (empty($errors)) {
         try {
@@ -61,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $paper = $pStmt->fetch();
 
             if (!$paper) {
-                $errors[] = $_lang==='th' ? 'บทความไม่ได้อยู่ในสถานะยอมรับ' : 'Paper is not in accepted status.';
+                $errors[] = $_lang==='th' ? 'บทคัดย่อไม่ได้อยู่ในสถานะยอมรับ' : 'Paper is not in accepted status.';
             } else {
                 $db->beginTransaction();
 
@@ -98,7 +98,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     error_log('Mail::sendPublished failed: ' . $mailErr->getMessage());
                 }
 
-                flashSet('success', $_lang==='th' ? 'เผยแพร่บทความเรียบร้อย' : 'Paper published successfully.');
+                flashSet('success', $_lang==='th' ? 'เผยแพร่บทคัดย่อเรียบร้อย' : 'Paper published successfully.');
                 redirect($appUrl . '/admin/publications.php');
             }
         } catch (\Throwable $e) {
@@ -148,7 +148,7 @@ try {
     $acceptedCount = 0; $publishedCount = 0;
 }
 
-$pageTitle  = $_lang==='th' ? 'เผยแพร่บทความ' : 'Publish Papers';
+$pageTitle  = $_lang==='th' ? 'เผยแพร่บทคัดย่อ' : 'Publish Papers';
 $activeMenu = 'publications';
 ?>
 <!DOCTYPE html>
@@ -197,7 +197,7 @@ $activeMenu = 'publications';
         <div class="p-5 text-center">
           <i class="fas fa-globe fa-3x mb-3" style="color:var(--gray-200);"></i>
           <h5 style="color:var(--gray-500);">
-            <?= $tab==='accepted' ? ($_lang==='th'?'ไม่มีบทความที่รอเผยแพร่':'No papers ready to publish') : ($_lang==='th'?'ยังไม่มีบทความที่เผยแพร่':'No published papers yet') ?>
+            <?= $tab==='accepted' ? ($_lang==='th'?'ไม่มีบทคัดย่อที่รอเผยแพร่':'No papers ready to publish') : ($_lang==='th'?'ยังไม่มีบทคัดย่อที่เผยแพร่':'No published papers yet') ?>
           </h5>
         </div>
       <?php else: ?>
@@ -206,7 +206,7 @@ $activeMenu = 'publications';
             <thead>
               <tr>
                 <th><?= t('paper.code') ?></th>
-                <th><?= $_lang==='th' ? 'บทความ' : 'Paper' ?></th>
+                <th><?= $_lang==='th' ? 'บทคัดย่อ' : 'Paper' ?></th>
                 <th><?= $_lang==='th' ? 'ผู้แต่ง' : 'Author' ?></th>
                 <?php if ($tab === 'published'): ?>
                   <th>DOI</th>
@@ -289,7 +289,7 @@ $activeMenu = 'publications';
               <p><strong id="unpublishPaperCode"></strong></p>
               <p style="font-size:.88rem;color:var(--gray-600);">
                 <?= $_lang==='th'
-                  ? 'บทความนี้จะถูกถอดออกจากหน้าสาธารณะและสถานะจะเปลี่ยนกลับเป็น "ยอมรับแล้ว" ผู้แต่งจะได้รับการแจ้งเตือน'
+                  ? 'บทคัดย่อนี้จะถูกถอดออกจากหน้าสาธารณะและสถานะจะเปลี่ยนกลับเป็น "ยอมรับแล้ว" ผู้แต่งจะได้รับการแจ้งเตือน'
                   : 'This paper will be removed from the public page and its status reverted to "Accepted". The author will be notified.' ?>
               </p>
             </div>
@@ -307,7 +307,7 @@ $activeMenu = 'publications';
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header" style="background:var(--blue-dark);color:#fff;">
-            <h5 class="modal-title"><i class="fas fa-globe me-2"></i><?= $_lang==='th' ? 'เผยแพร่บทความ' : 'Publish Paper' ?></h5>
+            <h5 class="modal-title"><i class="fas fa-globe me-2"></i><?= $_lang==='th' ? 'เผยแพร่บทคัดย่อ' : 'Publish Paper' ?></h5>
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
           </div>
           <form method="POST">
@@ -317,7 +317,7 @@ $activeMenu = 'publications';
               <p><strong id="modalPaperCode"></strong></p>
               <p style="font-size:.88rem;color:var(--gray-600);">
                 <?= $_lang==='th'
-                  ? 'บทความนี้จะแสดงในหน้า Publication สาธารณะ ผู้แต่งจะได้รับการแจ้งเตือน'
+                  ? 'บทคัดย่อนี้จะแสดงในหน้า Publication สาธารณะ ผู้แต่งจะได้รับการแจ้งเตือน'
                   : 'This paper will be visible on the public Publication page. The author will be notified.' ?>
               </p>
               <div class="mb-3">

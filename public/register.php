@@ -544,14 +544,14 @@ $savedSpecial   = is_array(post('special_assistance')) ? post('special_assistanc
             'icon'  => '🎤',
             'th'    => 'ผู้นำเสนอผลงาน',
             'en'    => 'Presenter',
-            'th_s'  => 'นำเสนอบทความวิจัย',
+            'th_s'  => 'นำเสนอบทคัดย่อวิจัย',
             'en_s'  => 'Present research paper',
           ],
           'coauthor' => [
             'icon'  => '✍️',
             'th'    => 'ผู้ร่วมแต่ง',
             'en'    => 'Co-author',
-            'th_s'  => 'ผู้แต่งร่วมในบทความ',
+            'th_s'  => 'ผู้แต่งร่วมในบทคัดย่อ',
             'en_s'  => 'Co-author of a paper',
           ],
           'participant' => [

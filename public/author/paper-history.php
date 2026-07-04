@@ -81,14 +81,14 @@ $events[] = [
     'at'    => $paper['submitted_at'],
     'icon'  => 'fa-paper-plane',
     'color' => '#0d6efd',
-    'title' => $_lang === 'th' ? 'ส่งบทความเข้าระบบ' : 'Paper Submitted',
+    'title' => $_lang === 'th' ? 'ส่งบทคัดย่อเข้าระบบ' : 'Paper Submitted',
     'desc'  => e($paper['paper_code']),
 ];
 
 // 2. File uploads
 $fileCatLabel = [
-    'submission'   => $_lang === 'th' ? 'ไฟล์บทความต้นฉบับ' : 'Original Submission File',
-    'revision'     => $_lang === 'th' ? 'ไฟล์บทความแก้ไข'  : 'Revised File',
+    'submission'   => $_lang === 'th' ? 'ไฟล์บทคัดย่อต้นฉบับ' : 'Original Submission File',
+    'revision'     => $_lang === 'th' ? 'ไฟล์บทคัดย่อแก้ไข'  : 'Revised File',
     'camera_ready' => $_lang === 'th' ? 'ไฟล์ Camera Ready' : 'Camera Ready File',
 ];
 foreach ($files as $f) {
@@ -145,7 +145,7 @@ if ($publication) {
         'at'    => $publication['published_at'],
         'icon'  => 'fa-globe',
         'color' => '#0f5132',
-        'title' => $_lang === 'th' ? 'เผยแพร่บทความแล้ว' : 'Paper Published',
+        'title' => $_lang === 'th' ? 'เผยแพร่บทคัดย่อแล้ว' : 'Paper Published',
         'desc'  => $publication['doi'] ? 'DOI: ' . e($publication['doi']) : '',
     ];
 }
@@ -153,7 +153,7 @@ if ($publication) {
 // Sort all events by date ascending
 usort($events, fn($a, $b) => strtotime($a['at']) <=> strtotime($b['at']));
 
-$pageTitle  = $_lang === 'th' ? 'ประวัติการส่งบทความ' : 'Submission History';
+$pageTitle  = $_lang === 'th' ? 'ประวัติการส่งบทคัดย่อ' : 'Submission History';
 $activeMenu = 'my-papers';
 ?>
 <!DOCTYPE html>
@@ -265,11 +265,11 @@ $activeMenu = 'my-papers';
       <div class="d-flex gap-2 flex-wrap">
         <a href="<?= $appUrl ?>/author/paper-detail.php?id=<?= $paperId ?>"
            class="btn-outline-custom">
-          <i class="fas fa-file-alt me-2"></i><?= $_lang === 'th' ? 'รายละเอียดบทความ' : 'Paper Detail' ?>
+          <i class="fas fa-file-alt me-2"></i><?= $_lang === 'th' ? 'รายละเอียดบทคัดย่อ' : 'Paper Detail' ?>
         </a>
         <?php if ($paper['status_code'] === 'revision_required'): ?>
           <a href="<?= $appUrl ?>/author/revise.php?id=<?= $paperId ?>" class="btn-primary-custom">
-            <i class="fas fa-edit me-2"></i><?= $_lang === 'th' ? 'ส่งบทความแก้ไข' : 'Submit Revision' ?>
+            <i class="fas fa-edit me-2"></i><?= $_lang === 'th' ? 'ส่งบทคัดย่อแก้ไข' : 'Submit Revision' ?>
           </a>
         <?php endif; ?>
       </div>
@@ -392,7 +392,7 @@ $activeMenu = 'my-papers';
     <div class="content-card">
       <div class="content-card-title mb-4">
         <i class="fas fa-stream me-2" style="color:var(--gold);"></i>
-        <?= $_lang === 'th' ? 'ประวัติการส่งบทความ' : 'Submission History' ?>
+        <?= $_lang === 'th' ? 'ประวัติการส่งบทคัดย่อ' : 'Submission History' ?>
         <span class="ms-2 badge rounded-pill"
               style="background:var(--blue-dark);color:#fff;font-size:.72rem;font-weight:600;vertical-align:middle;">
           <?= count($events) ?>

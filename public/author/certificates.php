@@ -12,7 +12,7 @@ $uid    = $user['id'];
 
 // ── Certificate type meta ────────────────────────────────
 $certTypeMeta = [
-    'acceptance'   => ['th' => 'ใบตอบรับบทความ',        'en' => 'Certificate of Acceptance',   'icon' => 'fa-file-contract',      'color' => '#0057b7'],
+    'acceptance'   => ['th' => 'ใบตอบรับบทคัดย่อ',        'en' => 'Certificate of Acceptance',   'icon' => 'fa-file-contract',      'color' => '#0057b7'],
     'presentation' => ['th' => 'ใบรับรองการนำเสนอ',     'en' => 'Certificate of Presentation', 'icon' => 'fa-chalkboard-teacher', 'color' => '#198754'],
     'attendance'   => ['th' => 'ใบรับรองการเข้าร่วม',   'en' => 'Certificate of Attendance',   'icon' => 'fa-users',              'color' => '#6f42c1'],
     'reviewer'     => ['th' => 'ใบรับรองผู้ทรงคุณวุฒิ', 'en' => 'Certificate of Reviewer',     'icon' => 'fa-user-tie',           'color' => '#a07c10'],
@@ -250,7 +250,7 @@ $activeMenu = 'certificates';
             <thead>
               <tr>
                 <th><?= $_lang === 'th' ? 'ประเภท' : 'Type' ?></th>
-                <th><?= $_lang === 'th' ? 'บทความ' : 'Paper' ?></th>
+                <th><?= $_lang === 'th' ? 'บทคัดย่อ' : 'Paper' ?></th>
                 <th><?= $_lang === 'th' ? 'วันที่ออก' : 'Issued' ?></th>
                 <th style="width:80px;"></th>
               </tr>

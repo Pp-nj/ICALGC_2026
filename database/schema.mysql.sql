@@ -112,7 +112,7 @@ CREATE TABLE IF NOT EXISTS users (
 -- Default admin account (password: Admin@2026! — change immediately)
 INSERT IGNORE INTO users (role, title, first_name, last_name, email, password_hash, email_verified, account_status)
 VALUES ('admin', 'ดร.', 'ผู้ดูแล', 'ระบบ', 'admin@icalgc2026.com',
-        '$2y$12$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', TRUE, 'active');
+        '$2y$12$YAax3.zk5m/dAIsKdIIHtutIjbwBOIVqxr3UaMcruqND9dqZcn4NW', TRUE, 'active');
 
 -- ============================================================
 -- 5. PASSWORD RESETS

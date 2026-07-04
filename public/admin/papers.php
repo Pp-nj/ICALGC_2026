@@ -71,7 +71,7 @@ try {
     $papers = []; $total = 0; $pg = paginate(0,$perPage,1); $statuses = []; $themes = [];
 }
 
-$pageTitle  = $_lang==='th' ? 'จัดการบทความ' : 'Manage Papers';
+$pageTitle  = $_lang==='th' ? 'จัดการบทคัดย่อ' : 'Manage Papers';
 $activeMenu = 'papers';
 ?>
 <!DOCTYPE html>
@@ -93,7 +93,7 @@ $activeMenu = 'papers';
   <main class="dashboard-content">
     <div class="dash-header">
       <h1 class="dash-title"><i class="fas fa-file-alt me-2" style="color:var(--gold);"></i><?= e($pageTitle) ?></h1>
-      <p class="dash-breadcrumb"><?= $total ?> <?= $_lang==='th' ? 'บทความ' : 'paper(s)' ?></p>
+      <p class="dash-breadcrumb"><?= $total ?> <?= $_lang==='th' ? 'บทคัดย่อ' : 'paper(s)' ?></p>
     </div>
 
     <?= flashHtml() ?>
@@ -105,7 +105,7 @@ $activeMenu = 'papers';
           <label class="form-label fw-bold" style="font-size:.82rem;"><?= $_lang==='th' ? 'ค้นหา' : 'Search' ?></label>
           <div class="input-group">
             <span class="input-group-text"><i class="fas fa-search"></i></span>
-            <input type="text" name="q" class="form-control" placeholder="<?= $_lang==='th' ? 'รหัส, ชื่อบทความ, ผู้แต่ง...' : 'Code, title, author...' ?>"
+            <input type="text" name="q" class="form-control" placeholder="<?= $_lang==='th' ? 'รหัส, ชื่อบทคัดย่อ, ผู้แต่ง...' : 'Code, title, author...' ?>"
                    value="<?= e($search) ?>">
           </div>
         </div>
@@ -173,7 +173,7 @@ $activeMenu = 'papers';
             <thead>
               <tr>
                 <th><?= t('paper.code') ?></th>
-                <th><?= $_lang==='th' ? 'บทความ' : 'Paper' ?></th>
+                <th><?= $_lang==='th' ? 'บทคัดย่อ' : 'Paper' ?></th>
                 <th><?= $_lang==='th' ? 'ผู้ส่ง' : 'Submitter' ?></th>
                 <th><?= $_lang==='th' ? 'หัวข้อ' : 'Theme' ?></th>
                 <th><?= $_lang==='th' ? 'วันที่' : 'Date' ?></th>

@@ -153,7 +153,7 @@ $activeMenu = 'users';
                 <th><?= $_lang==='th' ? 'อีเมล' : 'Email' ?></th>
                 <th><?= $_lang==='th' ? 'สังกัด' : 'Affiliation' ?></th>
                 <th><?= $_lang==='th' ? 'บทบาท' : 'Role' ?></th>
-                <th><?= $_lang==='th' ? 'บทความ' : 'Papers' ?></th>
+                <th><?= $_lang==='th' ? 'บทคัดย่อ' : 'Papers' ?></th>
                 <th><?= $_lang==='th' ? 'สถานะ' : 'Status' ?></th>
                 <th><?= $_lang==='th' ? 'สมัคร' : 'Registered' ?></th>
                 <th></th>

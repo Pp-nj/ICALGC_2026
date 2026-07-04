@@ -148,7 +148,7 @@ require_once __DIR__ . '/../app/helpers/header.php';
     <?php if ($search || $themeId || $yearFilter): ?>
       <p class="mt-3 mb-0" style="color:rgba(255,255,255,.8);font-size:.9rem;">
         <i class="fas fa-info-circle me-1"></i>
-        <?= $_lang==='th' ? "พบ {$total} บทความ" : "Found {$total} publication(s)" ?>
+        <?= $_lang==='th' ? "พบ {$total} บทคัดย่อ" : "Found {$total} publication(s)" ?>
         <?= $search ? " " . ($_lang==='th'?'สำหรับ':'for') . " \"" . e($search) . "\"" : '' ?>
       </p>
     <?php endif; ?>
@@ -173,7 +173,7 @@ require_once __DIR__ . '/../app/helpers/header.php';
 
       <div class="d-flex align-items-center justify-content-between mb-4">
         <h5 style="color:var(--blue-dark);font-weight:700;margin:0;">
-          <?= $_lang==='th' ? "แสดง {$total} บทความ" : "{$total} Publication(s)" ?>
+          <?= $_lang==='th' ? "แสดง {$total} บทคัดย่อ" : "{$total} Publication(s)" ?>
         </h5>
       </div>
 

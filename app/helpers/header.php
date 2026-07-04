@@ -65,11 +65,29 @@ $appUrl = APP_URL;
      IMPORTANT DATES TICKER
      ════════════════════════════════════ -->
 <div class="ticker-wrap" aria-label="<?= t('dates.title') ?>">
-  <div class="ticker-label"><?= t('dates.title') ?></div>
   <div class="ticker-content" id="tickerContent">
     <?php
-    // Double the items for seamless looping
+    // Custom ticker items (hardcoded) — interspersed every N date items
+    // Example: ['text' => 'ข้อความประกาศ', 'link' => $appUrl . '/publication.php']
+    $customTickerItems = [
+      ['text' => 'ฟรี❗ไม่มีค่าใช้จ่ายในการส่งบทคัดย่อและการนำเสนอ', 'link' => null],
+    ];
+    $insertEvery = 2; // insert one custom item after every 2 date items
+
+    $renderTickerItem = function ($html) {
+        return '<span class="ticker-item"><span class="ticker-dot">◆</span>' . $html . '</span>';
+    };
+    $renderCustomItem = function ($item) {
+        $itemHtml = '<span class="ticker-dot">◆</span>' . e($item['text']);
+        if (!empty($item['link'])) {
+            return '<a class="ticker-item" href="' . e($item['link']) . '">' . $itemHtml . '</a>';
+        }
+        return '<span class="ticker-item">' . $itemHtml . '</span>';
+    };
+
     $tickerItems = '';
+    $customIndex = 0;
+    $dateCount   = 0;
     foreach ($tickerDates as $d) {
       $title   = $_lang === 'th' ? $d['title_th'] : $d['title_en'];
       $daysLeft = daysUntil($d['event_date']);
@@ -77,9 +95,19 @@ $appUrl = APP_URL;
       if ($daysLeft > 0)       $tag = t('dates.days_left', ['n' => $daysLeft]);
       elseif ($daysLeft === 0) $tag = t('dates.today');
       else                     $tag = t('dates.passed');
-      $tickerItems .= '<span class="ticker-item"><span class="ticker-dot">◆</span>'
-                   . e($title) . ' — ' . e($dateStr) . ' (' . e($tag) . ')</span>';
+      $tickerItems .= $renderTickerItem(e($title) . ' — ' . e($dateStr) . ' (' . e($tag) . ')');
+      $dateCount++;
+
+      if (!empty($customTickerItems) && $dateCount % $insertEvery === 0) {
+          $tickerItems .= $renderCustomItem($customTickerItems[$customIndex % count($customTickerItems)]);
+          $customIndex++;
+      }
     }
+    // Append any remaining custom items that didn't get a slot yet
+    if (!empty($customTickerItems) && $customIndex === 0) {
+        $tickerItems .= $renderCustomItem($customTickerItems[0]);
+    }
+
     // Duplicate for seamless loop
     echo $tickerItems . $tickerItems;
     ?>

@@ -72,10 +72,10 @@ $appUrl = APP_URL;
         <a class="footer-link" href="<?= $appUrl ?>/register.php"><?= t('nav.register') ?></a>
         <a class="footer-link" href="<?= $appUrl ?>/login.php"><?= t('nav.login') ?></a>
         <a class="footer-link" href="<?= $appUrl ?>/author/submit.php">
-          <?= $_lang==='th' ? 'ส่งบทความ' : 'Submit Paper' ?>
+          <?= $_lang==='th' ? 'ส่งบทคัดย่อ' : 'Submit Paper' ?>
         </a>
         <a class="footer-link" href="<?= $appUrl ?>/author/my-papers.php">
-          <?= $_lang==='th' ? 'บทความของฉัน' : 'My Papers' ?>
+          <?= $_lang==='th' ? 'บทคัดย่อของฉัน' : 'My Papers' ?>
         </a>
         <a class="footer-link" href="<?= $appUrl ?>/announcements.php"><?= t('nav.announcements') ?></a>
       </div>

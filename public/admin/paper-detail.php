@@ -57,7 +57,7 @@ try {
     redirect($appUrl . '/admin/papers.php');
 }
 
-$pageTitle  = $_lang==='th' ? 'รายละเอียดบทความ' : 'Paper Detail';
+$pageTitle  = $_lang==='th' ? 'รายละเอียดบทคัดย่อ' : 'Paper Detail';
 $activeMenu = 'papers';
 ?>
 <!DOCTYPE html>
@@ -81,7 +81,7 @@ $activeMenu = 'papers';
       <div>
         <h1 class="dash-title"><i class="fas fa-file-alt me-2" style="color:var(--gold);"></i><?= e($pageTitle) ?></h1>
         <p class="dash-breadcrumb">
-          <a href="<?= $appUrl ?>/admin/papers.php" style="color:var(--blue-mid);"><?= $_lang==='th' ? 'จัดการบทความ' : 'Manage Papers' ?></a>
+          <a href="<?= $appUrl ?>/admin/papers.php" style="color:var(--blue-mid);"><?= $_lang==='th' ? 'จัดการบทคัดย่อ' : 'Manage Papers' ?></a>
           <i class="fas fa-chevron-right mx-1" style="font-size:.7rem;"></i>
           <code style="color:var(--blue-mid);"><?= e($paper['paper_code']) ?></code>
         </p>
@@ -136,7 +136,7 @@ $activeMenu = 'papers';
       <div class="col-lg-8">
 
         <div class="content-card mb-4">
-          <div class="content-card-title"><i class="fas fa-info-circle me-2" style="color:var(--gold);"></i><?= $_lang==='th' ? 'ข้อมูลบทความ' : 'Paper Info' ?></div>
+          <div class="content-card-title"><i class="fas fa-info-circle me-2" style="color:var(--gold);"></i><?= $_lang==='th' ? 'ข้อมูลบทคัดย่อ' : 'Paper Info' ?></div>
           <div class="row g-3">
             <div class="col-12"><label style="font-size:.78rem;color:var(--gray-500);"><?= $_lang==='th'?'ชื่อภาษาไทย':'Thai Title' ?></label>
               <div style="font-weight:600;"><?= e($paper['title_th']) ?></div></div>
@@ -270,11 +270,11 @@ $activeMenu = 'papers';
               <i class="fas fa-user-plus me-2"></i><?= $_lang==='th' ? 'มอบหมายผู้ทรงคุณวุฒิ' : 'Assign Reviewer' ?>
             </a>
             <a href="<?= $appUrl ?>/admin/final-decision.php?paper_id=<?= $paperId ?>" class="btn-primary-custom text-center">
-              <i class="fas fa-gavel me-2"></i><?= $_lang==='th' ? 'ตัดสินผลบทความ' : 'Final Decision' ?>
+              <i class="fas fa-gavel me-2"></i><?= $_lang==='th' ? 'ตัดสินผลบทคัดย่อ' : 'Final Decision' ?>
             </a>
             <?php if ($paper['status_code'] === 'accepted'): ?>
               <a href="<?= $appUrl ?>/admin/publications.php?paper_id=<?= $paperId ?>" class="btn btn-success rounded-pill text-center py-2 text-decoration-none">
-                <i class="fas fa-globe me-2"></i><?= $_lang==='th' ? 'เผยแพร่บทความ' : 'Publish Paper' ?>
+                <i class="fas fa-globe me-2"></i><?= $_lang==='th' ? 'เผยแพร่บทคัดย่อ' : 'Publish Paper' ?>
               </a>
             <?php endif; ?>
             <a href="<?= $appUrl ?>/admin/papers.php" class="btn-outline-custom text-center">

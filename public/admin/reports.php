@@ -101,7 +101,7 @@ $activeMenu = 'reports';
     <div class="row g-3 mb-4">
       <?php
       $kpis = [
-        ['icon'=>'fa-file-alt','val'=>$totals['total_papers']??0,'label'=>$_lang==='th'?'บทความทั้งหมด':'Total Papers','color'=>''],
+        ['icon'=>'fa-file-alt','val'=>$totals['total_papers']??0,'label'=>$_lang==='th'?'บทคัดย่อทั้งหมด':'Total Papers','color'=>''],
         ['icon'=>'fa-globe','val'=>$totals['published']??0,'label'=>$_lang==='th'?'เผยแพร่แล้ว':'Published','color'=>'green'],
         ['icon'=>'fa-user-edit','val'=>$totals['authors']??0,'label'=>$_lang==='th'?'ผู้แต่ง':'Authors','color'=>''],
         ['icon'=>'fa-user-tie','val'=>$totals['reviewers']??0,'label'=>$_lang==='th'?'ผู้ทรงคุณวุฒิ':'Reviewers','color'=>'gold'],
@@ -128,7 +128,7 @@ $activeMenu = 'reports';
       <!-- By Status -->
       <div class="col-lg-6">
         <div class="content-card">
-          <div class="content-card-title"><i class="fas fa-chart-donut me-2" style="color:var(--gold);"></i><?= $_lang==='th' ? 'บทความตามสถานะ' : 'Papers by Status' ?></div>
+          <div class="content-card-title"><i class="fas fa-chart-donut me-2" style="color:var(--gold);"></i><?= $_lang==='th' ? 'บทคัดย่อตามสถานะ' : 'Papers by Status' ?></div>
           <?php
           $maxStatus = max(array_column($byStatus, 'cnt') ?: [1]);
           foreach ($byStatus as $bs): ?>
@@ -148,7 +148,7 @@ $activeMenu = 'reports';
       <!-- By Theme -->
       <div class="col-lg-6">
         <div class="content-card">
-          <div class="content-card-title"><i class="fas fa-tags me-2" style="color:var(--gold);"></i><?= $_lang==='th' ? 'บทความตามหัวข้อ' : 'Papers by Theme' ?></div>
+          <div class="content-card-title"><i class="fas fa-tags me-2" style="color:var(--gold);"></i><?= $_lang==='th' ? 'บทคัดย่อตามหัวข้อ' : 'Papers by Theme' ?></div>
           <div class="table-responsive">
             <table class="table-custom">
               <thead>
@@ -175,7 +175,7 @@ $activeMenu = 'reports';
       <!-- Submissions by Month -->
       <div class="col-lg-6">
         <div class="content-card">
-          <div class="content-card-title"><i class="fas fa-calendar-alt me-2" style="color:var(--gold);"></i><?= $_lang==='th' ? 'การส่งบทความรายเดือน' : 'Submissions by Month' ?></div>
+          <div class="content-card-title"><i class="fas fa-calendar-alt me-2" style="color:var(--gold);"></i><?= $_lang==='th' ? 'การส่งบทคัดย่อรายเดือน' : 'Submissions by Month' ?></div>
           <?php if (empty($submByMonth)): ?>
             <div class="p-3 text-center" style="color:var(--gray-500);font-size:.88rem;"><?= t('common.no_data') ?></div>
           <?php else:

@@ -120,7 +120,7 @@ $activeMenu = 'dashboard';
           <?php endif; ?>
         </a>
         <a href="<?= $appUrl ?>/admin/papers.php" class="btn-primary-custom">
-          <i class="fas fa-file-alt me-2"></i><?= $_lang==='th' ? 'จัดการบทความ' : 'Manage Papers' ?>
+          <i class="fas fa-file-alt me-2"></i><?= $_lang==='th' ? 'จัดการบทคัดย่อ' : 'Manage Papers' ?>
         </a>
       </div>
     </div>
@@ -158,14 +158,14 @@ $activeMenu = 'dashboard';
       <div class="alert d-flex align-items-center gap-3 mb-4" style="background:#d1ecf1;border-left:4px solid #17a2b8;border-radius:var(--radius);color:#0c5460;">
         <i class="fas fa-inbox fa-lg"></i>
         <div>
-          <strong><?= $_lang==='th' ? 'บทความใหม่รอตรวจสอบ' : 'New Submissions Pending' ?></strong><br>
+          <strong><?= $_lang==='th' ? 'บทคัดย่อใหม่รอตรวจสอบ' : 'New Submissions Pending' ?></strong><br>
           <span style="font-size:.88rem;">
             <?= $_lang==='th'
-              ? "มี {$paperStats['new_submissions']} บทความใหม่ที่รอดำเนินการ"
+              ? "มี {$paperStats['new_submissions']} บทคัดย่อใหม่ที่รอดำเนินการ"
               : "There are {$paperStats['new_submissions']} new paper(s) awaiting review." ?>
           </span>
           <a href="<?= $appUrl ?>/admin/papers.php?status=submitted" class="ms-2 fw-bold" style="color:inherit;">
-            <?= $_lang==='th' ? 'ดูบทความ' : 'View Papers' ?> →
+            <?= $_lang==='th' ? 'ดูบทคัดย่อ' : 'View Papers' ?> →
           </a>
         </div>
       </div>
@@ -175,7 +175,7 @@ $activeMenu = 'dashboard';
     <div class="row g-3 mb-4">
       <?php
       $paperCards = [
-          ['icon'=>'fa-file-alt','val'=>$paperStats['total']??0,'label'=>$_lang==='th'?'บทความทั้งหมด':'Total Papers','class'=>''],
+          ['icon'=>'fa-file-alt','val'=>$paperStats['total']??0,'label'=>$_lang==='th'?'บทคัดย่อทั้งหมด':'Total Papers','class'=>''],
           ['icon'=>'fa-inbox','val'=>$paperStats['new_submissions']??0,'label'=>$_lang==='th'?'ส่งใหม่':'New Submissions','class'=>'gold'],
           ['icon'=>'fa-search','val'=>$paperStats['under_review']??0,'label'=>$_lang==='th'?'กำลังพิจารณา':'Under Review','class'=>''],
           ['icon'=>'fa-check-circle','val'=>$paperStats['accepted']??0,'label'=>$_lang==='th'?'ยอมรับแล้ว':'Accepted','class'=>'green'],
@@ -202,20 +202,20 @@ $activeMenu = 'dashboard';
       <div class="col-lg-8">
         <div class="table-card">
           <div class="table-card-header">
-            <span class="table-card-title"><i class="fas fa-file-alt me-2" style="color:var(--gold);"></i><?= $_lang==='th' ? 'บทความล่าสุด' : 'Recent Papers' ?></span>
+            <span class="table-card-title"><i class="fas fa-file-alt me-2" style="color:var(--gold);"></i><?= $_lang==='th' ? 'บทคัดย่อล่าสุด' : 'Recent Papers' ?></span>
             <a href="<?= $appUrl ?>/admin/papers.php" class="btn-primary-custom" style="padding:8px 18px;font-size:.82rem;">
               <?= $_lang==='th' ? 'ดูทั้งหมด' : 'View All' ?>
             </a>
           </div>
           <?php if (empty($recentPapers)): ?>
-            <div class="p-4 text-center" style="color:var(--gray-500);"><?= $_lang==='th' ? 'ยังไม่มีบทความ' : 'No papers yet' ?></div>
+            <div class="p-4 text-center" style="color:var(--gray-500);"><?= $_lang==='th' ? 'ยังไม่มีบทคัดย่อ' : 'No papers yet' ?></div>
           <?php else: ?>
             <div class="table-responsive">
               <table class="table-custom">
                 <thead>
                   <tr>
                     <th><?= t('paper.code') ?></th>
-                    <th><?= $_lang==='th' ? 'บทความ' : 'Paper' ?></th>
+                    <th><?= $_lang==='th' ? 'บทคัดย่อ' : 'Paper' ?></th>
                     <th><?= $_lang==='th' ? 'ผู้ส่ง' : 'Submitter' ?></th>
                     <th><?= t('paper.status') ?></th>
                     <th></th>
@@ -254,7 +254,7 @@ $activeMenu = 'dashboard';
         <!-- By Status -->
         <div class="content-card mb-4">
           <div class="content-card-title">
-            <i class="fas fa-chart-pie me-2" style="color:var(--gold);"></i><?= $_lang==='th' ? 'บทความตามสถานะ' : 'Papers by Status' ?>
+            <i class="fas fa-chart-pie me-2" style="color:var(--gold);"></i><?= $_lang==='th' ? 'บทคัดย่อตามสถานะ' : 'Papers by Status' ?>
           </div>
           <div class="d-flex flex-column gap-2">
             <?php foreach ($byStatus as $bs): ?>
@@ -272,7 +272,7 @@ $activeMenu = 'dashboard';
         <!-- By Theme -->
         <div class="content-card mb-4">
           <div class="content-card-title">
-            <i class="fas fa-tags me-2" style="color:var(--gold);"></i><?= $_lang==='th' ? 'บทความตามหัวข้อ' : 'Papers by Theme' ?>
+            <i class="fas fa-tags me-2" style="color:var(--gold);"></i><?= $_lang==='th' ? 'บทคัดย่อตามหัวข้อ' : 'Papers by Theme' ?>
           </div>
           <div class="d-flex flex-column gap-2">
             <?php foreach ($byTheme as $bt): ?>

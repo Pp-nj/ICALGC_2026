@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $chk = $db->prepare("SELECT COUNT(*) FROM papers WHERE theme_id = :id");
                 $chk->execute([':id' => $id]);
                 if ((int)$chk->fetchColumn() > 0) {
-                    flashSet('error', $_lang==='th' ? 'ไม่สามารถลบหัวข้อที่มีบทความอยู่' : 'Cannot delete theme that has papers.');
+                    flashSet('error', $_lang==='th' ? 'ไม่สามารถลบหัวข้อที่มีบทคัดย่ออยู่' : 'Cannot delete theme that has papers.');
                 } else {
                     $db->prepare("DELETE FROM conference_themes WHERE id = :id")->execute([':id' => $id]);
                     flashSet('success', $_lang==='th' ? 'ลบหัวข้อแล้ว' : 'Theme deleted.');
@@ -171,7 +171,7 @@ $activeMenu = 'themes';
                     <th>#</th>
                     <th><?= $_lang==='th'?'ชื่อ (ไทย)':'Name (TH)' ?></th>
                     <th><?= $_lang==='th'?'ชื่อ (อังกฤษ)':'Name (EN)' ?></th>
-                    <th><?= $_lang==='th'?'บทความ':'Papers' ?></th>
+                    <th><?= $_lang==='th'?'บทคัดย่อ':'Papers' ?></th>
                     <th></th>
                   </tr>
                 </thead>
@@ -198,7 +198,7 @@ $activeMenu = 'themes';
                               </button>
                             </form>
                           <?php else: ?>
-                            <span title="<?= $_lang==='th'?'ลบไม่ได้ เพราะมีบทความ':'Cannot delete, has papers' ?>">
+                            <span title="<?= $_lang==='th'?'ลบไม่ได้ เพราะมีบทคัดย่อ':'Cannot delete, has papers' ?>">
                               <button class="btn btn-sm btn-outline-secondary rounded-pill" disabled style="font-size:.72rem;opacity:.4;">
                                 <i class="fas fa-lock"></i>
                               </button>

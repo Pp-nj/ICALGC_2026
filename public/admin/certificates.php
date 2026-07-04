@@ -439,13 +439,13 @@ $activeMenu = 'certificates';
           <!-- Paper (shown only for cert types that need it) -->
           <div class="col-12 col-sm-6 col-lg-3" id="paperGroup">
             <label class="form-label">
-              <?= $_lang === 'th' ? 'บทความที่เกี่ยวข้อง' : 'Linked Paper' ?>
+              <?= $_lang === 'th' ? 'บทคัดย่อที่เกี่ยวข้อง' : 'Linked Paper' ?>
             </label>
             <select name="paper_id" id="paperSelect" class="form-select">
               <option value=""><?= $_lang === 'th' ? '— ไม่ระบุ —' : '— None —' ?></option>
             </select>
             <div class="form-text" style="font-size:.75rem;">
-              <?= $_lang === 'th' ? 'เฉพาะบทความที่ได้รับการยอมรับ' : 'Only accepted / published papers' ?>
+              <?= $_lang === 'th' ? 'เฉพาะบทคัดย่อที่ได้รับการยอมรับ' : 'Only accepted / published papers' ?>
             </div>
           </div>
 
@@ -517,7 +517,7 @@ $activeMenu = 'certificates';
               <tr>
                 <th><?= $_lang === 'th' ? 'ผู้รับ' : 'Recipient' ?></th>
                 <th><?= $_lang === 'th' ? 'ประเภท' : 'Type' ?></th>
-                <th><?= $_lang === 'th' ? 'บทความ' : 'Paper' ?></th>
+                <th><?= $_lang === 'th' ? 'บทคัดย่อ' : 'Paper' ?></th>
                 <th><?= $_lang === 'th' ? 'วันที่ออก' : 'Issued' ?></th>
                 <th style="width:100px;"></th>
               </tr>

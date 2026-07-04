@@ -96,7 +96,7 @@ $activeMenu = 'dashboard';
         <p class="dash-breadcrumb"><?= $_lang==='th' ? 'แดชบอร์ดผู้ทรงคุณวุฒิ' : 'Reviewer Dashboard' ?> — <?= date('j F Y') ?></p>
       </div>
       <a href="<?= $appUrl ?>/reviewer/assigned-papers.php" class="btn-primary-custom">
-        <i class="fas fa-tasks me-2"></i><?= $_lang==='th' ? 'ดูบทความที่ได้รับ' : 'View Assignments' ?>
+        <i class="fas fa-tasks me-2"></i><?= $_lang==='th' ? 'ดูบทคัดย่อที่ได้รับ' : 'View Assignments' ?>
       </a>
     </div>
 
@@ -147,10 +147,10 @@ $activeMenu = 'dashboard';
       <div class="alert d-flex align-items-center gap-3 mb-4" style="background:#f8d7da;border-left:4px solid #dc3545;border-radius:var(--radius);color:#842029;">
         <i class="fas fa-exclamation-triangle fa-lg"></i>
         <div>
-          <strong><?= $_lang==='th' ? 'บทความเกินกำหนดประเมิน' : 'Overdue Reviews' ?></strong><br>
+          <strong><?= $_lang==='th' ? 'บทคัดย่อเกินกำหนดประเมิน' : 'Overdue Reviews' ?></strong><br>
           <span style="font-size:.88rem;">
             <?= $_lang==='th'
-              ? "คุณมี {$stats['overdue']} บทความที่เกินกำหนดประเมิน กรุณาดำเนินการโดยด่วน"
+              ? "คุณมี {$stats['overdue']} บทคัดย่อที่เกินกำหนดประเมิน กรุณาดำเนินการโดยด่วน"
               : "You have {$stats['overdue']} overdue review(s). Please complete them as soon as possible." ?>
           </span>
         </div>
@@ -164,7 +164,7 @@ $activeMenu = 'dashboard';
           <div class="table-card-header">
             <span class="table-card-title">
               <i class="fas fa-tasks me-2" style="color:var(--gold);"></i>
-              <?= $_lang==='th' ? 'บทความที่รอประเมิน' : 'Pending Assignments' ?>
+              <?= $_lang==='th' ? 'บทคัดย่อที่รอประเมิน' : 'Pending Assignments' ?>
             </span>
             <a href="<?= $appUrl ?>/reviewer/assigned-papers.php" class="btn-primary-custom" style="padding:8px 18px;font-size:.82rem;">
               <?= $_lang==='th' ? 'ดูทั้งหมด' : 'View All' ?>
@@ -175,7 +175,7 @@ $activeMenu = 'dashboard';
             <div class="p-5 text-center">
               <i class="fas fa-check-circle fa-3x mb-3" style="color:var(--gray-200);"></i>
               <h5 style="color:var(--gray-500);font-size:1rem;">
-                <?= $_lang==='th' ? 'ไม่มีบทความที่รอประเมิน' : 'No pending assignments' ?>
+                <?= $_lang==='th' ? 'ไม่มีบทคัดย่อที่รอประเมิน' : 'No pending assignments' ?>
               </h5>
             </div>
           <?php else: ?>
@@ -184,7 +184,7 @@ $activeMenu = 'dashboard';
                 <thead>
                   <tr>
                     <th><?= t('paper.code') ?></th>
-                    <th><?= $_lang==='th' ? 'บทความ' : 'Paper' ?></th>
+                    <th><?= $_lang==='th' ? 'บทคัดย่อ' : 'Paper' ?></th>
                     <th><?= $_lang==='th' ? 'กำหนด' : 'Due' ?></th>
                     <th></th>
                   </tr>

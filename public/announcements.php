@@ -82,7 +82,7 @@ $announcements = [
     'date'     => '20 July 2026',
     'title'    => ['th' => 'ทุนสนับสนุนสำหรับนักศึกษาระดับบัณฑิตศึกษา', 'en' => 'Funding Support for Graduate Students'],
     'body'     => [
-      'th' => 'มีทุนสนับสนุนบางส่วนสำหรับนักศึกษาระดับบัณฑิตศึกษาที่นำเสนอบทความในการประชุม สนใจสอบถามได้ที่อีเมล icalgc@swu.ac.th',
+      'th' => 'มีทุนสนับสนุนบางส่วนสำหรับนักศึกษาระดับบัณฑิตศึกษาที่นำเสนอบทคัดย่อในการประชุม สนใจสอบถามได้ที่อีเมล icalgc@swu.ac.th',
       'en' => 'Partial funding support is available for graduate students presenting papers at the conference. For inquiries, contact us at icalgc@swu.ac.th.',
     ],
   ],
@@ -92,9 +92,9 @@ $announcements = [
     'bucket'   => 'news',
     'icon'     => 'book',
     'date'     => '25 July 2026',
-    'title'    => ['th' => 'บทความที่ผ่านการพิจารณาจะได้รับการตีพิมพ์ใน Proceedings', 'en' => 'Accepted Papers Will Be Published in Conference Proceedings'],
+    'title'    => ['th' => 'บทคัดย่อที่ผ่านการพิจารณาจะได้รับการตีพิมพ์ใน Proceedings', 'en' => 'Accepted Papers Will Be Published in Conference Proceedings'],
     'body'     => [
-      'th' => 'บทความที่ผ่านการพิจารณาจากผู้ทรงคุณวุฒิและนำเสนอในการประชุม ICALGC 2026 จะได้รับการตีพิมพ์ใน Proceedings ของการประชุมซึ่งจะเผยแพร่ผ่านเว็บไซต์ของการประชุม',
+      'th' => 'บทคัดย่อที่ผ่านการพิจารณาจากผู้ทรงคุณวุฒิและนำเสนอในการประชุม ICALGC 2026 จะได้รับการตีพิมพ์ใน Proceedings ของการประชุมซึ่งจะเผยแพร่ผ่านเว็บไซต์ของการประชุม',
       'en' => 'Papers accepted through peer review and presented at ICALGC 2026 will be published in the conference proceedings, available through the conference website.',
     ],
   ],
