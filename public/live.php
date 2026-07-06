@@ -51,18 +51,6 @@ require_once __DIR__ . '/../app/helpers/header.php';
                 </a>
               </div>
             </div>
-            <div class="col-md-5">
-              <div class="p-4 rounded" style="background:var(--gray-100);border:2px solid var(--gray-200);">
-                <i class="fab fa-zoom fa-2x mb-3" style="color:#2d8cff;"></i>
-                <h4 style="font-size:1rem;font-weight:700;color:var(--blue-dark);">Zoom Webinar</h4>
-                <p style="font-size:.85rem;color:var(--gray-500);">
-                  <?= $_lang==='th'?'สำหรับผู้ลงทะเบียนเข้าร่วมออนไลน์':'For registered online participants' ?>
-                </p>
-                <a href="#" class="btn-outline-custom" style="display:inline-block;opacity:.6;pointer-events:none;">
-                  <?= $_lang==='th'?'เข้าร่วม Zoom (เร็วๆ นี้)':'Join Zoom (Coming Soon)' ?>
-                </a>
-              </div>
-            </div>
           </div>
         </div>
 

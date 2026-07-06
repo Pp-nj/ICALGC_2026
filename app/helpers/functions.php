@@ -34,6 +34,15 @@ function setLang(string $l): void
     if (in_array($l, ['th', 'en'])) $_SESSION['lang'] = $l;
 }
 
+// ── Asset Cache-Busting ────────────────────────────────────
+
+function asset_ver(string $relativePath): string
+{
+    $path = PUBLIC_PATH . '/' . ltrim($relativePath, '/');
+    $ver  = @filemtime($path) ?: time();
+    return rtrim(APP_URL, '/') . '/' . ltrim($relativePath, '/') . '?v=' . $ver;
+}
+
 // ── Sanitization & Security ───────────────────────────────
 
 function e(string $s): string

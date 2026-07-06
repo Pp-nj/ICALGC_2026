@@ -26,7 +26,7 @@ require_once __DIR__ . '/../app/helpers/header.php';
 
         <!-- About Image -->
         <div class="mb-4">
-          <img src="<?= $appUrl ?>/assets/images/about-conference.jpg" alt="<?= e($_lang==='th'?'เกี่ยวกับการประชุม':'About the Conference') ?>" class="w-100 rounded" style="max-height:360px;object-fit:cover;">
+          <img src="<?= asset_ver('/assets/images/about-conference.jpg') ?>" alt="<?= e($_lang==='th'?'เกี่ยวกับการประชุม':'About the Conference') ?>" class="w-100 rounded" style="max-height:360px;object-fit:cover;">
         </div>
 
         <!-- Background -->
@@ -116,7 +116,7 @@ require_once __DIR__ . '/../app/helpers/header.php';
           <div class="row g-3">
             <div class="col-md-6">
               <div class="p-3 rounded text-center" style="border:1px solid var(--gray-200);">
-                <img src="<?= $appUrl ?>/assets/images/swu_Logo.png" alt="SWU" style="height:60px;margin-bottom:12px;" onerror="this.style.display='none'">
+                <img src="<?= asset_ver('/assets/images/swu_Logo.png') ?>" alt="SWU" style="height:60px;margin-bottom:12px;" onerror="this.style.display='none'">
                 <div style="font-weight:700;color:var(--blue-dark);font-size:.9rem;">
                   <?= $_lang==='th'
                     ? 'คณะมนุษยศาสตร์ มหาวิทยาลัยศรีนครินทรวิโรฒ'
@@ -127,7 +127,7 @@ require_once __DIR__ . '/../app/helpers/header.php';
             </div>
             <div class="col-md-6">
               <div class="p-3 rounded text-center" style="border:1px solid var(--gray-200);">
-                <img src="<?= $appUrl ?>/assets/images/Guangdong University of Foreign Studies 02.png" alt="GDUF" style="height:60px;margin-bottom:12px;" onerror="this.style.display='none'">
+                <img src="<?= asset_ver('/assets/images/Guangdong University of Foreign Studies 02.png') ?>" alt="GDUF" style="height:60px;margin-bottom:12px;" onerror="this.style.display='none'">
                 <div style="font-weight:700;color:var(--blue-dark);font-size:.9rem;">
                   Guangdong University of Foreign Studies
                 </div>
@@ -152,7 +152,7 @@ require_once __DIR__ . '/../app/helpers/header.php';
           <div class="content-card-title"><i class="fas fa-calendar-alt me-2" style="color:var(--gold);"></i><?= $_lang==='th'?'รายละเอียดการประชุม':'Conference Details' ?></div>
           <div style="font-size:.88rem;color:var(--gray-700);line-height:2;">
             <div class="mb-2"><i class="fas fa-calendar text-blue me-2" style="color:var(--blue-mid);"></i><strong><?= $_lang==='th'?'วันที่':'Date' ?>:</strong><br>&nbsp;&nbsp;<?= e($_lang==='th'?CONF_DATE_TH:CONF_DATE_EN) ?></div>
-            <div class="mb-2"><i class="fas fa-clock text-blue me-2" style="color:var(--blue-mid);"></i><strong><?= $_lang==='th'?'เวลา':'Time' ?>:</strong><br>&nbsp;&nbsp;<?= e(CONF_TIME) ?></div>
+            <div class="mb-2"><i class="fas fa-clock text-blue me-2" style="color:var(--blue-mid);"></i><strong><?= $_lang==='th'?'เวลา':'Time' ?>:</strong><br>&nbsp;&nbsp;<?= e($_lang==='th'?CONF_TIME_TH:CONF_TIME_EN) ?></div>
             <div><i class="fas fa-map-marker-alt text-blue me-2" style="color:var(--blue-mid);"></i><strong><?= $_lang==='th'?'สถานที่':'Venue' ?>:</strong><br>&nbsp;&nbsp;<?= e($_lang==='th'?CONF_VENUE_TH:CONF_VENUE_EN) ?></div>
           </div>
           <a href="<?= $appUrl ?>/register.php" class="btn-primary-custom d-block text-center mt-3">

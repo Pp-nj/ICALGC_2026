@@ -92,26 +92,6 @@ foreach ($coAuthors as $co) $allAuthors[] = $co['full_name'];
             <?php endif; ?>
           </div>
 
-          <!-- Abstract TH -->
-          <?php if ($paper['abstract_th']): ?>
-            <div class="mb-4">
-              <h3 style="font-size:1rem;font-weight:700;color:var(--blue-dark);margin-bottom:10px;">
-                <?= t('pub.abstract') ?> (ภาษาไทย)
-              </h3>
-              <p style="color:var(--gray-700);line-height:1.8;text-align:justify;"><?= e($paper['abstract_th']) ?></p>
-            </div>
-          <?php endif; ?>
-
-          <!-- Abstract EN -->
-          <?php if ($paper['abstract_en']): ?>
-            <div class="mb-4">
-              <h3 style="font-size:1rem;font-weight:700;color:var(--blue-dark);margin-bottom:10px;">
-                <?= t('pub.abstract') ?> (English)
-              </h3>
-              <p style="color:var(--gray-700);line-height:1.8;text-align:justify;"><?= e($paper['abstract_en']) ?></p>
-            </div>
-          <?php endif; ?>
-
           <!-- Keywords -->
           <div class="mb-4">
             <div style="font-size:.82rem;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">

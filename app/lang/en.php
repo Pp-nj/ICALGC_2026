@@ -128,12 +128,10 @@ return [
     // ── Paper Fields ──────────────────────────────────────
     'paper.title_th'        => 'Title (Thai)',
     'paper.title_en'        => 'Title (English)',
-    'paper.abstract_th'     => 'Abstract (Thai)',
-    'paper.abstract_en'     => 'Abstract (English)',
     'paper.keywords'        => 'Keywords',
     'paper.theme'           => 'Conference Theme',
     'paper.co_authors'      => 'Co-Authors',
-    'paper.upload_file'     => 'Upload File (PDF or DOCX, max 20 MB)',
+    'paper.upload_file'     => 'Upload File (PDF and DOCX, max 20 MB)',
     'paper.submit'          => 'Submit Paper',
     'paper.code'            => 'Paper Code',
     'paper.status'          => 'Status',

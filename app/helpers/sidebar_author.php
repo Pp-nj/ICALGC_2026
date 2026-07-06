@@ -27,7 +27,7 @@ $_menu  = $activeMenu ?? '';
   </div>
 
   <div class="sidebar-section">
-    <div class="sidebar-section-label"><?= $_lang==='th'?'บทคัดย่อ:'Papers' ?></div>
+    <div class="sidebar-section-label"><?= $_lang==='th'?'บทคัดย่อ':'Papers' ?></div>
     <a class="sidebar-link <?= $_menu==='submit'?'active':'' ?>" href="<?= $appUrl ?>/author/submit.php">
       <i class="fas fa-file-upload"></i><?= t('author.submit_paper') ?>
     </a>

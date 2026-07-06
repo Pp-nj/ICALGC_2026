@@ -221,7 +221,7 @@ $activeMenu = 'profile';
                 <input type="text" name="first_name" class="form-control" value="<?= e($dbUser['first_name'] ?? '') ?>" required>
               </div>
               <div class="col-md-4">
-                <label class="form-label fw-bold" style="font-size:.85rem;"><?= $_lang==='th' ? 'ชื่อกลาง' : 'Middle Name' ?></label>
+                <label class="form-label fw-bold" style="font-size:.85rem;"><?= $_lang==='th' ? 'ชื่อกลาง(ถ้ามี)' : 'Middle Name (optional)' ?></label>
                 <input type="text" name="middle_name" class="form-control" value="<?= e($dbUser['middle_name'] ?? '') ?>">
               </div>
               <div class="col-md-4">

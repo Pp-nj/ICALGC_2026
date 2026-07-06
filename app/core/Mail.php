@@ -24,6 +24,9 @@ class Mail
         $mailer->SMTPSecure = $cfg['encryption'] === 'ssl' ? PHPMailer::ENCRYPTION_SMTPS : PHPMailer::ENCRYPTION_STARTTLS;
         $mailer->Port       = $cfg['port'];
         $mailer->SMTPDebug  = $cfg['debug'];
+        $mailer->Debugoutput = function ($str) {
+            error_log('SMTP: ' . trim($str));
+        };
         $mailer->CharSet    = 'UTF-8';
         $mailer->setFrom($cfg['from_email'], $cfg['from_name']);
 
@@ -35,6 +38,11 @@ class Mail
      */
     public static function send(string $toEmail, string $toName, string $subject, string $htmlBody, string $plainBody = ''): bool
     {
+        if (!empty($_ENV['MAIL_DISABLED'])) {
+            error_log("Mail disabled (trial mode): would send '{$subject}' to {$toEmail}");
+            return true;
+        }
+
         try {
             $mailer = self::createMailer();
             $mailer->addAddress($toEmail, $toName);

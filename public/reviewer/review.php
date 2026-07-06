@@ -19,7 +19,7 @@ try {
 
     $stmt = $db->prepare("
         SELECT ra.*, p.id AS paper_id, p.paper_code, p.title_th, p.title_en,
-               p.abstract_th, p.abstract_en, p.keywords, p.submitter_id,
+               p.keywords, p.submitter_id,
                ct.name_th AS theme_th, ct.name_en AS theme_en
         FROM review_assignments ra
         JOIN papers p ON p.id = ra.paper_id
@@ -36,10 +36,10 @@ try {
     $rStmt->execute([':aid' => $assignmentId]);
     $existingReview = $rStmt->fetch();
 
-    // Paper files
-    $fStmt = $db->prepare("SELECT * FROM paper_files WHERE paper_id = :pid ORDER BY uploaded_at DESC LIMIT 1");
+    // Paper files (PDF + DOCX)
+    $fStmt = $db->prepare("SELECT * FROM paper_files WHERE paper_id = :pid ORDER BY file_type, uploaded_at DESC");
     $fStmt->execute([':pid' => $assignment['paper_id']]);
-    $latestFile = $fStmt->fetch();
+    $paperFiles = $fStmt->fetchAll();
 
 } catch (\Throwable $e) {
     error_log($e->getMessage());
@@ -227,10 +227,6 @@ $recommendations = [
           <div style="font-size:.8rem;color:var(--gold);font-weight:600;margin-bottom:12px;">
             <?= e($_lang==='th' ? $assignment['theme_th'] : $assignment['theme_en']) ?>
           </div>
-          <div style="font-size:.85rem;color:var(--gray-700);line-height:1.7;max-height:200px;overflow-y:auto;">
-            <?= nl2br(e($_lang==='th' ? $assignment['abstract_th'] : $assignment['abstract_en'])) ?>
-          </div>
-
           <?php if ($assignment['keywords'] ?? ''): ?>
             <div class="mt-3 d-flex flex-wrap gap-1">
               <?php foreach (explode(',', $assignment['keywords'] ?? '') as $kw): ?>
@@ -239,14 +235,14 @@ $recommendations = [
             </div>
           <?php endif; ?>
 
-          <?php if ($latestFile): ?>
-            <div class="mt-4 pt-3" style="border-top:1px solid var(--gray-200);">
-              <a href="<?= $appUrl ?>/download.php?file_id=<?= (int)$latestFile['id'] ?>"
+          <?php foreach ($paperFiles as $pf): ?>
+            <div class="mt-3">
+              <a href="<?= $appUrl ?>/download.php?file_id=<?= (int)$pf['id'] ?>"
                  class="btn-primary-custom d-block text-center" style="font-size:.85rem;">
-                <i class="fas fa-download me-2"></i><?= $_lang==='th' ? 'ดาวน์โหลดไฟล์บทคัดย่อ' : 'Download Paper File' ?>
+                <i class="fas fa-download me-2"></i><?= $_lang==='th' ? 'ดาวน์โหลดไฟล์' : 'Download File' ?> (<?= strtoupper($pf['file_type']) ?>)
               </a>
             </div>
-          <?php endif; ?>
+          <?php endforeach; ?>
         </div>
       </div>
 
@@ -287,7 +283,6 @@ $recommendations = [
                       <span style="color:var(--gray-400);font-size:.9rem;"> / <?= $maxScore ?></span>
                     </div>
                   </div>
-                  <div style="font-size:.76rem;color:var(--gray-500);margin-bottom:10px;"><?= $crit['hint'] ?></div>
                   <input type="hidden" name="<?= $fieldName ?>" id="inp_<?= $i ?>" value="<?= $currentLevel ?>">
                   <div class="score-btn-group d-flex gap-2" style="width:100%;justify-content:space-between;">
                     <?php for ($lvl = 1; $lvl <= 5; $lvl++): ?>

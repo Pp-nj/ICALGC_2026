@@ -26,31 +26,45 @@ require_once __DIR__ . '/../app/helpers/header.php';
     </div>
 
     <div class="row g-4 justify-content-center">
-      <!-- Placeholder cards for 4 keynote speakers -->
-      <?php for ($i = 1; $i <= 4; $i++): ?>
-        <div class="col-lg-3 col-md-6">
-          <div class="content-card text-center card-hover">
-            <!-- Keynote Poster Placeholder -->
-            <div class="rounded-lg mb-4 d-flex align-items-center justify-content-center"
-                 style="height:280px;background:linear-gradient(135deg,var(--blue-dark),var(--blue-mid));border-radius:var(--radius-lg);">
-              <div>
-                <i class="fas fa-user-tie fa-4x mb-3" style="color:var(--gold);opacity:.6;"></i>
-                <p style="color:rgba(255,255,255,.5);font-size:.85rem;margin:0;">
-                  <?= $_lang==='th'?'โปสเตอร์วิทยากร':'Speaker Poster' ?><br>
-                  <?= $_lang==='th'?'(เร็วๆ นี้)':'(Coming Soon)' ?>
-                </p>
-              </div>
-            </div>
-            <h3 style="font-size:1rem;font-weight:800;color:var(--blue-dark);">
-              <?= $_lang==='th'?'รอประกาศ':'To Be Announced' ?>
-            </h3>
-            <p style="font-size:.85rem;color:var(--gray-500);">
-              <?= $_lang==='th'?'สถาบัน: รอประกาศ':'Institution: To Be Announced' ?>
-            </p>
-            <span class="keyword-tag" style="background:var(--blue-dark);color:var(--gold);">Keynote <?= $i ?></span>
-          </div>
+
+      <!-- ===== Keynote 1 ===== -->
+      <div class="col-lg-3 col-md-6">
+        <div class="content-card text-center card-hover">
+          <img src="<?= e($appUrl) ?>/assets/images/keynote1.jpg" style="height:280px;object-fit:cover;width:100%;border-radius:var(--radius-lg);" class="mb-4">
+          <h3 style="font-size:1rem;font-weight:800;color:var(--blue-dark);">
+            <?= $_lang==='th'?'ผศ.ดร.อัญชลี จันทร์เสม':'Asst. Prof. Dr. Anchalee Jansem' ?>
+          </h3>
+          <p style="font-size:.85rem;color:var(--gray-500);">
+            <?= $_lang==='th'?'สถาบัน: มหาวิทยาลัยศรีนครินทรวิโรฒ':'Institution: Srinakharinwirot University' ?>
+          </p>
+          <span class="keyword-tag" style="background:var(--blue-dark);color:var(--gold);"><?= $_lang==='th'?'ผู้บรรยายพิเศษ 1':'Keynote 1' ?></span>
         </div>
-      <?php endfor; ?>
+      </div>
+
+      <!-- ===== Keynote 2 ===== -->
+      <div class="col-lg-3 col-md-6">
+        <div class="content-card text-center card-hover">
+          <div class="rounded-lg mb-4 d-flex align-items-center justify-content-center"
+               style="height:280px;background:linear-gradient(135deg,var(--blue-dark),var(--blue-mid));border-radius:var(--radius-lg);">
+            <div>
+              <i class="fas fa-user-tie fa-4x mb-3" style="color:var(--gold);opacity:.6;"></i>
+              <p style="color:rgba(255,255,255,.5);font-size:.85rem;margin:0;">
+                <?= $_lang==='th'?'โปสเตอร์วิทยากร':'Speaker Poster' ?><br>
+                <?= $_lang==='th'?'(เร็วๆ นี้)':'(Coming Soon)' ?>
+              </p>
+            </div>
+          </div>
+          <h3 style="font-size:1rem;font-weight:800;color:var(--blue-dark);">
+            <?= $_lang==='th'?'รอประกาศ':'To Be Announced' ?>
+          </h3>
+          <p style="font-size:.85rem;color:var(--gray-500);">
+            <?= $_lang==='th'?'สถาบัน: รอประกาศ':'Institution: To Be Announced' ?>
+          </p>
+          <span class="keyword-tag" style="background:var(--blue-dark);color:var(--gold);"><?= $_lang==='th'?'ผู้บรรยายพิเศษ 2':'Keynote 2' ?></span>
+        </div>
+      </div>
+
+
     </div>
   </div>
 </section>

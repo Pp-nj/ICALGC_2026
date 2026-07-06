@@ -213,14 +213,6 @@ $recommendationColor = function($rec) {
               <label class="form-label fw-bold" style="color:var(--blue-dark);font-size:.82rem;"><?= $_lang==='th' ? 'ชื่อบทคัดย่อ (ภาษาอังกฤษ)' : 'Title (English)' ?></label>
               <div style="font-size:.95rem;padding:10px 14px;background:var(--gray-100);border-radius:var(--radius);"><?= e($paper['title_en']) ?></div>
             </div>
-            <div class="col-12">
-              <label class="form-label fw-bold" style="color:var(--blue-dark);font-size:.82rem;"><?= $_lang==='th' ? 'บทคัดย่อ (ภาษาไทย)' : 'Abstract (Thai)' ?></label>
-              <div style="font-size:.88rem;line-height:1.8;padding:12px 14px;background:var(--gray-100);border-radius:var(--radius);"><?= nl2br(e($paper['abstract_th'])) ?></div>
-            </div>
-            <div class="col-12">
-              <label class="form-label fw-bold" style="color:var(--blue-dark);font-size:.82rem;"><?= $_lang==='th' ? 'บทคัดย่อ (ภาษาอังกฤษ)' : 'Abstract (English)' ?></label>
-              <div style="font-size:.88rem;line-height:1.8;padding:12px 14px;background:var(--gray-100);border-radius:var(--radius);"><?= nl2br(e($paper['abstract_en'])) ?></div>
-            </div>
             <?php if ($paper['keywords']): ?>
             <div class="col-12">
               <label class="form-label fw-bold" style="color:var(--blue-dark);font-size:.82rem;"><?= t('paper.keywords') ?></label>
@@ -247,6 +239,7 @@ $recommendationColor = function($rec) {
                   <th>#</th>
                   <th><?= $_lang==='th' ? 'ชื่อ-นามสกุล' : 'Name' ?></th>
                   <th><?= $_lang==='th' ? 'อีเมล' : 'Email' ?></th>
+                  <th><?= $_lang==='th' ? 'เบอร์ติดต่อ' : 'Phone' ?></th>
                   <th><?= $_lang==='th' ? 'สังกัด' : 'Affiliation' ?></th>
                   <th><?= $_lang==='th' ? 'ประเทศ' : 'Country' ?></th>
                 </tr>
@@ -257,6 +250,7 @@ $recommendationColor = function($rec) {
                     <td><?= $i+1 ?></td>
                     <td style="font-weight:600;"><?= e($ca['full_name']) ?></td>
                     <td style="font-size:.85rem;"><?= e($ca['email']) ?></td>
+                    <td style="font-size:.85rem;"><?= e($ca['phone'] ?? '') ?></td>
                     <td style="font-size:.85rem;"><?= e($ca['institution']) ?></td>
                     <td style="font-size:.85rem;"><?= e($ca['country']) ?></td>
                   </tr>

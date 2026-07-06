@@ -54,7 +54,7 @@ try {
     $pg = paginate($total, $perPage, $page);
 
     $stmt = $db->prepare("
-        SELECT ra.*, p.paper_code, p.title_th, p.title_en, p.abstract_th, p.abstract_en,
+        SELECT ra.*, p.paper_code, p.title_th, p.title_en,
                p.status_code AS paper_status,
                ct.name_th AS theme_th, ct.name_en AS theme_en,
                r.id AS review_id, r.score_overall, r.recommendation
@@ -63,7 +63,7 @@ try {
         JOIN conference_themes ct ON ct.id = p.theme_id
         LEFT JOIN reviews r ON r.assignment_id = ra.id
         WHERE {$whereStr}
-        ORDER BY ra.due_date ASC NULLS LAST, ra.assigned_at DESC
+        ORDER BY (ra.due_date IS NULL), ra.due_date ASC, ra.assigned_at DESC
         LIMIT :lim OFFSET :off
     ");
     foreach ($params as $k => $v) $stmt->bindValue($k, $v);
@@ -172,10 +172,6 @@ $statuses = [
             <div style="font-size:.82rem;color:var(--gray-500);margin-bottom:10px;">
               <?= e($_lang==='th' ? $ra['theme_th'] : $ra['theme_en']) ?>
             </div>
-            <div style="font-size:.86rem;color:var(--gray-700);line-height:1.7;margin-bottom:14px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;">
-              <?= e($_lang==='th' ? $ra['abstract_th'] : $ra['abstract_en']) ?>
-            </div>
-
             <div class="d-flex gap-2 flex-wrap align-items-center">
               <?php if ($ra['assignment_status'] === 'pending'): ?>
                 <form method="POST" class="d-inline">

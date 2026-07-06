@@ -220,9 +220,9 @@ require_once __DIR__ . '/../app/helpers/header.php';
       <!-- Announcement Card 1 -->
       <div class="col-md-4">
         <div class="announce-card h-100">
-          <div class="announce-card-img ann-cat--announcements">
-            <i class="fas fa-file-alt"></i>
-            <span class="ann-date-badge"><i class="far fa-calendar-alt" style="margin-right:4px;opacity:.7;"></i>1 July 2026</span>
+          <div class="announce-card-img">
+            <img src="<?= $appUrl ?>/assets/images/announcements1.jpg" alt="">
+            <span class="ann-date-badge"><i class="far fa-calendar-alt" style="margin-right:4px;opacity:.7;"></i>6 July 2026</span>
           </div>
           <div class="announce-card-body">
             <span class="announce-tag ann-cat--announcements"><?= $_lang==='th' ? 'บทคัดย่อ' : 'Abstract' ?></span>
@@ -233,8 +233,8 @@ require_once __DIR__ . '/../app/helpers/header.php';
             </h3>
             <p class="announce-card-text">
               <?= $_lang==='th'
-                ? 'ขอเชิญนักวิชาการ นักวิจัย และนักศึกษาระดับบัณฑิตศึกษาส่งบทคัดย่อเพื่อนำเสนอในการประชุมวิชาการนานาชาติ ICALGC 2026'
-                : 'We invite academics, researchers, and graduate students to submit abstracts for presentation at the ICALGC 2026 International Conference.' ?>
+                ? 'ขอเชิญนักวิชาการ นักวิจัย อาจารย์ นักศึกษาระดับบัณฑิตศึกษา และผู้สนใจจากทั่วโลก ส่งบทคัดย่อเพื่อนำเสนอในการประชุมวิชาการนานาชาติ ICALGC 2026 หัวข้อ "ภาษาอาเซียนในบริบทโลก" หมดเขตส่งบทคัดย่อ: 31 สิงหาคม 2569'
+                : 'We invite academics, researchers, lecturers, graduate students, and interested parties from around the world to submit abstracts for the ICALGC 2026 International Conference on the theme "ASEAN Languages in Global Contexts." Abstract submission deadline: August 31, 2026.' ?>
             </p>
           </div>
           <div class="announce-card-footer">
@@ -246,23 +246,23 @@ require_once __DIR__ . '/../app/helpers/header.php';
       </div>
 
       <!-- Announcement Card 2 -->
-      <div class="col-md-4">
+        <div class="col-md-4">
         <div class="announce-card h-100">
-          <div class="announce-card-img ann-cat--announcements">
-            <i class="fas fa-chalkboard-teacher"></i>
-            <span class="ann-date-badge"><i class="far fa-calendar-alt" style="margin-right:4px;opacity:.7;"></i>15 July 2026</span>
+          <div class="announce-card-img">
+            <img src="<?= $appUrl ?>/assets/images/announcements2.jpg" alt="">
+            <span class="ann-date-badge"><i class="far fa-calendar-alt" style="margin-right:4px;opacity:.7;"></i>6 July 2026</span>
           </div>
           <div class="announce-card-body">
-            <span class="announce-tag ann-cat--announcements"><?= $_lang==='th' ? 'ผู้บรรยายพิเศษ' : 'Keynote' ?></span>
+            <span class="announce-tag ann-cat--updates"><?= $_lang==='th' ? 'ลงทะเบียน' : 'Registration' ?></span>
             <h3 class="announce-card-title">
               <?= $_lang==='th'
-                ? 'ประกาศรายชื่อผู้บรรยายพิเศษ ICALGC 2026'
-                : 'ICALGC 2026 Keynote Speakers Announced' ?>
+                ? 'เปิดลงทะเบียนเข้าร่วมประชุม ICALGC 2026'
+                : 'Registration for ICALGC 2026 is Now Open' ?>
             </h3>
             <p class="announce-card-text">
               <?= $_lang==='th'
-                ? 'เราได้รับเกียรติจากนักวิชาการระดับโลกมาเป็นผู้บรรยายพิเศษในการประชุม ICALGC 2026 ติดตามรายชื่อได้เร็วๆ นี้'
-                : 'We are honored to announce world-class academics as keynote speakers for ICALGC 2026. Stay tuned for updates.' ?>
+                ? 'ลงทะเบียนเข้าร่วมการประชุมวิชาการนานาชาติ ICALGC 2026 ได้แล้ววันนี้ ในรูปแบบ Onsite ณ มหาวิทยาลัยศรีนครินทรวิโรฒ ประสานมิตร'
+                : 'Register to attend ICALGC 2026 today, in person at Srinakharinwirot University Prasarnmit Campus.' ?>
             </p>
           </div>
           <div class="announce-card-footer">
@@ -274,32 +274,6 @@ require_once __DIR__ . '/../app/helpers/header.php';
       </div>
 
       <!-- Announcement Card 3 -->
-      <div class="col-md-4">
-        <div class="announce-card h-100">
-          <div class="announce-card-img ann-cat--updates">
-            <i class="fas fa-user-plus"></i>
-            <span class="ann-date-badge"><i class="far fa-calendar-alt" style="margin-right:4px;opacity:.7;"></i>1 July 2026</span>
-          </div>
-          <div class="announce-card-body">
-            <span class="announce-tag ann-cat--updates"><?= $_lang==='th' ? 'ลงทะเบียน' : 'Registration' ?></span>
-            <h3 class="announce-card-title">
-              <?= $_lang==='th'
-                ? 'เปิดลงทะเบียนเข้าร่วมประชุม ICALGC 2026'
-                : 'Registration for ICALGC 2026 is Now Open' ?>
-            </h3>
-            <p class="announce-card-text">
-              <?= $_lang==='th'
-                ? 'ลงทะเบียนเข้าร่วมการประชุมวิชาการนานาชาติ ICALGC 2026 ตั้งแต่วันที่ 1 กรกฎาคม 2569'
-                : 'Register to attend the ICALGC 2026 International Conference starting July 1, 2026.' ?>
-            </p>
-          </div>
-          <div class="announce-card-footer">
-            <a href="<?= $appUrl ?>/announcements.php" class="ann-read-btn">
-              <?= t('announce.read_more') ?> <i class="fas fa-arrow-right" style="font-size:.75rem;"></i>
-            </a>
-          </div>
-        </div>
-      </div>
     </div>
 
     <div class="text-center mt-5">

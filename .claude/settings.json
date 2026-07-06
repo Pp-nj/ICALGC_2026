@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(/d/xampp/php/php.exe \"C:\\\\Users\\\\nicha\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\d--xampp-htdocs-ICALGC-2026\\\\1fdd1ec3-2678-42e1-a7b5-c0e0d05534d6\\\\scratchpad\\\\fix_mojibake.php\")",
+      "Bash(/d/xampp/php/php.exe -r ' *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost/ICALGC_2026/public/login.php)",
+      "Read(//c/Program Files/Google/Chrome/Application/**)",
+      "Read(//c/Program Files \\(x86\\)/Google/Chrome/Application/**)"
+    ]
+  }
+}

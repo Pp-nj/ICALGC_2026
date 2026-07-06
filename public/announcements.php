@@ -20,8 +20,6 @@ $catMap = [
   'Keynote'     => 'announcements',
   'ลงทะเบียน'   => 'updates',
   'Registration'=> 'updates',
-  'ทุนสนับสนุน' => 'news',
-  'Support'     => 'news',
   'การตีพิมพ์'  => 'news',
   'Publication' => 'news',
   'ข้อมูลทั่วไป'=> 'reminders',
@@ -43,71 +41,25 @@ $announcements = [
     'category' => ['th' => 'บทคัดย่อ', 'en' => 'Abstract'],
     'bucket'   => 'announcements',
     'icon'     => 'file-alt',
-    'date'     => '1 July 2026',
+    'image'    => '/assets/images/announcements1.jpg',
+    'date'     => '6 July 2026',
     'title'    => ['th' => 'เปิดรับบทคัดย่อ ICALGC 2026 แล้ววันนี้', 'en' => 'ICALGC 2026 Abstract Submission is Now Open'],
     'body'     => [
-      'th' => 'ขอเชิญนักวิชาการ นักวิจัย อาจารย์ นักศึกษาระดับบัณฑิตศึกษา และผู้สนใจจากทั่วโลก ส่งบทคัดย่อเพื่อนำเสนอในการประชุมวิชาการนานาชาติ ICALGC 2026 หัวข้อ "ภาษาอาเซียนในบริบทโลก" หมดเขตส่งบทคัดย่อ: 30 สิงหาคม 2569',
-      'en' => 'We invite academics, researchers, lecturers, graduate students, and interested parties from around the world to submit abstracts for the ICALGC 2026 International Conference on the theme "ASEAN Languages in Global Contexts." Abstract submission deadline: August 30, 2026.',
+      'th' => 'ขอเชิญนักวิชาการ นักวิจัย อาจารย์ นักศึกษาระดับบัณฑิตศึกษา และผู้สนใจจากทั่วโลก ส่งบทคัดย่อเพื่อนำเสนอในการประชุมวิชาการนานาชาติ ICALGC 2026 หัวข้อ "ภาษาอาเซียนในบริบทโลก" หมดเขตส่งบทคัดย่อ: 31 สิงหาคม 2569',
+      'en' => 'We invite academics, researchers, lecturers, graduate students, and interested parties from around the world to submit abstracts for the ICALGC 2026 International Conference on the theme "ASEAN Languages in Global Contexts." Abstract submission deadline: August 31, 2026.',
     ],
   ],
   [
     'id'       => 2,
-    'category' => ['th' => 'ผู้บรรยายพิเศษ', 'en' => 'Keynote'],
-    'bucket'   => 'announcements',
-    'icon'     => 'chalkboard-teacher',
-    'date'     => '15 July 2026',
-    'title'    => ['th' => 'ประกาศรายชื่อผู้บรรยายพิเศษICALGC 2026', 'en' => 'ICALGC 2026 Keynote Speakers Announced'],
-    'body'     => [
-      'th' => 'เราได้รับเกียรติจากนักวิชาการระดับโลกมาเป็นผู้บรรยายพิเศษในการประชุม ICALGC 2026 รายชื่อผู้บรรยายพิเศษทั้งหมดจะประกาศเร็วๆ นี้ ติดตามข่าวสารผ่านเว็บไซต์ของเรา',
-      'en' => 'We are honored to announce that world-class academics have agreed to serve as keynote speakers at ICALGC 2026. Full speaker lineup will be announced soon. Stay tuned to our website.',
-    ],
-  ],
-  [
-    'id'       => 3,
     'category' => ['th' => 'ลงทะเบียน', 'en' => 'Registration'],
     'bucket'   => 'updates',
     'icon'     => 'user-plus',
-    'date'     => '1 July 2026',
+    'image'    => '/assets/images/announcements2.jpg',
+    'date'     => '6 July 2026',
     'title'    => ['th' => 'เปิดลงทะเบียนเข้าร่วมประชุม', 'en' => 'Conference Registration is Now Open'],
     'body'     => [
-      'th' => 'ลงทะเบียนเข้าร่วมการประชุมวิชาการนานาชาติ ICALGC 2026 ได้แล้ววันนี้ ทั้งในรูปแบบ Onsite ณ มหาวิทยาลัยศรีนครินทรวิโรฒ ประสานมิตร และ Online ผ่านระบบ Zoom',
-      'en' => 'Register to attend ICALGC 2026 today, either in person at Srinakharinwirot University Prasarnmit Campus or online via Zoom.',
-    ],
-  ],
-  [
-    'id'       => 4,
-    'category' => ['th' => 'ทุนสนับสนุน', 'en' => 'Support'],
-    'bucket'   => 'news',
-    'icon'     => 'star',
-    'date'     => '20 July 2026',
-    'title'    => ['th' => 'ทุนสนับสนุนสำหรับนักศึกษาระดับบัณฑิตศึกษา', 'en' => 'Funding Support for Graduate Students'],
-    'body'     => [
-      'th' => 'มีทุนสนับสนุนบางส่วนสำหรับนักศึกษาระดับบัณฑิตศึกษาที่นำเสนอบทคัดย่อในการประชุม สนใจสอบถามได้ที่อีเมล icalgc@swu.ac.th',
-      'en' => 'Partial funding support is available for graduate students presenting papers at the conference. For inquiries, contact us at icalgc@swu.ac.th.',
-    ],
-  ],
-  [
-    'id'       => 5,
-    'category' => ['th' => 'การตีพิมพ์', 'en' => 'Publication'],
-    'bucket'   => 'news',
-    'icon'     => 'book',
-    'date'     => '25 July 2026',
-    'title'    => ['th' => 'บทคัดย่อที่ผ่านการพิจารณาจะได้รับการตีพิมพ์ใน Proceedings', 'en' => 'Accepted Papers Will Be Published in Conference Proceedings'],
-    'body'     => [
-      'th' => 'บทคัดย่อที่ผ่านการพิจารณาจากผู้ทรงคุณวุฒิและนำเสนอในการประชุม ICALGC 2026 จะได้รับการตีพิมพ์ใน Proceedings ของการประชุมซึ่งจะเผยแพร่ผ่านเว็บไซต์ของการประชุม',
-      'en' => 'Papers accepted through peer review and presented at ICALGC 2026 will be published in the conference proceedings, available through the conference website.',
-    ],
-  ],
-  [
-    'id'       => 6,
-    'category' => ['th' => 'ข้อมูลทั่วไป', 'en' => 'General'],
-    'bucket'   => 'reminders',
-    'icon'     => 'info-circle',
-    'date'     => '10 July 2026',
-    'title'    => ['th' => 'ข้อมูลที่พักสำหรับผู้เข้าร่วมจากต่างจังหวัด/ต่างประเทศ', 'en' => 'Accommodation Information for Out-of-Town Participants'],
-    'body'     => [
-      'th' => 'คณะกรรมการจัดงานได้รวบรวมรายชื่อโรงแรมใกล้เคียงสำหรับผู้เข้าร่วมที่เดินทางมาจากต่างจังหวัดหรือต่างประเทศ ดูรายละเอียดได้ที่หน้า Venue & Contact',
-      'en' => 'The organizing committee has compiled a list of nearby hotels for participants traveling from other provinces or countries. See details on the Venue & Contact page.',
+      'th' => 'ลงทะเบียนเข้าร่วมการประชุมวิชาการนานาชาติ ICALGC 2026 ได้แล้ววันนี้ ในรูปแบบ Onsite ณ มหาวิทยาลัยศรีนครินทรวิโรฒ ประสานมิตร',
+      'en' => 'Register to attend ICALGC 2026 today, in person at Srinakharinwirot University Prasarnmit Campus.',
     ],
   ],
 ];
@@ -151,7 +103,6 @@ require_once __DIR__ . '/../app/helpers/header.php';
     <div class="d-flex flex-wrap gap-2 mb-4 justify-content-center">
       <?php foreach ($bucketLabel as $bucket => $labels):
         $cnt = $bucketCounts[$bucket] ?? 0;
-        if ($bucket !== 'all' && $cnt === 0) continue;
         $isActive = $activeFilter === $bucket;
         $cls = 'ann-filter-btn ann-cat--' . $bucket . ($isActive ? ' active' : '');
       ?>
@@ -183,8 +134,10 @@ require_once __DIR__ . '/../app/helpers/header.php';
               <div class="announce-card h-100">
 
                 <!-- Cover with date badge -->
-                <div class="announce-card-img <?= $catClass ?>">
-                  <i class="fas fa-<?= e($ann['icon']) ?>"></i>
+                <div class="announce-card-img <?= $catClass ?>" <?= !empty($ann['image']) ? 'style="background-image:url(\''.e($appUrl.'/'.$ann['image']).'\');background-size:cover;background-position:center;"' : '' ?>>
+                  <?php if (empty($ann['image'])): ?>
+                    <i class="fas fa-<?= e($ann['icon']) ?>"></i>
+                  <?php endif; ?>
                   <span class="ann-date-badge">
                     <i class="far fa-calendar-alt" style="margin-right:4px;opacity:.7;"></i><?= e($ann['date']) ?>
                   </span>
@@ -272,6 +225,7 @@ const ANN_DATA = <?php
       'id'     => $a['id'],
       'bucket' => $a['bucket'],
       'icon'   => $a['icon'],
+      'image'  => !empty($a['image']) ? $appUrl . '/' . $a['image'] : '',
       'date'   => $a['date'],
       'cat'    => $a['category'][$_lang],
       'title'  => $a['title'][$_lang],
@@ -299,8 +253,13 @@ function openAnnModal(id) {
   document.getElementById('ann-modal-title').textContent = a.title;
 
   const cover = document.getElementById('ann-modal-cover');
-  cover.innerHTML = `<i class="fas fa-${a.icon}"></i>`;
-  cover.style.background = `linear-gradient(135deg, ${color}, #0057b7)`;
+  if (a.image) {
+    cover.innerHTML = '';
+    cover.style.background = `url('${a.image}') center/cover no-repeat`;
+  } else {
+    cover.innerHTML = `<i class="fas fa-${a.icon}"></i>`;
+    cover.style.background = `linear-gradient(135deg, ${color}, #0057b7)`;
+  }
 
   document.getElementById('ann-modal-meta').innerHTML =
     `<i class="far fa-calendar-alt" style="margin-right:6px;"></i>${a.date}

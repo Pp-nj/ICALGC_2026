@@ -113,31 +113,54 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function coAuthorRowHtml(i) {
+    const isTh = (window.APP_LANG === 'th');
+    const t = {
+      firstName:     isTh ? 'ชื่อ'                : 'First Name',
+      middleName:    isTh ? 'ชื่อกลาง(ถ้ามี)'             : 'Middle Name (optional)',
+      lastName:      isTh ? 'นามสกุล'              : 'Last Name',
+      email:         isTh ? 'อีเมล'               : 'Email',
+      phone:         isTh ? 'เบอร์ติดต่อ'          : 'Phone',
+      institution:   isTh ? 'สถาบัน'              : 'Institution',
+      country:       isTh ? 'ประเทศ'              : 'Country',
+      corresponding: isTh ? 'ผู้ประสานงานหลัก'      : 'Corresponding Author',
+    };
     return `
       <button type="button" class="btn btn-sm btn-outline-danger remove-co-author position-absolute top-0 end-0 m-2">
         <i class="fas fa-times"></i>
       </button>
       <div class="row g-2">
         <div class="col-md-4">
-          <label class="form-label">Full Name</label>
-          <input type="text" name="co_name[]" class="form-control" placeholder="Full name" required>
+          <label class="form-label">${t.firstName}</label>
+          <input type="text" name="co_first_name[]" class="form-control" placeholder="${t.firstName}" required>
         </div>
         <div class="col-md-4">
-          <label class="form-label">Email</label>
+          <label class="form-label">${t.middleName}</label>
+          <input type="text" name="co_middle_name[]" class="form-control" placeholder="${t.middleName}">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">${t.lastName}</label>
+          <input type="text" name="co_last_name[]" class="form-control" placeholder="${t.lastName}" required>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">${t.email}</label>
           <input type="email" name="co_email[]" class="form-control" placeholder="email@domain.com">
         </div>
         <div class="col-md-4">
-          <label class="form-label">Institution</label>
-          <input type="text" name="co_institution[]" class="form-control" placeholder="Institution">
+          <label class="form-label">${t.phone}</label>
+          <input type="tel" name="co_phone[]" class="form-control" placeholder="${t.phone}">
         </div>
         <div class="col-md-4">
-          <label class="form-label">Country</label>
-          <input type="text" name="co_country[]" class="form-control" placeholder="Country">
+          <label class="form-label">${t.institution}</label>
+          <input type="text" name="co_institution[]" class="form-control" placeholder="${t.institution}">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">${t.country}</label>
+          <input type="text" name="co_country[]" class="form-control" placeholder="${t.country}">
         </div>
         <div class="col-md-4 d-flex align-items-end">
           <div class="form-check">
             <input class="form-check-input" type="checkbox" name="co_corresponding[]" value="${i}">
-            <label class="form-check-label">Corresponding Author</label>
+            <label class="form-check-label">${t.corresponding}</label>
           </div>
         </div>
       </div>`;

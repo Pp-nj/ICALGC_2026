@@ -31,20 +31,19 @@ try {
         redirect($appUrl . '/author/my-papers.php');
     }
 
-    // Most recent review with comments
+    // All reviewer comments
     $reviewStmt = $db->prepare("
-        SELECT r.comment_for_author, r.recommendation, r.score_overall
+        SELECT r.comment_for_author, r.recommendation, r.score_overall, ra.reviewer_id
         FROM reviews r
         JOIN review_assignments ra ON ra.id = r.assignment_id
-        WHERE ra.paper_id = :pid
-        ORDER BY r.reviewed_at DESC NULLS LAST
-        LIMIT 1
+        WHERE ra.paper_id = :pid AND r.comment_for_author IS NOT NULL AND r.comment_for_author <> ''
+        ORDER BY (r.reviewed_at IS NULL), r.reviewed_at DESC
     ");
     $reviewStmt->execute([':pid' => $paperId]);
-    $latestReview = $reviewStmt->fetch();
+    $allReviews = $reviewStmt->fetchAll();
 
     // Existing co-authors
-    $coStmt = $db->prepare("SELECT id, full_name, email, institution, country, is_corresponding, sort_order FROM paper_co_authors WHERE paper_id = :pid ORDER BY sort_order");
+    $coStmt = $db->prepare("SELECT id, full_name, email, phone, institution, country, is_corresponding, sort_order FROM paper_co_authors WHERE paper_id = :pid ORDER BY sort_order");
     $coStmt->execute([':pid' => $paperId]);
     $coAuthors = $coStmt->fetchAll();
 
@@ -60,23 +59,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $titleTh    = trim(post('title_th'));
     $titleEn    = trim(post('title_en'));
-    $abstractTh = trim(post('abstract_th'));
-    $abstractEn = trim(post('abstract_en'));
-    $keywords   = trim(post('keywords'));
+    $keywords   = $paper['keywords'];
     $note       = trim(post('revision_note'));
 
     if (!$titleTh)    $errors[] = $_lang==='th' ? 'กรุณากรอกชื่อบทคัดย่อภาษาไทย' : 'Thai title is required.';
     if (!$titleEn)    $errors[] = $_lang==='th' ? 'กรุณากรอกชื่อบทคัดย่อภาษาอังกฤษ' : 'English title is required.';
-    if (!$abstractTh) $errors[] = $_lang==='th' ? 'กรุณากรอกบทคัดย่อภาษาไทย' : 'Thai abstract is required.';
-    if (!$abstractEn) $errors[] = $_lang==='th' ? 'กรุณากรอกบทคัดย่อภาษาอังกฤษ' : 'English abstract is required.';
-    if (!$keywords)   $errors[] = $_lang==='th' ? 'กรุณากรอกคำสำคัญ' : 'Keywords are required.';
 
-    // File upload required
-    $hasFile = !empty($_FILES['paper_file']['name']);
-    if (!$hasFile) $errors[] = $_lang==='th' ? 'กรุณาอัปโหลดไฟล์บทคัดย่อที่แก้ไขแล้ว' : 'Please upload the revised paper file.';
-
-    if ($hasFile) {
-        $uploadErrors = validateUpload($_FILES['paper_file']);
+    // File upload required (PDF + DOCX, both required)
+    if (empty($_FILES['paper_file_pdf']['name'])) {
+        $errors[] = $_lang==='th' ? 'กรุณาอัปโหลดไฟล์ PDF ที่แก้ไขแล้ว' : 'Please upload the revised PDF file.';
+    } else {
+        $uploadErrors = validateUpload($_FILES['paper_file_pdf']);
+        if (!empty($uploadErrors)) $errors = array_merge($errors, $uploadErrors);
+    }
+    if (empty($_FILES['paper_file_docx']['name'])) {
+        $errors[] = $_lang==='th' ? 'กรุณาอัปโหลดไฟล์ DOCX ที่แก้ไขแล้ว' : 'Please upload the revised DOCX file.';
+    } else {
+        $uploadErrors = validateUpload($_FILES['paper_file_docx']);
         if (!empty($uploadErrors)) $errors = array_merge($errors, $uploadErrors);
     }
 
@@ -88,33 +87,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $upd = $db->prepare("
                 UPDATE papers SET
                     title_th = :tth, title_en = :ten,
-                    abstract_th = :ath, abstract_en = :aen,
                     keywords = :kw, status_code = 'under_review',
                     updated_at = NOW()
                 WHERE id = :pid
             ");
             $upd->execute([
                 ':tth' => $titleTh, ':ten' => $titleEn,
-                ':ath' => $abstractTh, ':aen' => $abstractEn,
                 ':kw'  => $keywords, ':pid' => $paperId,
             ]);
 
             // Co-authors: delete old, re-insert
             $db->prepare("DELETE FROM paper_co_authors WHERE paper_id = :pid")->execute([':pid' => $paperId]);
-            $coNames = $_POST['co_name'] ?? [];
+            $coNames  = $_POST['co_name'] ?? [];
             $coEmails = $_POST['co_email'] ?? [];
+            $coPhones = $_POST['co_phone'] ?? [];
             $coAffs   = $_POST['co_affiliation'] ?? [];
             $coCtries = $_POST['co_country'] ?? [];
             foreach ($coNames as $i => $cName) {
                 $cName = trim($cName);
                 if ($cName) {
                     $db->prepare("
-                        INSERT INTO paper_co_authors (paper_id, full_name, email, institution, country, sort_order)
-                        VALUES (:pid, :name, :email, :aff, :ctry, :sort)
+                        INSERT INTO paper_co_authors (paper_id, full_name, email, phone, institution, country, sort_order)
+                        VALUES (:pid, :name, :email, :phone, :aff, :ctry, :sort)
                     ")->execute([
                         ':pid'   => $paperId,
                         ':name'  => $cName,
                         ':email' => trim($coEmails[$i] ?? ''),
+                        ':phone' => trim($coPhones[$i] ?? ''),
                         ':aff'   => trim($coAffs[$i] ?? ''),
                         ':ctry'  => trim($coCtries[$i] ?? ''),
                         ':sort'  => $i,
@@ -122,24 +121,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
 
-            // Upload revised file
-            $storedName = moveUpload($_FILES['paper_file']);
-            if (!$storedName) throw new \RuntimeException('File upload failed');
+            // Upload revised files (PDF + DOCX)
+            $versionStmt = $db->prepare("SELECT COALESCE(MAX(version_number), 0) + 1 AS v FROM paper_files WHERE paper_id = :pid AND file_type = :ft");
+            foreach (['paper_file_pdf' => 'pdf', 'paper_file_docx' => 'docx'] as $field => $fileType) {
+                $storedName = moveUpload($_FILES[$field]);
+                if (!$storedName) throw new \RuntimeException('File upload failed');
 
-            $ext      = strtolower(pathinfo($_FILES['paper_file']['name'], PATHINFO_EXTENSION));
-            $fileType = $ext === 'pdf' ? 'pdf' : 'docx';
-            $db->prepare("
-                INSERT INTO paper_files (paper_id, file_type, file_category, original_name, stored_name, file_path, file_size, version_number, uploaded_by)
-                VALUES (:pid, :ft, 'revision', :on, :sn, :fp, :fs, 1, :uid)
-            ")->execute([
-                ':pid' => $paperId,
-                ':ft'  => $fileType,
-                ':on'  => $_FILES['paper_file']['name'],
-                ':sn'  => $storedName,
-                ':fp'  => 'uploads/papers/' . $storedName,
-                ':fs'  => $_FILES['paper_file']['size'],
-                ':uid' => $uid,
-            ]);
+                $versionStmt->execute([':pid' => $paperId, ':ft' => $fileType]);
+                $versionNumber = (int)$versionStmt->fetchColumn();
+
+                $db->prepare("
+                    INSERT INTO paper_files (paper_id, file_type, file_category, original_name, stored_name, file_path, file_size, version_number, uploaded_by)
+                    VALUES (:pid, :ft, 'revision', :on, :sn, :fp, :fs, :ver, :uid)
+                ")->execute([
+                    ':pid' => $paperId,
+                    ':ft'  => $fileType,
+                    ':on'  => $_FILES[$field]['name'],
+                    ':sn'  => $storedName,
+                    ':fp'  => 'uploads/papers/' . $storedName,
+                    ':fs'  => $_FILES[$field]['size'],
+                    ':ver' => $versionNumber,
+                    ':uid' => $uid,
+                ]);
+            }
 
             // Log revision note if provided
             if ($note) {
@@ -220,15 +224,20 @@ $activeMenu = 'my-papers';
     <?php endif; ?>
 
     <!-- Reviewer Comments -->
-    <?php if ($latestReview && $latestReview['comment_for_author']): ?>
+    <?php if (!empty($allReviews)): ?>
     <div class="content-card mb-4" style="border-left:4px solid var(--warning);">
       <div class="content-card-title">
         <i class="fas fa-comment-alt me-2" style="color:var(--warning);"></i>
         <?= $_lang==='th' ? 'ความเห็นจากผู้ทรงคุณวุฒิ' : 'Reviewer Comments' ?>
       </div>
-      <div style="font-size:.9rem;line-height:1.8;padding:12px;background:var(--gray-100);border-radius:var(--radius);">
-        <?= nl2br(e($latestReview['comment_for_author'])) ?>
+      <?php foreach ($allReviews as $idx => $rev): ?>
+      <div style="font-size:.9rem;line-height:1.8;padding:12px;background:var(--gray-100);border-radius:var(--radius);<?= $idx > 0 ? 'margin-top:12px;' : '' ?>">
+        <div class="fw-bold mb-1" style="color:var(--blue-dark);font-size:.82rem;">
+          <?= $_lang==='th' ? 'ผู้ทรงคุณวุฒิท่านที่ ' . ($idx+1) : 'Reviewer ' . ($idx+1) ?>
+        </div>
+        <?= nl2br(e($rev['comment_for_author'])) ?>
       </div>
+      <?php endforeach; ?>
     </div>
     <?php endif; ?>
 
@@ -262,44 +271,6 @@ $activeMenu = 'my-papers';
             </div>
           </div>
 
-          <!-- Abstracts -->
-          <div class="content-card mb-4">
-            <div class="content-card-title">
-              <i class="fas fa-align-left me-2" style="color:var(--gold);"></i><?= $_lang==='th' ? 'บทคัดย่อ' : 'Abstract' ?>
-            </div>
-            <div class="row g-3">
-              <div class="col-12">
-                <label class="form-label fw-bold" style="font-size:.85rem;">
-                  <?= $_lang==='th' ? 'บทคัดย่อ (ภาษาไทย)' : 'Abstract (Thai)' ?> <span class="text-danger">*</span>
-                </label>
-                <textarea name="abstract_th" class="form-control" rows="6" required
-                          data-word-counter="counter-th"><?= e(post('abstract_th', $paper['abstract_th'])) ?></textarea>
-                <div class="d-flex justify-content-end mt-1">
-                  <span id="counter-th" style="font-size:.75rem;color:var(--gray-500);">0 words</span>
-                </div>
-              </div>
-              <div class="col-12">
-                <label class="form-label fw-bold" style="font-size:.85rem;">
-                  <?= $_lang==='th' ? 'บทคัดย่อ (ภาษาอังกฤษ)' : 'Abstract (English)' ?> <span class="text-danger">*</span>
-                </label>
-                <textarea name="abstract_en" class="form-control" rows="6" required
-                          data-word-counter="counter-en"><?= e(post('abstract_en', $paper['abstract_en'])) ?></textarea>
-                <div class="d-flex justify-content-end mt-1">
-                  <span id="counter-en" style="font-size:.75rem;color:var(--gray-500);">0 words</span>
-                </div>
-              </div>
-              <div class="col-12">
-                <label class="form-label fw-bold" style="font-size:.85rem;">
-                  <?= t('paper.keywords') ?> <span class="text-danger">*</span>
-                </label>
-                <input type="text" name="keywords" class="form-control"
-                       value="<?= e(post('keywords', $paper['keywords'])) ?>"
-                       placeholder="<?= $_lang==='th' ? 'คำสำคัญ 1, คำสำคัญ 2, ...' : 'keyword1, keyword2, ...' ?>" required>
-                <div class="form-text"><?= $_lang==='th' ? 'คั่นด้วยเครื่องหมายจุลภาค (,)' : 'Separate with commas' ?></div>
-              </div>
-            </div>
-          </div>
-
           <!-- Co-Authors -->
           <div class="content-card mb-4">
             <div class="content-card-title d-flex justify-content-between align-items-center">
@@ -316,11 +287,15 @@ $activeMenu = 'my-papers';
                     <label class="form-label fw-bold" style="font-size:.78rem;"><?= $_lang==='th' ? 'ชื่อ-นามสกุล' : 'Full Name' ?> <span class="text-danger">*</span></label>
                     <input type="text" name="co_name[]" class="form-control form-control-sm" value="<?= e($ca['full_name']) ?>">
                   </div>
-                  <div class="col-md-3">
+                  <div class="col-md-2">
                     <label class="form-label fw-bold" style="font-size:.78rem;"><?= $_lang==='th' ? 'อีเมล' : 'Email' ?></label>
                     <input type="email" name="co_email[]" class="form-control form-control-sm" value="<?= e($ca['email']) ?>">
                   </div>
-                  <div class="col-md-3">
+                  <div class="col-md-2">
+                    <label class="form-label fw-bold" style="font-size:.78rem;"><?= $_lang==='th' ? 'เบอร์ติดต่อ' : 'Phone' ?></label>
+                    <input type="tel" name="co_phone[]" class="form-control form-control-sm" value="<?= e($ca['phone'] ?? '') ?>">
+                  </div>
+                  <div class="col-md-2">
                     <label class="form-label fw-bold" style="font-size:.78rem;"><?= $_lang==='th' ? 'สังกัด' : 'Affiliation' ?></label>
                     <input type="text" name="co_affiliation[]" class="form-control form-control-sm" value="<?= e($ca['institution']) ?>">
                   </div>
@@ -344,16 +319,33 @@ $activeMenu = 'my-papers';
             <div class="content-card-title">
               <i class="fas fa-file-upload me-2" style="color:var(--gold);"></i><?= $_lang==='th' ? 'ไฟล์บทคัดย่อที่แก้ไขแล้ว' : 'Revised Paper File' ?>
             </div>
-            <div class="upload-zone" id="uploadZone">
-              <i class="fas fa-cloud-upload-alt fa-2x mb-2" style="color:var(--blue-mid);"></i>
-              <div style="font-weight:700;color:var(--blue-dark);"><?= $_lang==='th' ? 'ลากวางไฟล์ที่นี่ หรือ' : 'Drag & drop or' ?></div>
-              <label for="paperFile" class="btn-primary-custom mt-2 d-inline-block cursor-pointer" style="cursor:pointer;">
-                <i class="fas fa-folder-open me-2"></i><?= $_lang==='th' ? 'เลือกไฟล์' : 'Choose File' ?>
-              </label>
-              <input type="file" id="paperFile" name="paper_file" class="d-none" accept=".pdf,.doc,.docx" required>
-              <div id="fileNameDisplay" class="mt-2" style="font-size:.85rem;color:var(--gray-600);"></div>
-              <div class="mt-2" style="font-size:.78rem;color:var(--gray-500);">
-                <?= $_lang==='th' ? 'รองรับ PDF, DOC, DOCX (สูงสุด 20MB)' : 'Accepts PDF, DOC, DOCX (max 20MB)' ?>
+            <p style="font-size:.85rem;color:var(--gray-500);margin-bottom:16px;">
+              <?= $_lang==='th'?'กรุณาอัปโหลดไฟล์ทั้งสองรูปแบบ: PDF และ DOCX':'Please upload both file formats: PDF and DOCX.' ?>
+            </p>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="file-drop-wrapper p-4 rounded text-center" style="border:2px dashed var(--gray-200);cursor:pointer;transition:all .3s;"
+                     onclick="document.getElementById('paper_file_pdf').click()">
+                  <i class="fas fa-file-pdf fa-2x mb-2" style="color:var(--gray-300);"></i>
+                  <div style="font-weight:600;color:var(--gray-700);margin-bottom:6px;">PDF</div>
+                  <div class="file-label" style="font-size:.8rem;color:var(--gray-500);">
+                    <?= $_lang==='th'?'คลิกหรือลากไฟล์มาวางที่นี่ (ไม่เกิน 20 MB)':'Click or drag file here (Max 20 MB)' ?>
+                  </div>
+                  <input type="file" id="paper_file_pdf" name="paper_file_pdf" class="file-drop-zone d-none"
+                         accept=".pdf" required>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="file-drop-wrapper p-4 rounded text-center" style="border:2px dashed var(--gray-200);cursor:pointer;transition:all .3s;"
+                     onclick="document.getElementById('paper_file_docx').click()">
+                  <i class="fas fa-file-word fa-2x mb-2" style="color:var(--gray-300);"></i>
+                  <div style="font-weight:600;color:var(--gray-700);margin-bottom:6px;">DOCX</div>
+                  <div class="file-label" style="font-size:.8rem;color:var(--gray-500);">
+                    <?= $_lang==='th'?'คลิกหรือลากไฟล์มาวางที่นี่ (ไม่เกิน 20 MB)':'Click or drag file here (Max 20 MB)' ?>
+                  </div>
+                  <input type="file" id="paper_file_docx" name="paper_file_docx" class="file-drop-zone d-none"
+                         accept=".docx" required>
+                </div>
               </div>
             </div>
 
@@ -401,13 +393,13 @@ $activeMenu = 'my-papers';
                 <li>แก้ไขทุกประเด็นที่ผู้ทรงคุณวุฒิระบุ</li>
                 <li>บันทึกการแก้ไขเพื่อให้บรรณาธิการทราบ</li>
                 <li>ตรวจสอบรูปแบบตาม Template ของการประชุม</li>
-                <li>อัปโหลดไฟล์ PDF หรือ DOCX ที่แก้ไขแล้ว</li>
+                <li>อัปโหลดไฟล์ PDF และ DOCX ที่แก้ไขแล้ว</li>
               <?php else: ?>
                 <li>Read all reviewer comments carefully</li>
                 <li>Address every point raised by reviewers</li>
                 <li>Add a revision note explaining changes</li>
                 <li>Ensure formatting matches the conference template</li>
-                <li>Upload the revised PDF or DOCX file</li>
+                <li>Upload the revised PDF and DOCX file</li>
               <?php endif; ?>
             </ul>
           </div>
@@ -421,16 +413,49 @@ $activeMenu = 'my-papers';
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="<?= $appUrl ?>/assets/js/main.js"></script>
 <script>
-// File name display
-document.getElementById('paperFile').addEventListener('change', function() {
-  const disp = document.getElementById('fileNameDisplay');
-  if (this.files[0]) {
-    disp.innerHTML = '<i class="fas fa-check-circle me-1" style="color:#198754;"></i>' + this.files[0].name;
-  }
-});
-
 // Co-author row counter for generating names
 let coAuthorCount = document.querySelectorAll('.co-author-row').length;
+
+function coAuthorRowHtml(i) {
+  const isTh = (window.APP_LANG === 'th');
+  const t = {
+    name:  isTh ? 'ชื่อ-นามสกุล' : 'Full Name',
+    email: isTh ? 'อีเมล' : 'Email',
+    phone: isTh ? 'เบอร์ติดต่อ' : 'Phone',
+    aff:   isTh ? 'สังกัด' : 'Affiliation',
+    country: isTh ? 'ประเทศ' : 'Country',
+  };
+  return `
+    <div class="co-author-row p-3 mb-2 rounded" style="background:var(--gray-100);border:1px solid var(--gray-200);">
+      <div class="row g-2 align-items-end">
+        <div class="col-md-4">
+          <label class="form-label fw-bold" style="font-size:.78rem;">${t.name} <span class="text-danger">*</span></label>
+          <input type="text" name="co_name[]" class="form-control form-control-sm">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label fw-bold" style="font-size:.78rem;">${t.email}</label>
+          <input type="email" name="co_email[]" class="form-control form-control-sm">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label fw-bold" style="font-size:.78rem;">${t.phone}</label>
+          <input type="tel" name="co_phone[]" class="form-control form-control-sm">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label fw-bold" style="font-size:.78rem;">${t.aff}</label>
+          <input type="text" name="co_affiliation[]" class="form-control form-control-sm">
+        </div>
+        <div class="col-md-1">
+          <label class="form-label fw-bold" style="font-size:.78rem;">${t.country}</label>
+          <input type="text" name="co_country[]" class="form-control form-control-sm">
+        </div>
+        <div class="col-md-1 d-flex align-items-end">
+          <button type="button" class="btn btn-sm btn-outline-danger rounded-circle remove-co" style="width:32px;height:32px;padding:0;">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      </div>
+    </div>`;
+}
 
 document.getElementById('addCoAuthor').addEventListener('click', function() {
   const html = coAuthorRowHtml(coAuthorCount++);

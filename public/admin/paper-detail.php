@@ -17,7 +17,7 @@ try {
     $stmt = $db->prepare("
         SELECT p.*, CONCAT(u.first_name, ' ', u.last_name) AS submitter_name, u.email AS submitter_email, u.affiliation AS submitter_affiliation,
                ct.name_th AS theme_th, ct.name_en AS theme_en,
-               ps.name_th AS status_th, ps.name_en AS status_en, ps.color_hex, ps.progress_step
+               ps.name_th AS status_th, ps.name_en AS status_en, ps.color_hex, ps.progress_step, ps.description
         FROM papers p
         JOIN users u ON u.id = p.submitter_id
         JOIN conference_themes ct ON ct.id = p.theme_id
@@ -87,6 +87,9 @@ $activeMenu = 'papers';
         </p>
       </div>
       <div class="d-flex gap-2 flex-wrap">
+        <a href="<?= $appUrl ?>/admin/paper-history.php?id=<?= $paperId ?>" class="btn-outline-custom">
+          <i class="fas fa-history me-2"></i><?= $_lang==='th' ? 'ประวัติทั้งหมด' : 'Full History' ?>
+        </a>
         <a href="<?= $appUrl ?>/admin/assign-reviewer.php?paper_id=<?= $paperId ?>" class="btn-outline-custom">
           <i class="fas fa-user-plus me-2"></i><?= $_lang==='th' ? 'มอบหมายผู้ทรง' : 'Assign Reviewer' ?>
         </a>
@@ -100,35 +103,88 @@ $activeMenu = 'papers';
 
     <!-- Progress Track -->
     <div class="content-card mb-4">
-      <div class="content-card-title"><i class="fas fa-tasks me-2" style="color:var(--gold);"></i><?= $_lang==='th' ? 'สถานะ' : 'Status' ?></div>
-      <div class="progress-track">
-        <?php
-          $isRejected     = $paper['status_code'] === 'rejected';
-          $filteredStatuses = array_values(array_filter($allStatuses, function($s) use ($isRejected) {
-              if ($s['code'] === 'rejected' && !$isRejected) return false;
-              if (in_array($s['code'], ['accepted','published']) && $isRejected) return false;
-              return true;
-          }));
+      <div class="content-card-title mb-4"><i class="fas fa-route me-2" style="color:var(--gold);"></i><?= $_lang==='th' ? 'สถานะการดำเนินการ' : 'Submission Progress' ?></div>
+
+      <?php
+        $currentStep    = (int)$paper['progress_step'];
+        $isRejected     = $paper['status_code'] === 'rejected';
+        $rejectedStatus = null;
+        $mainStatuses   = [];
+        foreach ($allStatuses as $s) {
+          if ($s['code'] === 'rejected') { $rejectedStatus = $s; }
+          else { $mainStatuses[] = $s; }
+        }
+      ?>
+      <?php $n = count($mainStatuses); ?>
+      <div class="progress-track pipeline-track" style="position:relative;margin:0;padding:8px 0 70px;">
+        <?php if ($n > 1): ?>
+          <div style="position:absolute;top:25px;left:<?= (0.5 / $n * 100) ?>%;right:<?= (0.5 / $n * 100) ?>%;height:2px;background:var(--gray-200);z-index:0;"></div>
+        <?php endif; ?>
+        <?php foreach ($mainStatuses as $i => $s):
+          $thisStep = (int)$s['progress_step'];
+
+          // Once the paper is rejected, nothing after "accepted" was actually reached
+          $isDone    = !$isRejected && $thisStep < $currentStep;
+          $isCurrent = !$isRejected && $paper['status_code'] === $s['code'];
+          $sName     = $_lang === 'th' ? $s['name_th'] : $s['name_en'];
         ?>
-        <?php foreach ($filteredStatuses as $i => $s):
-          $currentStep = (int)$paper['progress_step'];
-          $thisStep    = (int)$s['progress_step'];
-          $isDone      = $thisStep < $currentStep;
-          $isCurrent   = $s['code'] === $paper['status_code'];
-        ?>
-          <div class="progress-step <?= $isDone?'done':($isCurrent?'active':'') ?>">
-            <div class="progress-circle" style="<?= $isCurrent?"background:{$s['color_hex']};color:#fff;border-color:{$s['color_hex']};":($isDone?'background:#198754;color:#fff;border-color:#198754;':'') ?>">
-              <?= $isDone ? '<i class="fas fa-check"></i>' : $thisStep ?>
+          <div class="progress-step" style="min-width:70px;position:relative;z-index:1;">
+            <div class="progress-circle"
+                 style="background:<?= $isDone || $isCurrent ? e($s['color_hex']) : 'var(--gray-200)' ?>;border-color:<?= $isDone || $isCurrent ? e($s['color_hex']) : 'var(--gray-200)' ?>;color:<?= $isDone || $isCurrent ? '#fff' : 'var(--gray-500)' ?>;width:34px;height:34px;font-size:.75rem;<?= $isCurrent ? "box-shadow:0 0 0 4px {$s['color_hex']}33;" : '' ?>">
+              <?php if ($isDone): ?>
+                <i class="fas fa-check"></i>
+              <?php else: ?>
+                <?= $thisStep ?>
+              <?php endif; ?>
             </div>
-            <div class="progress-label" style="<?= $isCurrent?"color:{$s['color_hex']};font-weight:700;":'' ?>">
-              <?= e($_lang==='th'?$s['name_th']:$s['name_en']) ?>
+            <div class="progress-label" style="color:<?= $isDone || $isCurrent ? e($s['color_hex']) : 'var(--gray-700)' ?>;font-size:.68rem;margin-top:6px;<?= $isCurrent ? 'font-weight:700;' : '' ?>">
+              <?= e($sName) ?>
+              <?php if ($isCurrent): ?>
+                <div style="margin-top:4px;">
+                  <span style="display:inline-block;background:<?= e($s['color_hex']) ?>;color:#fff;border-radius:99px;padding:2px 8px;font-size:.6rem;font-weight:700;white-space:nowrap;">
+                    <?= $_lang === 'th' ? 'ปัจจุบัน' : 'Current' ?>
+                  </span>
+                </div>
+              <?php endif; ?>
             </div>
+
+            <?php if ($s['code'] === 'accepted' && $rejectedStatus): ?>
+              <div style="position:absolute;top:56px;left:50%;width:2px;height:16px;background:var(--gray-200);"></div>
+              <div style="position:absolute;top:72px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;min-width:70px;<?= $isRejected ? '' : 'opacity:.55;' ?>">
+                <div class="progress-circle"
+                     style="background:<?= $isRejected ? e($rejectedStatus['color_hex']) : e($rejectedStatus['color_hex']).'22' ?>;border-color:<?= e($rejectedStatus['color_hex']) ?>;color:<?= $isRejected ? '#fff' : e($rejectedStatus['color_hex']) ?>;width:34px;height:34px;font-size:.75rem;">
+                  <?php if ($isRejected): ?>
+                    <i class="fas fa-times"></i>
+                  <?php else: ?>
+                    <?= (int)$rejectedStatus['progress_step'] ?>
+                  <?php endif; ?>
+                </div>
+                <div class="progress-label" style="color:<?= $isRejected ? e($rejectedStatus['color_hex']) : 'var(--gray-700)' ?>;font-size:.68rem;margin-top:6px;white-space:nowrap;<?= $isRejected ? 'font-weight:700;' : '' ?>">
+                  <?= e($_lang === 'th' ? $rejectedStatus['name_th'] : $rejectedStatus['name_en']) ?>
+                  <?php if ($isRejected): ?>
+                    <div style="margin-top:4px;">
+                      <span style="display:inline-block;background:<?= e($rejectedStatus['color_hex']) ?>;color:#fff;border-radius:99px;padding:2px 8px;font-size:.6rem;font-weight:700;white-space:nowrap;">
+                        <?= $_lang === 'th' ? 'ปัจจุบัน' : 'Current' ?>
+                      </span>
+                    </div>
+                  <?php endif; ?>
+                </div>
+              </div>
+            <?php endif; ?>
           </div>
-          <?php if ($i < count($filteredStatuses)-1): ?>
-            <div class="progress-connector <?= $isDone?'done':'' ?>"></div>
-          <?php endif; ?>
         <?php endforeach; ?>
       </div>
+
+      <!-- Current status description -->
+      <?php $desc = $paper['description'] ?? ''; ?>
+      <?php if ($desc): ?>
+        <div class="mt-2 p-3 rounded" style="background:<?= e($paper['color_hex']) ?>18;border-left:4px solid <?= e($paper['color_hex']) ?>;">
+          <strong style="color:<?= e($paper['color_hex']) ?>;">
+            <?= e($_lang==='th' ? $paper['status_th'] : $paper['status_en']) ?>
+          </strong>
+          <span style="color:var(--gray-700);font-size:.87rem;margin-left:8px;"><?= e($desc) ?></span>
+        </div>
+      <?php endif; ?>
     </div>
 
     <div class="row g-4">
@@ -142,10 +198,6 @@ $activeMenu = 'papers';
               <div style="font-weight:600;"><?= e($paper['title_th']) ?></div></div>
             <div class="col-12"><label style="font-size:.78rem;color:var(--gray-500);"><?= $_lang==='th'?'ชื่อภาษาอังกฤษ':'English Title' ?></label>
               <div style="font-weight:600;"><?= e($paper['title_en']) ?></div></div>
-            <div class="col-12"><label style="font-size:.78rem;color:var(--gray-500);"><?= $_lang==='th'?'บทคัดย่อไทย':'Abstract (TH)' ?></label>
-              <div style="font-size:.87rem;line-height:1.8;padding:10px;background:var(--gray-100);border-radius:var(--radius);"><?= nl2br(e($paper['abstract_th'])) ?></div></div>
-            <div class="col-12"><label style="font-size:.78rem;color:var(--gray-500);"><?= $_lang==='th'?'บทคัดย่อภาษาอังกฤษ':'Abstract (EN)' ?></label>
-              <div style="font-size:.87rem;line-height:1.8;padding:10px;background:var(--gray-100);border-radius:var(--radius);"><?= nl2br(e($paper['abstract_en'])) ?></div></div>
             <?php if ($paper['keywords']): ?>
             <div class="col-12"><label style="font-size:.78rem;color:var(--gray-500);"><?= t('paper.keywords') ?></label>
               <div class="d-flex flex-wrap gap-1">
@@ -289,7 +341,7 @@ $activeMenu = 'papers';
           <?php foreach ($coAuthors as $ca): ?>
             <div class="mb-2 pb-2" style="border-bottom:1px solid var(--gray-200);font-size:.84rem;">
               <div style="font-weight:600;"><?= e($ca['full_name']) ?></div>
-              <div style="color:var(--gray-500);"><?= e($ca['email']) ?></div>
+              <div style="color:var(--gray-500);"><?= e($ca['email']) ?><?= !empty($ca['phone']) ? ' · ' . e($ca['phone']) : '' ?></div>
               <div style="color:var(--gray-500);"><?= e($ca['institution']) ?> <?= $ca['country'] ? "· {$ca['country']}" : '' ?></div>
             </div>
           <?php endforeach; ?>

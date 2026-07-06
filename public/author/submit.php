@@ -27,14 +27,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $titleTh    = sanitize(post('title_th'));
         $titleEn    = sanitize(post('title_en'));
-        $abstractTh = '';
-        $abstractEn = '';
         $keywords   = sanitize(post('keywords'));
         $themeId    = intPost('theme_id');
 
         // Co-author data
-        $coNames        = $_POST['co_name']        ?? [];
+        $coFirstNames   = $_POST['co_first_name']  ?? [];
+        $coMiddleNames  = $_POST['co_middle_name'] ?? [];
+        $coLastNames    = $_POST['co_last_name']   ?? [];
         $coEmails       = $_POST['co_email']       ?? [];
+        $coPhones       = $_POST['co_phone']       ?? [];
         $coInstitutions = $_POST['co_institution'] ?? [];
         $coCountries    = $_POST['co_country']     ?? [];
         $coCorrespond   = $_POST['co_corresponding']?? [];
@@ -45,12 +46,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!$keywords)   $errors[] = t('paper.keywords') . ': ' . t('common.required');
         if (!$themeId)    $errors[] = t('paper.theme') . ': ' . t('common.required');
 
-        // File validation
-        $fileError = [];
-        if (empty($_FILES['paper_file']['name'])) {
-            $errors[] = t('paper.upload_file') . ': ' . t('common.required');
+        // File validation (PDF + DOCX, both required)
+        if (empty($_FILES['paper_file_pdf']['name'])) {
+            $errors[] = t('paper.upload_file') . ' (PDF): ' . t('common.required');
         } else {
-            $fileError = validateUpload($_FILES['paper_file']);
+            $fileError = validateUpload($_FILES['paper_file_pdf']);
+            if ($fileError) $errors = array_merge($errors, $fileError);
+        }
+        if (empty($_FILES['paper_file_docx']['name'])) {
+            $errors[] = t('paper.upload_file') . ' (DOCX): ' . t('common.required');
+        } else {
+            $fileError = validateUpload($_FILES['paper_file_docx']);
             if ($fileError) $errors = array_merge($errors, $fileError);
         }
 
@@ -63,54 +69,58 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Insert paper
                 $ins = $db->prepare("
                     INSERT INTO papers
-                        (paper_code, title_th, title_en, abstract_th, abstract_en, keywords, theme_id, submitter_id, status_code)
+                        (paper_code, title_th, title_en, keywords, theme_id, submitter_id, status_code)
                     VALUES
-                        (:code, :tth, :ten, :ath, :aen, :kw, :tid, :uid, 'submitted')
+                        (:code, :tth, :ten, :kw, :tid, :uid, 'submitted')
                 ");
                 $ins->execute([
                     ':code' => $paperCode,
                     ':tth'  => $titleTh,
                     ':ten'  => $titleEn,
-                    ':ath'  => $abstractTh,
-                    ':aen'  => $abstractEn,
                     ':kw'   => $keywords,
                     ':tid'  => $themeId,
                     ':uid'  => $user['id'],
                 ]);
                 $paperId = (int)$db->lastInsertId();
 
-                // Upload file
-                $storedName = moveUpload($_FILES['paper_file']);
-                if (!$storedName) throw new \RuntimeException('File upload failed.');
+                // Upload files (PDF + DOCX)
+                foreach (['paper_file_pdf' => 'pdf', 'paper_file_docx' => 'docx'] as $field => $fileType) {
+                    $storedName = moveUpload($_FILES[$field]);
+                    if (!$storedName) throw new \RuntimeException('File upload failed.');
 
-                $ext      = strtolower(pathinfo($_FILES['paper_file']['name'], PATHINFO_EXTENSION));
-                $fileType = $ext === 'pdf' ? 'pdf' : 'docx';
-
-                $db->prepare("
-                    INSERT INTO paper_files
-                        (paper_id, file_type, file_category, original_name, stored_name, file_path, file_size, version_number, uploaded_by)
-                    VALUES
-                        (:pid, :ft, 'submission', :on, :sn, :fp, :fs, 1, :uid)
-                ")->execute([
-                    ':pid' => $paperId,
-                    ':ft'  => $fileType,
-                    ':on'  => $_FILES['paper_file']['name'],
-                    ':sn'  => $storedName,
-                    ':fp'  => 'uploads/papers/' . $storedName,
-                    ':fs'  => $_FILES['paper_file']['size'],
-                    ':uid' => $user['id'],
-                ]);
-
-                // Insert co-authors
-                foreach ($coNames as $i => $coName) {
-                    if (!trim($coName)) continue;
                     $db->prepare("
-                        INSERT INTO paper_co_authors (paper_id, full_name, email, institution, country, is_corresponding, sort_order)
-                        VALUES (:pid, :fn, :em, :ins, :co, :isc, :ord)
+                        INSERT INTO paper_files
+                            (paper_id, file_type, file_category, original_name, stored_name, file_path, file_size, version_number, uploaded_by)
+                        VALUES
+                            (:pid, :ft, 'submission', :on, :sn, :fp, :fs, 1, :uid)
                     ")->execute([
                         ':pid' => $paperId,
-                        ':fn'  => sanitize($coName),
+                        ':ft'  => $fileType,
+                        ':on'  => $_FILES[$field]['name'],
+                        ':sn'  => $storedName,
+                        ':fp'  => 'uploads/papers/' . $storedName,
+                        ':fs'  => $_FILES[$field]['size'],
+                        ':uid' => $user['id'],
+                    ]);
+                }
+
+                // Insert co-authors
+                foreach ($coFirstNames as $i => $coFirstName) {
+                    $coFullName = trim(
+                        $coFirstName . ' ' .
+                        ($coMiddleNames[$i] ?? '') . ' ' .
+                        ($coLastNames[$i] ?? '')
+                    );
+                    $coFullName = preg_replace('/\s+/', ' ', $coFullName);
+                    if (!$coFullName) continue;
+                    $db->prepare("
+                        INSERT INTO paper_co_authors (paper_id, full_name, email, phone, institution, country, is_corresponding, sort_order)
+                        VALUES (:pid, :fn, :em, :ph, :ins, :co, :isc, :ord)
+                    ")->execute([
+                        ':pid' => $paperId,
+                        ':fn'  => sanitize($coFullName),
                         ':em'  => sanitize($coEmails[$i] ?? ''),
+                        ':ph'  => sanitize($coPhones[$i] ?? ''),
                         ':ins' => sanitize($coInstitutions[$i] ?? ''),
                         ':co'  => sanitize($coCountries[$i] ?? ''),
                         ':isc' => in_array((string)$i, $coCorrespond) ? 'TRUE' : 'FALSE',
@@ -248,19 +258,36 @@ $activeMenu = 'submit';
       <!-- File Upload -->
       <div class="content-card mb-4">
         <div class="content-card-title"><i class="fas fa-file-upload me-2" style="color:var(--gold);"></i><?= t('paper.upload_file') ?></div>
-        <div class="file-drop-wrapper p-5 rounded text-center" style="border:2px dashed var(--gray-200);cursor:pointer;transition:all .3s;"
-             onclick="document.getElementById('paper_file').click()">
-          <i class="fas fa-cloud-upload-alt fa-3x mb-3" style="color:var(--gray-300);"></i>
-          <div style="font-weight:600;color:var(--gray-700);margin-bottom:8px;">
-            <?= $_lang==='th'?'คลิกหรือลากไฟล์มาวางที่นี่':'Click or drag file here' ?>
+        <p style="font-size:.85rem;color:var(--gray-500);margin-bottom:16px;">
+          <?= $_lang==='th'?'กรุณาอัปโหลดไฟล์ทั้งสองรูปแบบ: PDF และ DOCX':'Please upload both file formats: PDF and DOCX.' ?>
+        </p>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="file-drop-wrapper p-4 rounded text-center" style="border:2px dashed var(--gray-200);cursor:pointer;transition:all .3s;"
+                 onclick="document.getElementById('paper_file_pdf').click()">
+              <i class="fas fa-file-pdf fa-2x mb-2" style="color:var(--gray-300);"></i>
+              <div style="font-weight:600;color:var(--gray-700);margin-bottom:6px;">PDF</div>
+              <div class="file-label" style="font-size:.8rem;color:var(--gray-500);">
+                <?= $_lang==='th'?'คลิกหรือลากไฟล์มาวางที่นี่ (ไม่เกิน 20 MB)':'Click or drag file here (Max 20 MB)' ?>
+              </div>
+              <input type="file" id="paper_file_pdf" name="paper_file_pdf" class="file-drop-zone d-none"
+                     accept=".pdf" required>
+            </div>
           </div>
-          <div class="file-label" style="font-size:.85rem;color:var(--gray-500);">
-            PDF, DOCX — <?= $_lang==='th'?'ไม่เกิน 20 MB':'Max 20 MB' ?>
+          <div class="col-md-6">
+            <div class="file-drop-wrapper p-4 rounded text-center" style="border:2px dashed var(--gray-200);cursor:pointer;transition:all .3s;"
+                 onclick="document.getElementById('paper_file_docx').click()">
+              <i class="fas fa-file-word fa-2x mb-2" style="color:var(--gray-300);"></i>
+              <div style="font-weight:600;color:var(--gray-700);margin-bottom:6px;">DOCX</div>
+              <div class="file-label" style="font-size:.8rem;color:var(--gray-500);">
+                <?= $_lang==='th'?'คลิกหรือลากไฟล์มาวางที่นี่ (ไม่เกิน 20 MB)':'Click or drag file here (Max 20 MB)' ?>
+              </div>
+              <input type="file" id="paper_file_docx" name="paper_file_docx" class="file-drop-zone d-none"
+                     accept=".docx" required>
+            </div>
           </div>
-          <input type="file" id="paper_file" name="paper_file" class="file-drop-zone d-none"
-                 accept=".pdf,.docx" required>
         </div>
-        <p class="mt-2 mb-0" style="font-size:.8rem;color:var(--gray-500);">
+        <p class="mt-3 mb-0" style="font-size:.8rem;color:var(--gray-500);">
           <i class="fas fa-shield-alt me-1 text-success"></i>
           <?= $_lang==='th'?'ไฟล์ของคุณจะถูกเก็บอย่างปลอดภัยและไม่สามารถเข้าถึงได้จากภายนอก':'Files are stored securely and not publicly accessible.' ?>
         </p>
@@ -281,11 +308,11 @@ $activeMenu = 'submit';
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="<?= $appUrl ?>/assets/js/main.js"></script>
+<script>window.APP_LANG = '<?= $_lang ?>';</script>
+<script src="<?= $appUrl ?>/assets/js/main.js?v=<?= filemtime(__DIR__ . '/../assets/js/main.js') ?>"></script>
 <script>
 // File drop zone styling
-const wrapper = document.querySelector('.file-drop-wrapper');
-if (wrapper) {
+document.querySelectorAll('.file-drop-wrapper').forEach(wrapper => {
   ['dragenter','dragover'].forEach(e => {
     wrapper.addEventListener(e, ev => {
       ev.preventDefault();
@@ -300,7 +327,7 @@ if (wrapper) {
       wrapper.style.background  = '';
     });
   });
-}
+});
 </script>
 </body>
 </html>

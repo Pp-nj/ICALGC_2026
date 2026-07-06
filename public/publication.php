@@ -25,8 +25,8 @@ try {
 
     if ($search) {
         $where[] = $isMysql
-            ? "(p.title_en LIKE :q OR p.title_th LIKE :q OR p.abstract_en LIKE :q OR p.keywords LIKE :q OR u.first_name LIKE :q OR u.last_name LIKE :q)"
-            : "(p.title_en ILIKE :q OR p.title_th ILIKE :q OR p.abstract_en ILIKE :q OR p.keywords ILIKE :q OR u.first_name ILIKE :q OR u.last_name ILIKE :q)";
+            ? "(p.title_en LIKE :q OR p.title_th LIKE :q OR p.keywords LIKE :q OR u.first_name LIKE :q OR u.last_name LIKE :q)"
+            : "(p.title_en ILIKE :q OR p.title_th ILIKE :q OR p.keywords ILIKE :q OR u.first_name ILIKE :q OR u.last_name ILIKE :q)";
         $params[':q'] = '%' . $search . '%';
     }
     if ($themeId) {
@@ -203,9 +203,6 @@ require_once __DIR__ . '/../app/helpers/header.php';
               </h3>
               <p class="pub-card-authors">
                 <i class="fas fa-users me-1"></i><?= e($authorStr) ?>
-              </p>
-              <p class="pub-card-abstract">
-                <?= e($_lang==='th' ? $paper['abstract_th'] : $paper['abstract_en']) ?>
               </p>
               <div class="pub-card-keywords">
                 <?php foreach (array_slice($keywords, 0, 4) as $kw): ?>

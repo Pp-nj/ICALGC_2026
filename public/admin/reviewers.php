@@ -15,13 +15,19 @@ $errors  = [];
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && post('form_type') === 'create') {
     Auth::verifyCsrf(post('csrf_token'));
 
-    $name    = trim(post('name'));
-    $email   = sanitizeEmail(post('email'));
-    $affil   = trim(post('affiliation'));
-    $country = trim(post('country'));
-    $pw      = post('password');
+    $title      = trim(post('title'));
+    $titleOther = trim(post('title_other'));
+    $title      = ($title === 'Other') ? $titleOther : $title;
+    $firstName  = trim(post('first_name'));
+    $lastName   = trim(post('last_name'));
+    $middleName = trim(post('middle_name'));
+    $email      = sanitizeEmail(post('email'));
+    $affil      = trim(post('affiliation'));
+    $country    = trim(post('country'));
+    $pw         = post('password');
 
-    if (!$name)  $errors[] = $_lang==='th' ? 'กรุณากรอกชื่อ' : 'Name required.';
+    if (!$firstName) $errors[] = $_lang==='th' ? 'กรุณากรอกชื่อ' : 'First name required.';
+    if (!$lastName)  $errors[] = $_lang==='th' ? 'กรุณากรอกนามสกุล' : 'Last name required.';
     if (!$email) $errors[] = $_lang==='th' ? 'อีเมลไม่ถูกต้อง' : 'Invalid email.';
     if (strlen($pw) < 8) $errors[] = $_lang==='th' ? 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร' : 'Password must be at least 8 chars.';
 
@@ -33,15 +39,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && post('form_type') === 'create') {
             if ($chk->fetch()) {
                 $errors[] = $_lang==='th' ? 'อีเมลนี้ถูกใช้งานแล้ว' : 'Email already in use.';
             } else {
-                $hash      = password_hash($pw, PASSWORD_BCRYPT, ['cost' => 12]);
-                $nameParts = explode(' ', $name, 2);
-                $firstName = $nameParts[0];
-                $lastName  = $nameParts[1] ?? '-';
+                $hash = password_hash($pw, PASSWORD_BCRYPT, ['cost' => 12]);
                 $ins  = $db->prepare("
-                    INSERT INTO users (first_name, last_name, email, password_hash, role, affiliation, country, email_verified)
-                    VALUES (:fn, :ln, :em, :ph, 'reviewer', :aff, :ctry, TRUE)
+                    INSERT INTO users (title, first_name, middle_name, last_name, email, password_hash, role, affiliation, country, email_verified)
+                    VALUES (:ti, :fn, :mn, :ln, :em, :ph, 'reviewer', :aff, :ctry, TRUE)
                 ");
-                $ins->execute([':fn'=>$firstName,':ln'=>$lastName,':em'=>$email,':ph'=>$hash,':aff'=>$affil,':ctry'=>$country]);
+                $ins->execute([':ti'=>$title ?: null,':fn'=>$firstName,':mn'=>$middleName ?: null,':ln'=>$lastName,':em'=>$email,':ph'=>$hash,':aff'=>$affil,':ctry'=>$country]);
                 auditLog('create_reviewer', 'users', "Created reviewer: $email", Auth::id());
                 flashSet('success', $_lang==='th' ? 'สร้างบัญชีผู้ทรงคุณวุฒิเรียบร้อย' : 'Reviewer account created.');
                 redirect($appUrl . '/admin/reviewers.php');
@@ -86,6 +89,28 @@ try {
     error_log($e->getMessage());
     $reviewers = [];
 }
+
+$titleOptions = $_lang==='th'
+    ? [
+        ['value' => 'นาย',    'label' => 'นาย'],
+        ['value' => 'นาง',    'label' => 'นาง'],
+        ['value' => 'นางสาว', 'label' => 'นางสาว'],
+        ['value' => 'ศ.',     'label' => 'ศ.'],
+        ['value' => 'รศ.',    'label' => 'รศ.'],
+        ['value' => 'ผศ.',    'label' => 'ผศ.'],
+        ['value' => 'ดร.',    'label' => 'ดร.'],
+        ['value' => 'Other',  'label' => 'อื่นๆ'],
+      ]
+    : [
+        ['value' => 'Mr.',          'label' => 'Mr.'],
+        ['value' => 'Mrs.',         'label' => 'Mrs.'],
+        ['value' => 'Ms.',          'label' => 'Ms.'],
+        ['value' => 'Prof.',        'label' => 'Prof.'],
+        ['value' => 'Assoc. Prof.', 'label' => 'Assoc. Prof.'],
+        ['value' => 'Asst. Prof.',  'label' => 'Asst. Prof.'],
+        ['value' => 'Dr.',          'label' => 'Dr.'],
+        ['value' => 'Other',        'label' => 'Other'],
+      ];
 
 $pageTitle  = $_lang==='th' ? 'ผู้ทรงคุณวุฒิ' : 'Reviewers';
 $activeMenu = 'reviewers';
@@ -132,8 +157,31 @@ $activeMenu = 'reviewers';
             <input type="hidden" name="form_type" value="create">
             <div class="d-flex flex-column gap-3">
               <div>
-                <label class="form-label fw-bold" style="font-size:.85rem;"><?= $_lang==='th'?'ชื่อ-นามสกุล':'Full Name' ?> <span class="text-danger">*</span></label>
-                <input type="text" name="name" class="form-control" value="<?= e(post('name')) ?>" required>
+                <label class="form-label fw-bold" style="font-size:.85rem;"><?= $_lang==='th'?'คำนำหน้า':'Title / Prefix' ?></label>
+                <select name="title" id="rv_title_select" class="form-select" onchange="rvHandleTitleChange(this)">
+                  <option value=""><?= $_lang==='th' ? '— เลือกคำนำหน้า —' : '— Select Title —' ?></option>
+                  <?php foreach ($titleOptions as $opt):
+                    $sel = (post('title') === $opt['value']) ? 'selected' : ''; ?>
+                    <option value="<?= e($opt['value']) ?>" <?= $sel ?><?= $opt['value']==='Other' ? ' data-other="1"' : '' ?>><?= e($opt['label']) ?></option>
+                  <?php endforeach; ?>
+                </select>
+                <div id="rvTitleOtherWrap" class="mt-2" style="display:<?= (post('title')==='Other') ? 'block' : 'none' ?>;">
+                  <input type="text" name="title_other" id="rvTitleOtherInput" class="form-control"
+                         placeholder="<?= $_lang==='th' ? 'ระบุคำนำหน้า...' : 'Specify title...' ?>"
+                         value="<?= e(post('title_other')) ?>">
+                </div>
+              </div>
+              <div>
+                <label class="form-label fw-bold" style="font-size:.85rem;"><?= $_lang==='th'?'ชื่อ':'First Name' ?> <span class="text-danger">*</span></label>
+                <input type="text" name="first_name" class="form-control" value="<?= e(post('first_name')) ?>" required>
+              </div>
+              <div>
+                <label class="form-label fw-bold" style="font-size:.85rem;"><?= $_lang==='th'?'ชื่อกลาง (ถ้ามี)':'Middle Name (optional)' ?> <span class="text-muted" style="font-size:.78rem;font-weight:400;"><?= $_lang==='th'?'(ถ้ามี)':'(optional)' ?></span></label>
+                <input type="text" name="middle_name" class="form-control" value="<?= e(post('middle_name')) ?>">
+              </div>
+              <div>
+                <label class="form-label fw-bold" style="font-size:.85rem;"><?= $_lang==='th'?'นามสกุล':'Last Name' ?> <span class="text-danger">*</span></label>
+                <input type="text" name="last_name" class="form-control" value="<?= e(post('last_name')) ?>" required>
               </div>
               <div>
                 <label class="form-label fw-bold" style="font-size:.85rem;"><?= $_lang==='th'?'อีเมล':'Email' ?> <span class="text-danger">*</span></label>
@@ -185,7 +233,7 @@ $activeMenu = 'reviewers';
                   <?php foreach ($reviewers as $rv): ?>
                     <tr>
                       <td>
-                        <div style="font-weight:700;font-size:.88rem;"><?= e($rv['first_name'] . ' ' . $rv['last_name']) ?></div>
+                        <div style="font-weight:700;font-size:.88rem;"><?= e(trim(($rv['title'] ? $rv['title'].' ' : '') . $rv['first_name'] . ' ' . ($rv['middle_name'] ? $rv['middle_name'].' ' : '') . $rv['last_name'])) ?></div>
                         <div style="font-size:.75rem;color:var(--gray-500);"><?= e($rv['email']) ?></div>
                       </td>
                       <td style="font-size:.82rem;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
@@ -231,6 +279,12 @@ $activeMenu = 'reviewers';
   </main>
 </div>
 
+<script>
+function rvHandleTitleChange(sel) {
+  var wrap = document.getElementById('rvTitleOtherWrap');
+  wrap.style.display = sel.selectedOptions[0] && sel.selectedOptions[0].dataset.other ? 'block' : 'none';
+}
+</script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="<?= $appUrl ?>/assets/js/main.js"></script>
 </body>

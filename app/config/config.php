@@ -4,6 +4,10 @@
  * ICALGC 2026
  */
 
+// ── Load .env (if present) ──────────────────────────────────
+require_once __DIR__ . '/../Core/Env.php';
+\App\Core\Env::load(dirname(__DIR__, 2) . '/.env');
+
 // ── Timezone ──────────────────────────────────────────────
 date_default_timezone_set('Asia/Bangkok');
 
@@ -58,7 +62,8 @@ define('CONF_DATE_TH', '25 พฤศจิกายน 2569');
 define('CONF_DATE_EN', 'November 25, 2026');
 define('CONF_VENUE_TH','มหาวิทยาลัยศรีนครินทรวิโรฒ ประสานมิตร กรุงเทพมหานคร ประเทศไทย');
 define('CONF_VENUE_EN','Srinakharinwirot University Prasarnmit Campus, Bangkok, Thailand');
-define('CONF_TIME',    '08:30 AM – 05:00 PM');
+define('CONF_TIME_TH',    '08:30 น. – 17:00 น.');
+define('CONF_TIME_EN',    '08:30 AM – 05:00 PM');
 define('CONF_YEAR',    '2026');
 
 // ── Default Language ──────────────────────────────────────

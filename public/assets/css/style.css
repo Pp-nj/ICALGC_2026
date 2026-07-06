@@ -36,6 +36,7 @@
 html {
   scroll-behavior: smooth;
   font-size: 16px;
+  height: 100%;
 }
 
 body {
@@ -44,6 +45,7 @@ body {
   background: var(--white);
   line-height: 1.7;
   -webkit-font-smoothing: antialiased;
+  min-height: 100%;
 }
 
 /* ── Typography ─────────────────────────────────────────── */
@@ -1101,7 +1103,9 @@ a:hover { color: var(--gold); }
 
 /* ── Auth Cards ──────────────────────────────────────────── */
 .auth-page {
+  width: 100%;
   min-height: 100vh;
+  min-height: 100dvh;
   background: linear-gradient(135deg, var(--blue-dark) 0%, #0057b7 100%);
   display: flex;
   align-items: center;

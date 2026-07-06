@@ -128,12 +128,10 @@ return [
     // ── Paper Fields ──────────────────────────────────────
     'paper.title_th'        => 'ชื่อบทคัดย่อ (ภาษาไทย)',
     'paper.title_en'        => 'ชื่อบทคัดย่อ (ภาษาอังกฤษ)',
-    'paper.abstract_th'     => 'บทคัดย่อ (ภาษาไทย)',
-    'paper.abstract_en'     => 'บทคัดย่อ (ภาษาอังกฤษ)',
     'paper.keywords'        => 'คำสำคัญ',
     'paper.theme'           => 'หัวข้อการประชุม',
     'paper.co_authors'      => 'ผู้แต่งร่วม',
-    'paper.upload_file'     => 'อัปโหลดไฟล์ (PDF หรือ DOCX ไม่เกิน 20 MB)',
+    'paper.upload_file'     => 'อัปโหลดไฟล์ (PDF และ DOCX ไม่เกิน 20 MB)',
     'paper.submit'          => 'ส่งบทคัดย่อ',
     'paper.code'            => 'รหัสบทคัดย่อ',
     'paper.status'          => 'สถานะ',

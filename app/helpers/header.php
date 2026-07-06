@@ -121,12 +121,12 @@ $appUrl = APP_URL;
   <div class="container-fluid px-4">
     <!-- Brand Logos -->
     <a class="navbar-brand" href="<?= $appUrl ?>/">
-      <img src="<?=$appUrl ?>/assets/images/swu_Logo.png"
+      <img src="<?= asset_ver('/assets/images/swu_Logo.png') ?>"
            alt="Srinakharinwirot University"
            class="brand-logo"
            onerror="this.style.display='none'">
       <span class="brand-divider d-none d-sm-block"></span>
-      <img src="<?= $appUrl ?>/assets/images/Guangdong University of Foreign Studies.png"
+      <img src="<?= asset_ver('/assets/images/Guangdong University of Foreign Studies.png') ?>"
            alt="Guangdong University of Foreign Studies"
            class="brand-logo"
            onerror="this.style.display='none'">

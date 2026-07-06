@@ -102,6 +102,8 @@ foreach ($files as $f) {
 }
 
 // 3. Review assignments
+$completedReviewsCount = 0;
+$lastReviewedAt = null;
 foreach ($assignments as $i => $ra) {
     $events[] = [
         'at'    => $ra['assigned_at'],
@@ -111,21 +113,21 @@ foreach ($assignments as $i => $ra) {
         'desc'  => $ra['due_date'] ? ($_lang === 'th' ? 'กำหนดส่งผล: ' : 'Due: ') . humanDate($ra['due_date'], $_lang) : '',
     ];
     if ($ra['review_id'] && $ra['reviewed_at']) {
-        $recMap = [
-            'accept'         => ['th' => 'ยอมรับ',        'en' => 'Accept',         'color' => '#198754'],
-            'minor_revision' => ['th' => 'แก้ไขเล็กน้อย', 'en' => 'Minor Revision', 'color' => '#fd7e14'],
-            'major_revision' => ['th' => 'แก้ไขหลัก',     'en' => 'Major Revision', 'color' => '#dc3545'],
-            'reject'         => ['th' => 'ปฏิเสธ',        'en' => 'Reject',         'color' => '#6c757d'],
-        ];
-        $rec = $recMap[$ra['recommendation']] ?? null;
-        $events[] = [
-            'at'    => $ra['reviewed_at'],
-            'icon'  => 'fa-star-half-alt',
-            'color' => $rec ? $rec['color'] : '#ffc107',
-            'title' => ($_lang === 'th' ? 'ผู้ทรงคุณวุฒิ #' : 'Reviewer #') . ($i + 1) . ($_lang === 'th' ? ' ส่งผลการประเมิน' : ' Submitted Review'),
-            'desc'  => $rec ? ($rec[$_lang] ?? $rec['en']) . ($ra['score_overall'] ? ' · ' . ($_lang === 'th' ? 'คะแนน: ' : 'Score: ') . $ra['score_overall'] . '/10' : '') : '',
-        ];
+        $completedReviewsCount++;
+        if (!$lastReviewedAt || strtotime($ra['reviewed_at']) > strtotime($lastReviewedAt)) {
+            $lastReviewedAt = $ra['reviewed_at'];
+        }
     }
+}
+// Only show that reviewing is complete once at least 2 reviewers have submitted their evaluations
+if ($completedReviewsCount >= 2) {
+    $events[] = [
+        'at'    => $lastReviewedAt,
+        'icon'  => 'fa-star-half-alt',
+        'color' => '#198754',
+        'title' => $_lang === 'th' ? 'ผู้ทรงคุณวุฒิประเมินเสร็จสิ้น' : 'Reviewers Completed Evaluation',
+        'desc'  => '',
+    ];
 }
 
 // 4. Notifications (status changes)

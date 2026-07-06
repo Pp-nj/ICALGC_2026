@@ -71,9 +71,9 @@ CREATE TABLE IF NOT EXISTS important_dates (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT IGNORE INTO important_dates (title_th, title_en, event_date, sort_order) VALUES
-('เปิดรับลงทะเบียน',              'Registration Opens',                '2026-07-01', 1),
-('หมดเขตส่งบทคัดย่อ',             'Abstract Submission Deadline',       '2026-08-30', 2),
-('แจ้งผลการพิจารณาบทคัดย่อ',      'Abstract Acceptance Notification',   '2026-09-30', 3),
+('เปิดรับลงทะเบียน',              'Registration Opens',                '2026-07-06', 1),
+('หมดเขตส่งบทคัดย่อ',             'Abstract Submission Deadline',       '2026-08-31', 2),
+('แจ้งผลการพิจารณาบทคัดย่อ',      'Abstract Acceptance Notification',   '2026-10-31', 3),
 ('วันจัดการประชุม (ONSITE)',       'Conference Date (ONSITE)',            '2026-11-25', 4),
 ('ดาวน์โหลดใบประกาศนียบัตร',      'Certificate Download Available',      '2026-12-02', 5);
 
@@ -151,8 +151,6 @@ CREATE TABLE IF NOT EXISTS papers (
     paper_code      VARCHAR(30) UNIQUE NOT NULL,
     title_th        TEXT NOT NULL,
     title_en        TEXT NOT NULL,
-    abstract_th     TEXT NOT NULL,
-    abstract_en     TEXT NOT NULL,
     keywords        TEXT NOT NULL,
     theme_id        INT UNSIGNED NOT NULL,
     submitter_id    INT UNSIGNED NOT NULL,
@@ -167,8 +165,7 @@ CREATE TABLE IF NOT EXISTS papers (
     INDEX idx_papers_status    (status_code),
     INDEX idx_papers_theme     (theme_id),
     INDEX idx_papers_code      (paper_code),
-    FULLTEXT INDEX idx_papers_title_en    (title_en),
-    FULLTEXT INDEX idx_papers_abstract_en (abstract_en)
+    FULLTEXT INDEX idx_papers_title_en    (title_en)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================
@@ -179,6 +176,7 @@ CREATE TABLE IF NOT EXISTS paper_co_authors (
     paper_id        INT UNSIGNED NOT NULL,
     full_name       VARCHAR(255) NOT NULL,
     email           VARCHAR(255),
+    phone           VARCHAR(30),
     institution     VARCHAR(255),
     country         VARCHAR(100),
     is_corresponding BOOLEAN NOT NULL DEFAULT FALSE,
@@ -236,9 +234,9 @@ CREATE TABLE IF NOT EXISTS reviews (
     paper_id            INT UNSIGNED NOT NULL,
     reviewer_id         INT UNSIGNED NOT NULL,
     score_originality   NUMERIC(5,2) CHECK (score_originality  BETWEEN 0 AND 25),
-    score_relevance     NUMERIC(5,2) CHECK (score_relevance    BETWEEN 0 AND 20),
-    score_methodology   NUMERIC(5,2) CHECK (score_methodology  BETWEEN 0 AND 20),
-    score_writing       NUMERIC(5,2) CHECK (score_writing      BETWEEN 0 AND 10),
+    score_relevance     NUMERIC(5,2) CHECK (score_relevance    BETWEEN 0 AND 10),
+    score_methodology   NUMERIC(5,2) CHECK (score_methodology  BETWEEN 0 AND 25),
+    score_writing       NUMERIC(5,2) CHECK (score_writing      BETWEEN 0 AND 15),
     score_contribution  NUMERIC(5,2) CHECK (score_contribution BETWEEN 0 AND 25),
     score_overall       NUMERIC(5,2) CHECK (score_overall      BETWEEN 0 AND 100),
     final_score         NUMERIC(4,2),

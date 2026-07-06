@@ -16,11 +16,11 @@ $appUrl = APP_URL;
 
       <!-- Column 1: Brand -->
       <div class="col-lg-4 col-md-6">
-        <img src="<?= $appUrl ?>/assets/images/swu_Logo.png"
+        <img src="<?= asset_ver('/assets/images/swu_Logo.png') ?>"
              alt="SWU Logo"
              class="footer-logo"
              onerror="this.style.display='none'">
-          <img src="<?= $appUrl ?>/assets/images/Guangdong University of Foreign Studies.png"
+          <img src="<?= asset_ver('/assets/images/Guangdong University of Foreign Studies.png') ?>"
             alt="Guangdong University of Foreign Studies"
             class="footer-logo"
             onerror="this.style.display='none'">

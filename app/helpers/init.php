@@ -10,6 +10,12 @@ define('ROOT_PATH_TEMP', dirname(__DIR__, 2));
 
 require_once ROOT_PATH_TEMP . '/app/config/config.php';
 
+// Force UTF-8 output regardless of the host's php.ini default_charset,
+// since the HTTP Content-Type header takes precedence over <meta charset>.
+if (!headers_sent()) {
+    header('Content-Type: text/html; charset=UTF-8');
+}
+
 // Autoloader for App\ namespace (if vendor/autoload not available yet)
 spl_autoload_register(function (string $class): void {
     $prefix = 'App\\';
