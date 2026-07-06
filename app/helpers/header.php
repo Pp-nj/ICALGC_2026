@@ -130,7 +130,7 @@ $appUrl = APP_URL;
            alt="Guangdong University of Foreign Studies"
            class="brand-logo"
            onerror="this.style.display='none'">
-      <span class="text-white fw-bold d-none d-md-inline ms-2" style="font-size:.85rem;">ICALGC 2026</span>
+      <span class="text-white fw-bold d-none d-md-inline ms-2" style="font-size:1.2rem;">ICALGC 2026</span>
     </a>
 
     <!-- Mobile Toggle -->

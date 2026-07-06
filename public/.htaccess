@@ -1,6 +1,18 @@
 Options -Indexes
 Options +FollowSymLinks
 
+RewriteEngine On
+
+# If a request comes in for foo.php, redirect the browser to foo (no extension)
+RewriteCond %{THE_REQUEST} \s/+(.+?)\.php[\s?] [NC]
+RewriteRule ^ /%1 [R=301,L]
+
+# Internally rewrite requests without extension to the matching .php file
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME}\.php -f
+RewriteRule ^(.*)$ $1.php [L]
+
 # Force HTTPS (enable in production)
 # RewriteEngine On
 # RewriteCond %{HTTPS} off

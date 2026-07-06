@@ -6,12 +6,12 @@ $_lang     = lang();
 $appUrl    = APP_URL;
 require_once __DIR__ . '/../app/helpers/header.php';
 ?>
-<div style="background:linear-gradient(135deg,var(--blue-dark),#0057b7);padding:60px 0;color:var(--white);text-align:center;">
+<div style="background:linear-gradient(135deg,var(--blue-dark),#0057b7);padding:60px 16px;color:var(--white);text-align:center;">
   <div class="container">
     <span class="section-label" style="background:rgba(255,255,255,.15);color:var(--gold-light);">
       <?= $_lang==='th'?'ผู้บรรยาย':'Keynote' ?>
     </span>
-    <h1 style="font-size:2.2rem;font-weight:800;color:var(--white);margin-top:12px;">
+    <h1 style="font-size:clamp(1.5rem,5vw,2.2rem);font-weight:800;color:var(--white);margin-top:12px;">
       <?= $_lang==='th'?'ผู้บรรยายพิเศษ':'Keynote Speakers' ?>
     </h1>
     <p style="color:rgba(255,255,255,.8);">ICALGC 2026 — <?= e(CONF_DATE_EN) ?></p>
@@ -28,39 +28,44 @@ require_once __DIR__ . '/../app/helpers/header.php';
     <div class="row g-4 justify-content-center">
 
       <!-- ===== Keynote 1 ===== -->
-      <div class="col-lg-3 col-md-6">
-        <div class="content-card text-center card-hover">
-          <img src="<?= e($appUrl) ?>/assets/images/keynote1.jpg" style="height:280px;object-fit:cover;width:100%;border-radius:var(--radius-lg);" class="mb-4">
+      <div class="col-12 col-sm-6 col-lg-3 d-flex">
+        <div class="content-card text-center card-hover h-100 w-100 d-flex flex-column">
+          <img src="<?= e($appUrl) ?>/assets/images/keynote 1.jpg" style="aspect-ratio:1/1;height:auto;object-fit:cover;object-position:center top;width:100%;border-radius:var(--radius-lg);" class="mb-4" loading="lazy">
           <h3 style="font-size:1rem;font-weight:800;color:var(--blue-dark);">
-            <?= $_lang==='th'?'ผศ.ดร.อัญชลี จันทร์เสม':'Asst. Prof. Dr. Anchalee Jansem' ?>
+            <?= $_lang==='th'?'Professor Liu Zhiqiang, Ph.D.':'Professor Liu Zhiqiang, Ph.D.' ?>
           </h3>
-          <p style="font-size:.85rem;color:var(--gray-500);">
-            <?= $_lang==='th'?'สถาบัน: มหาวิทยาลัยศรีนครินทรวิโรฒ':'Institution: Srinakharinwirot University' ?>
+          <p style="font-size:.85rem;color:var(--gray-500);flex-grow:1;">
+            <?= $_lang==='th'?'คณบดีคณะเอเชียอาคเนย์ศึกษา มหาวิทยาลัยภาษาและการค้าต่างประเทศกวางตุ้ง':'Dean, Faculty of Southeast Asian Studies, Guangdong University of Foreign Studies' ?>
           </p>
-          <span class="keyword-tag" style="background:var(--blue-dark);color:var(--gold);"><?= $_lang==='th'?'ผู้บรรยายพิเศษ 1':'Keynote 1' ?></span>
+          <span class="keyword-tag" style="background:var(--blue-dark);color:var(--gold);align-self:center;"><?= $_lang==='th'?'ผู้บรรยายพิเศษ 1':'Keynote 1' ?></span>
         </div>
       </div>
 
       <!-- ===== Keynote 2 ===== -->
-      <div class="col-lg-3 col-md-6">
-        <div class="content-card text-center card-hover">
-          <div class="rounded-lg mb-4 d-flex align-items-center justify-content-center"
-               style="height:280px;background:linear-gradient(135deg,var(--blue-dark),var(--blue-mid));border-radius:var(--radius-lg);">
-            <div>
-              <i class="fas fa-user-tie fa-4x mb-3" style="color:var(--gold);opacity:.6;"></i>
-              <p style="color:rgba(255,255,255,.5);font-size:.85rem;margin:0;">
-                <?= $_lang==='th'?'โปสเตอร์วิทยากร':'Speaker Poster' ?><br>
-                <?= $_lang==='th'?'(เร็วๆ นี้)':'(Coming Soon)' ?>
-              </p>
-            </div>
-          </div>
+      <div class="col-12 col-sm-6 col-lg-3 d-flex">
+        <div class="content-card text-center card-hover h-100 w-100 d-flex flex-column">
+          <img src="<?= e($appUrl) ?>/assets/images/keynote 2.jpg" style="aspect-ratio:1/1;height:auto;object-fit:cover;object-position:center top;width:100%;border-radius:var(--radius-lg);" class="mb-4" loading="lazy">
           <h3 style="font-size:1rem;font-weight:800;color:var(--blue-dark);">
-            <?= $_lang==='th'?'รอประกาศ':'To Be Announced' ?>
+            <?= $_lang==='th'?'ผศ.ดร.อัญชลี จันทร์เสม':'Asst. Prof. Dr. Anchalee Jansem' ?>
           </h3>
-          <p style="font-size:.85rem;color:var(--gray-500);">
-            <?= $_lang==='th'?'สถาบัน: รอประกาศ':'Institution: To Be Announced' ?>
+          <p style="font-size:.85rem;color:var(--gray-500);flex-grow:1;">
+            <?= $_lang==='th'?'คณบดีคณะมนุษยศาสตร์ มหาวิทยาลัยศรีนครินทรวิโรฒ':'Dean, Faculty of Humanities, Srinakharinwirot University' ?>
           </p>
-          <span class="keyword-tag" style="background:var(--blue-dark);color:var(--gold);"><?= $_lang==='th'?'ผู้บรรยายพิเศษ 2':'Keynote 2' ?></span>
+          <span class="keyword-tag" style="background:var(--blue-dark);color:var(--gold);align-self:center;"><?= $_lang==='th'?'ผู้บรรยายพิเศษ 2':'Keynote 1' ?></span>
+        </div>
+      </div>
+
+      <!-- ===== Keynote 3 ===== -->
+      <div class="col-12 col-sm-6 col-lg-3 d-flex">
+        <div class="content-card text-center card-hover h-100 w-100 d-flex flex-column">
+          <img src="<?= e($appUrl) ?>/assets/images/keynote 3.jpg" style="aspect-ratio:1/1;height:auto;object-fit:cover;object-position:center top;width:100%;border-radius:var(--radius-lg);" class="mb-4" loading="lazy">
+          <h3 style="font-size:1rem;font-weight:800;color:var(--blue-dark);">
+            <?= $_lang==='th'?'Associate Professor Luo Yiyuan':'Associate Professor Luo Yiyuan' ?>
+          </h3>
+          <p style="font-size:.85rem;color:var(--gray-500);flex-grow:1;">
+            <?= $_lang==='th'?'ผู้รับผิดชอบหลักสูตรระดับปริญญาตรี ภาควิชาภาษาไทย มหาวิทยาลัยภาษาและการค้าต่างประเทศกวางตุ้ง':'Undergraduate Program Coordinator, Department of Thai Language, Guangdong University of Foreign Studies' ?>
+          </p>
+          <span class="keyword-tag" style="background:var(--blue-dark);color:var(--gold);align-self:center;"><?= $_lang==='th'?'ผู้บรรยายพิเศษ 3':'Keynote 3' ?></span>
         </div>
       </div>
 

@@ -562,7 +562,7 @@ $savedSpecial   = is_array(post('special_assistance')) ? post('special_assistanc
             'en_s'  => 'Attend lectures & sessions',
           ],
           'student' => [
-            'icon'  => '🎓',
+              'icon'  => '🎓',
             'th'    => 'นักศึกษา',
             'en'    => 'Student',
             'th_s'  => 'ผู้เข้าร่วมในฐานะนักศึกษา',
