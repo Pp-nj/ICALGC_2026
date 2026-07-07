@@ -23,20 +23,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             try {
                 $db   = Database::getInstance();
-                $stmt = $db->prepare("SELECT * FROM users WHERE email = :email AND account_status = 'active' LIMIT 1");
+                $stmt = $db->prepare("SELECT * FROM users WHERE email = :email LIMIT 1");
                 $stmt->execute([':email' => $email]);
                 $user = $stmt->fetch();
 
                 if ($user && password_verify($password, $user['password_hash'])) {
-                    Auth::login($user);
-                    auditLog('login', 'auth', 'User logged in: ' . $email, $user['id']);
+                    if ($user['account_status'] === 'pending') {
+                        $error = $_lang === 'th'
+                            ? 'กรุณายืนยันอีเมลของคุณก่อนเข้าสู่ระบบ ตรวจสอบกล่องจดหมายของคุณ'
+                            : 'Please verify your email before logging in. Check your inbox.';
+                        auditLog('login_failed', 'auth', 'Unverified login attempt: ' . $email);
+                    } elseif ($user['account_status'] !== 'active') {
+                        $error = $_lang === 'th' ? 'บัญชีนี้ถูกระงับการใช้งาน' : 'This account has been suspended.';
+                        auditLog('login_failed', 'auth', 'Suspended login attempt: ' . $email);
+                    } else {
+                        Auth::login($user);
+                        auditLog('login', 'auth', 'User logged in: ' . $email, $user['id']);
 
-                    // Redirect
-                    $redirect = get('redirect');
-                    if ($redirect && strpos($redirect, '/') === 0) {
-                        redirect($redirect);
+                        // Redirect
+                        $redirect = get('redirect');
+                        if ($redirect && strpos($redirect, '/') === 0) {
+                            redirect($redirect);
+                        }
+                        redirect(Auth::dashboardUrl());
                     }
-                    redirect(Auth::dashboardUrl());
                 } else {
                     $error = t('auth.login_error');
                     auditLog('login_failed', 'auth', 'Failed login: ' . $email);

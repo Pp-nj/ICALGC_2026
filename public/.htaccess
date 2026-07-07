@@ -24,7 +24,19 @@ RewriteRule ^(.*)$ $1.php [L]
     Deny from all
 </FilesMatch>
 
-# PHP settings
-php_value upload_max_filesize 20M
-php_value post_max_size 22M
-php_value max_execution_time 120
+# PHP settings (only applies when mod_php is loaded; PHP-FPM/CGI setups ignore this safely)
+<IfModule mod_php.c>
+    php_value upload_max_filesize 20M
+    php_value post_max_size 22M
+    php_value max_execution_time 120
+</IfModule>
+<IfModule mod_php7.c>
+    php_value upload_max_filesize 20M
+    php_value post_max_size 22M
+    php_value max_execution_time 120
+</IfModule>
+<IfModule mod_php8.c>
+    php_value upload_max_filesize 20M
+    php_value post_max_size 22M
+    php_value max_execution_time 120
+</IfModule>

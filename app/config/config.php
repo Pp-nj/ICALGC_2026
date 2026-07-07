@@ -31,6 +31,7 @@ $_detectedUrl = (
 define('APP_URL', rtrim($_detectedUrl, '/'));
 unset($_detectedUrl);
 define('APP_VERSION', '1.0.0');
+define('CSS_VER', APP_VERSION);
 
 // ── Paths ─────────────────────────────────────────────────
 define('ROOT_PATH',        dirname(__DIR__, 2));   // /ICALGC_2026

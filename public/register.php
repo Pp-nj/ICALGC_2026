@@ -79,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                              :email, :phone, :affil, :dept, :pos,
                              :country,
                              :part_type, :dietary, :dietary_allergy,
-                             :hash, 'active')
+                             :hash, 'pending')
                     ");
                     $ins->execute([
                         ':title'           => $finalTitle,
@@ -689,8 +689,8 @@ $savedSpecial   = is_array(post('special_assistance')) ? post('special_assistanc
       <div class="p-3 rounded mb-4" style="background:var(--blue-light,#eff6ff);font-size:.83rem;color:var(--blue-dark,#002864);">
         <i class="fas fa-info-circle me-1"></i>
         <?= $isTh
-          ? 'หลังจากลงทะเบียน ระบบจะส่งอีเมลยืนยันไปที่อีเมลของคุณ กรุณายืนยันก่อนเข้าสู่ระบบ'
-          : 'After registration, a verification email will be sent to your email address. Please verify before logging in.' ?>
+          ? 'หลังจากลงทะเบียน ระบบจะส่งอีเมลยืนยันไปที่อีเมลของคุณ กรุณายืนยันก่อนเข้าสู่ระบบได้ที่จดหมายขยะ (spam)'
+          : 'After registration, a verification email will be sent to your email address. Please confirm your login details in the spam folder.' ?>
       </div>
 
       <!-- Submit -->

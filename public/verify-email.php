@@ -27,7 +27,7 @@ if ($token) {
         } elseif ($row['is_used'] || $row['expires_at'] < date('Y-m-d H:i:s')) {
             $result = 'expired';
         } else {
-            $db->prepare("UPDATE users SET email_verified = TRUE, updated_at = NOW() WHERE id = :uid")
+            $db->prepare("UPDATE users SET email_verified = TRUE, account_status = 'active', updated_at = NOW() WHERE id = :uid")
                ->execute([':uid' => $row['user_id']]);
             $db->prepare("UPDATE email_verifications SET is_used = TRUE WHERE token = :tok")
                ->execute([':tok' => $token]);

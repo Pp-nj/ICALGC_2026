@@ -137,7 +137,7 @@ $hotels = [
               <span style="color:var(--blue-mid);" >+66 (0) 2-649-5000 ext. XXXX</span>
             </div>
             <div class="footer-contact-item"><i class="fas fa-envelope" style="color:var(--blue-mid);"></i>
-              <a href="mailto:icalgc@swu.ac.th" style="color:var(--blue-mid);">icalgc@swu.ac.th</a>
+              <a href="mailto:icalgc2026@gmail.com" style="color:var(--blue-mid);">icalgc2026@gmail.com</a>
             </div>
             <div class="footer-contact-item"><i class="fas fa-clock" style="color:var(--blue-mid);"></i>
               <span style="color:var(--blue-mid);"><?= $_lang==='th'?'จันทร์–ศุกร์ 08:30–16:30 น.':'Mon–Fri 08:30–16:30' ?></span>
@@ -158,7 +158,7 @@ $hotels = [
             <a href="https://hu.swu.ac.th/" target="_blank" rel="noopener noreferrer" class="d-flex align-items-center justify-content-center gap-1 rounded flex-fill" style="background:var(--blue-mid);color:#fff;font-size:.78rem;text-decoration:none;padding:8px 4px;">
               <i class="fas fa-globe"></i> Website
             </a>
-            <a href="mailto:icalgc@swu.ac.th" class="d-flex align-items-center justify-content-center gap-1 rounded flex-fill" style="background:var(--blue-dark);color:#fff;font-size:.78rem;text-decoration:none;padding:8px 4px;">
+            <a href="mailto:icalgc2026@gmail.com" class="d-flex align-items-center justify-content-center gap-1 rounded flex-fill" style="background:var(--blue-dark);color:#fff;font-size:.78rem;text-decoration:none;padding:8px 4px;">
               <i class="fas fa-envelope"></i> Email
             </a>
           </div>

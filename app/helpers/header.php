@@ -7,7 +7,7 @@
  *   $extraCss   - (optional) additional CSS files array
  *   $bodyClass  - (optional) class(es) for <body>
  */
-if (!defined('ROOT_PATH')) require_once __DIR__ . '/init.php';
+if (!defined('ROOT_PATH')) require_once '/home/icalgc/init.php';
 
 use App\Core\Auth;
 use App\Core\Notification;

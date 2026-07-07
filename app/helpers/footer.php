@@ -47,7 +47,7 @@ $appUrl = APP_URL;
           <a href="https://hu.swu.ac.th/" class="social-btn" title="Website" aria-label="Website">
             <i class="fas fa-globe"></i>
           </a>
-          <a href="mailto:icalgc@swu.ac.th" class="social-btn" title="Email" aria-label="Email">
+          <a href="mailto:icalgc2026@gmail.com" class="social-btn" title="Email" aria-label="Email">
             <i class="fas fa-envelope"></i>
           </a>
         </div>
@@ -103,7 +103,7 @@ $appUrl = APP_URL;
         </div>
         <div class="footer-contact-item">
           <i class="fas fa-envelope"></i>
-          <a href="mailto:icalgc@swu.ac.th" style="color:rgba(255,255,255,.7);">icalgc@swu.ac.th</a>
+          <a href="mailto:icalgc2026@gmail.com" style="color:rgba(255,255,255,.7);">icalgc2026@gmail.com</a>
         </div>
         <div class="footer-contact-item">
           <i class="fas fa-globe"></i>

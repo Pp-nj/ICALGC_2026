@@ -226,7 +226,7 @@ class Mail
         <p style="color:#999;font-size:12px;margin:0;">
           Faculty of Humanities, Srinakharinwirot University<br>
           114 Sukhumvit 23, Wattana, Bangkok 10110, Thailand<br>
-          Email: <a href="mailto:icalgc@swu.ac.th" style="color:#003087;">icalgc@swu.ac.th</a>
+          Email: <a href="mailto:icalgc2026@gmail.com" style="color:#003087;">icalgc2026@gmail.com</a>
         </p>
       </td></tr>
     </table>
