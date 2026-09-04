@@ -5,7 +5,8 @@
  * Access control:
  *   cert_id  → owner or admin only
  *   file_id  → admin | paper owner | assigned reviewer
- *   paper_id → public if published, else admin | owner | reviewer
+ *   pub_id   → public (publications listing — paper-linked or admin-added standalone)
+ *   paper_id → admin | owner | reviewer (the author's own paper_files, never public)
  */
 require_once __DIR__ . '/../app/helpers/init.php';
 
@@ -15,8 +16,9 @@ use App\Core\Database;
 $certId  = intGet('cert_id');
 $paperId = intGet('paper_id');
 $fileId  = intGet('file_id');
+$pubId   = intGet('pub_id');
 
-if (!$certId && !$paperId && !$fileId) {
+if (!$certId && !$paperId && !$fileId && !$pubId) {
     http_response_code(400);
     die('Invalid request.');
 }
@@ -68,7 +70,43 @@ if ($certId) {
     exit;
 }
 
-/* ── Paper / file download ────────────────────────────── */
+/* ── Public publication download ──────────────────────── */
+if ($pubId) {
+    try {
+        $stmt = $db->prepare("SELECT * FROM publications WHERE id = :id LIMIT 1");
+        $stmt->execute([':id' => $pubId]);
+        $pub = $stmt->fetch();
+
+        if (!$pub || empty($pub['stored_name'])) { http_response_code(404); die('No file attached to this publication.'); }
+
+        $fullPath = ROOT_PATH . '/uploads/papers/' . $pub['stored_name'];
+        if (!file_exists($fullPath)) { http_response_code(404); die('File not found on server.'); }
+
+        $db->prepare("UPDATE publications SET download_count = download_count + 1 WHERE id = :id")
+           ->execute([':id' => $pubId]);
+
+        auditLog('download', 'publication', 'Downloaded: ' . $pub['original_name']);
+
+        $mime = $pub['file_type'] === 'pdf'
+              ? 'application/pdf'
+              : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+
+        header('Content-Type: ' . $mime);
+        header('Content-Disposition: inline; filename="' . rawurlencode($pub['original_name']) . '"');
+        header('Content-Length: ' . filesize($fullPath));
+        header('Cache-Control: private, max-age=0, must-revalidate');
+        header('X-Content-Type-Options: nosniff');
+        readfile($fullPath);
+        exit;
+
+    } catch (\Throwable $e) {
+        error_log('Download error: ' . $e->getMessage());
+        http_response_code(500);
+        die('Server error.');
+    }
+}
+
+/* ── Paper / file download (author's own paper_files — never public) ── */
 try {
     if ($fileId) {
         Auth::require();
@@ -93,20 +131,19 @@ try {
         if (!$canAccess) { http_response_code(403); die('Access denied.'); }
 
     } else {
+        Auth::require();
+        $user = Auth::user();
+
         $stmt = $db->prepare("SELECT status_code, submitter_id FROM papers WHERE id = :pid LIMIT 1");
         $stmt->execute([':pid' => $paperId]);
         $paper = $stmt->fetch();
 
         if (!$paper) { http_response_code(404); die('Paper not found.'); }
 
-        if ($paper['status_code'] !== 'published') {
-            Auth::require();
-            $user = Auth::user();
-            $canAccess = Auth::isAdmin()
-                      || (int)$paper['submitter_id'] === (int)$user['id']
-                      || Auth::isReviewer();
-            if (!$canAccess) { http_response_code(403); die('Access denied.'); }
-        }
+        $canAccess = Auth::isAdmin()
+                  || (int)$paper['submitter_id'] === (int)$user['id']
+                  || Auth::isReviewer();
+        if (!$canAccess) { http_response_code(403); die('Access denied.'); }
 
         $fileStmt = $db->prepare("
             SELECT * FROM paper_files
@@ -117,7 +154,7 @@ try {
         $fileStmt->execute([':pid' => $paperId]);
         $file = $fileStmt->fetch();
 
-        if (!$file) { http_response_code(404); die('No file attached to this paper.'); }
+        if (!$file || empty($file['stored_name'])) { http_response_code(404); die('No file attached to this paper.'); }
     }
 
     $fullPath = ROOT_PATH . '/uploads/papers/' . $file['stored_name'];
@@ -125,11 +162,6 @@ try {
     if (!file_exists($fullPath)) {
         http_response_code(404);
         die('File not found on server.');
-    }
-
-    if ($paperId) {
-        $db->prepare("UPDATE publications SET download_count = download_count + 1 WHERE paper_id = :pid")
-           ->execute([':pid' => $paperId]);
     }
 
     auditLog('download', 'paper', 'Downloaded: ' . $file['original_name']);

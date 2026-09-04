@@ -1,10 +1,12 @@
 <?php
 require_once __DIR__ . '/../app/helpers/init.php';
+require_once __DIR__ . '/../app/helpers/recaptcha.php'; 
 
 use App\Core\Auth;
 use App\Core\Database;
 use App\Core\Mail;
 use App\Core\Notification;
+
 
 Auth::redirectIfLoggedIn();
 
@@ -17,6 +19,10 @@ $csrf    = Auth::csrfToken();
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!Auth::verifyCsrf(post('csrf_token'))) {
         $error = 'Invalid request. Please try again.';
+    } elseif (!verifyRecaptcha(post('g-recaptcha-response'))) {
+        $error = $_lang === 'th'
+            ? 'กรุณายืนยันว่าคุณไม่ใช่โปรแกรมอัตโนมัติ'
+            : 'Please verify that you are not a robot.';
     } else {
         $title         = sanitize(post('title'));
         $titleOther    = sanitize(post('title_other'));
@@ -108,7 +114,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     Mail::sendEmailVerification($email, $fname . ' ' . $lname, $token);
                     auditLog('register', 'auth', 'New author: ' . $email, $userId);
                     flashSet('success', t('auth.register_success'));
-                    redirect('/login.php');
+                    redirect(APP_URL . '/login.php');
                 }
             } catch (\Throwable $e) {
                 $errors[] = 'System error. Please try again.';
@@ -220,6 +226,7 @@ $savedSpecial   = is_array(post('special_assistance')) ? post('special_assistanc
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
   <link rel="stylesheet" href="<?= $appUrl ?>/assets/css/style.css">
+  
   <style>
     .reg-section-header {
       font-size: .95rem;
@@ -341,6 +348,7 @@ $savedSpecial   = is_array(post('special_assistance')) ? post('special_assistanc
     .step-dot.active { background: var(--blue-dark, #002864); color: #fff; }
     .step-dot.done { background: #059669; color: #fff; }
   </style>
+  <script src="https://www.google.com/recaptcha/api.js?hl={{ app()->getLocale() }}" async defer></script>
 </head>
 <body>
 
@@ -691,6 +699,11 @@ $savedSpecial   = is_array(post('special_assistance')) ? post('special_assistanc
         <?= $isTh
           ? 'หลังจากลงทะเบียน ระบบจะส่งอีเมลยืนยันไปที่อีเมลของคุณ กรุณายืนยันก่อนเข้าสู่ระบบได้ที่จดหมายขยะ (spam)'
           : 'After registration, a verification email will be sent to your email address. Please confirm your login details in the spam folder.' ?>
+      </div>
+
+      <!-- Google reCAPTCHA -->
+      <div class="mb-4 d-flex justify-content-center">
+        <div class="g-recaptcha" data-sitekey="6LddPZAtAAAAACzFAlFyvot2rVKbsJkwgmD2ZNIR"></div>
       </div>
 
       <!-- Submit -->

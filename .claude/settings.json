@@ -5,7 +5,12 @@
       "Bash(/d/xampp/php/php.exe -r ' *)",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost/ICALGC_2026/public/login.php)",
       "Read(//c/Program Files/Google/Chrome/Application/**)",
-      "Read(//c/Program Files \\(x86\\)/Google/Chrome/Application/**)"
+      "Read(//c/Program Files \\(x86\\)/Google/Chrome/Application/**)",
+      "Bash(php -l \"d:/xampp/htdocs/ICALGC_2026/public/admin/users.php\")",
+      "Bash(php.exe -l \"d:/xampp/htdocs/ICALGC_2026/public/admin/users.php\")",
+      "Bash(\"/d/xampp/mysql/bin/mysql.exe\" -h127.0.0.1 -P3307 -uroot icalgc2026 -e \"SELECT CONSTRAINT_NAME, DELETE_RULE FROM information_schema.REFERENTIAL_CONSTRAINTS WHERE CONSTRAINT_SCHEMA='icalgc2026' AND TABLE_NAME='reviews';\")",
+      "Bash(\"/d/xampp/mysql/bin/mysql.exe\" -h127.0.0.1 -P3307 -uroot icalgc2026 -e \"SELECT CONSTRAINT_NAME, DELETE_RULE FROM information_schema.REFERENTIAL_CONSTRAINTS WHERE CONSTRAINT_SCHEMA='icalgc2026' AND TABLE_NAME='publications';\")",
+      "Bash(/d/xampp/mysql/bin/mysql.exe -h127.0.0.1 -P3307 -uroot icalgc2026 -e ' *)"
     ]
   }
 }

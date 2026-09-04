@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $valid) {
                 auditLog('reset_password', 'auth', 'Password reset completed', $userId);
                 $success = true;
                 flashSet('success', t('auth.password_reset_ok'));
-                redirect('/login.php');
+                redirect(APP_URL . '/login.php');
             } catch (\Throwable $e) {
                 $error = 'System error. Please try again.';
                 error_log($e->getMessage());

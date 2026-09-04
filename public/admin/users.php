@@ -13,10 +13,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     Auth::verifyCsrf(post('csrf_token'));
     $userId = intPost('user_id');
     $action = post('action');
-    if ($userId && in_array($action, ['suspend', 'activate', 'reset_password'])) {
+    if ($userId && in_array($action, ['suspend', 'activate', 'reset_password', 'delete'])) {
         try {
             $db = Database::getInstance();
-            if ($action === 'reset_password') {
+            if ($action === 'delete') {
+                if ($userId === Auth::id()) {
+                    flashSet('danger', $_lang==='th' ? 'ไม่สามารถลบบัญชีของตนเองได้' : 'You cannot delete your own account.');
+                } else {
+                    try {
+                        $del = $db->prepare("DELETE FROM users WHERE id = :uid");
+                        $del->execute([':uid' => $userId]);
+                        if ($del->rowCount() > 0) {
+                            auditLog('delete_user', 'users', "Admin deleted user $userId");
+                            flashSet('success', $_lang==='th' ? 'ลบบัญชีผู้ใช้เรียบร้อย' : 'User account deleted.');
+                        }
+                    } catch (\Throwable $fkE) {
+                        flashSet('danger', $_lang==='th'
+                            ? 'ไม่สามารถลบบัญชีนี้ได้ เนื่องจากมีข้อมูล (บทคัดย่อ, การรีวิว ฯลฯ) ผูกอยู่ กรุณาระงับบัญชีแทน'
+                            : 'Cannot delete this account — it has related records (papers, reviews, etc). Suspend the account instead.');
+                    }
+                }
+            } elseif ($action === 'reset_password') {
                 $newPwd = post('new_password');
                 if (strlen($newPwd) < 8) {
                     flashSet('danger', $_lang==='th' ? 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร' : 'Password must be at least 8 characters.');
@@ -42,12 +59,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $search     = sanitize(get('q'));
 $roleFilter = sanitize(get('role'));
+$partFilter = sanitize(get('part_type'));
 $page       = max(1, intGet('page', 1));
 $perPage    = 20;
 
 $where  = ['1=1'];
 $params = [];
 if ($roleFilter) { $where[] = "u.role = :role"; $params[':role'] = $roleFilter; }
+if ($partFilter) { $where[] = "u.participation_type = :part_type"; $params[':part_type'] = $partFilter; }
 
 try {
     $db = Database::getInstance();
@@ -132,9 +151,18 @@ $activeMenu = 'users';
           </select>
         </div>
         <div class="col-md-2">
-          <button type="submit" class="btn-primary-custom w-100" style="font-size:.85rem;"><i class="fas fa-search"></i></button>
+          <select name="part_type" class="form-select">
+            <option value=""><?= $_lang==='th' ? 'ทุกประเภท' : 'All Types' ?></option>
+            <option value="presenter" <?= $partFilter==='presenter'?'selected':'' ?>><?= $_lang==='th' ? 'ผู้นำเสนอผลงาน' : 'Presenter' ?></option>
+            <option value="coauthor" <?= $partFilter==='coauthor'?'selected':'' ?>><?= $_lang==='th' ? 'ผู้ร่วมแต่ง' : 'Co-author' ?></option>
+            <option value="participant" <?= $partFilter==='participant'?'selected':'' ?>><?= $_lang==='th' ? 'ผู้เข้าร่วม' : 'Participant' ?></option>
+            <option value="student" <?= $partFilter==='student'?'selected':'' ?>><?= $_lang==='th' ? 'นักศึกษา' : 'Student' ?></option>
+          </select>
         </div>
         <div class="col-md-2">
+          <button type="submit" class="btn-primary-custom w-100" style="font-size:.85rem;"><i class="fas fa-search"></i></button>
+        </div>
+        <div class="col-md-1">
           <a href="?" class="btn btn-outline-secondary w-100 rounded-pill"><?= $_lang==='th' ? 'ล้าง' : 'Clear' ?></a>
         </div>
       </div>
@@ -153,6 +181,7 @@ $activeMenu = 'users';
                 <th><?= $_lang==='th' ? 'อีเมล' : 'Email' ?></th>
                 <th><?= $_lang==='th' ? 'สังกัด' : 'Affiliation' ?></th>
                 <th><?= $_lang==='th' ? 'บทบาท' : 'Role' ?></th>
+                <th><?= $_lang==='th' ? 'ประเภทการเข้าร่วม' : 'Participation' ?></th>
                 <th><?= $_lang==='th' ? 'บทคัดย่อ' : 'Papers' ?></th>
                 <th><?= $_lang==='th' ? 'สถานะ' : 'Status' ?></th>
                 <th><?= $_lang==='th' ? 'สมัคร' : 'Registered' ?></th>
@@ -160,8 +189,16 @@ $activeMenu = 'users';
               </tr>
             </thead>
             <tbody>
-              <?php foreach ($users as $u):
+              <?php
+              $partLabels = [
+                'presenter'   => ['th'=>'ผู้นำเสนอผลงาน','en'=>'Presenter','color'=>'#0f5132'],
+                'coauthor'    => ['th'=>'ผู้ร่วมแต่ง','en'=>'Co-author','color'=>'#664d03'],
+                'participant' => ['th'=>'ผู้เข้าร่วม','en'=>'Participant','color'=>'#495057'],
+                'student'     => ['th'=>'นักศึกษา','en'=>'Student','color'=>'#055160'],
+              ];
+              foreach ($users as $u):
                 $roleColor = ['author'=>'#0057b7','reviewer'=>'#6f42c1','admin'=>'#dc3545'][$u['role']] ?? '#6c757d';
+                $partInfo  = $partLabels[$u['participation_type']] ?? null;
               ?>
                 <tr>
                   <td style="font-weight:600;font-size:.88rem;">
@@ -176,6 +213,15 @@ $activeMenu = 'users';
                     <span class="badge rounded-pill" style="background:<?= $roleColor ?>;color:#fff;font-size:.72rem;">
                       <?= ucfirst($u['role']) ?>
                     </span>
+                  </td>
+                  <td>
+                    <?php if ($partInfo): ?>
+                      <span class="badge rounded-pill" style="background:<?= $partInfo['color'] ?>;color:#fff;font-size:.72rem;">
+                        <?= $_lang==='th' ? $partInfo['th'] : $partInfo['en'] ?>
+                      </span>
+                    <?php else: ?>
+                      <span style="color:var(--gray-500);font-size:.78rem;">—</span>
+                    <?php endif; ?>
                   </td>
                   <td style="text-align:center;font-weight:700;font-size:.88rem;color:var(--blue-dark);"><?= (int)$u['paper_count'] ?></td>
                   <td>
@@ -214,6 +260,15 @@ $activeMenu = 'users';
                               title="<?= $_lang==='th'?'ตั้งค่ารหัสผ่านใหม่':'Reset Password' ?>">
                         <i class="fas fa-key"></i>
                       </button>
+                      <form method="POST" class="d-inline" onsubmit="return confirm('<?= $_lang==='th'?'ยืนยันการลบบัญชีนี้อย่างถาวร? การกระทำนี้ไม่สามารถย้อนกลับได้':'Permanently delete this account? This cannot be undone.' ?>');">
+                        <input type="hidden" name="csrf_token" value="<?= Auth::csrfToken() ?>">
+                        <input type="hidden" name="user_id" value="<?= (int)$u['id'] ?>">
+                        <input type="hidden" name="action" value="delete">
+                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill" style="font-size:.72rem;"
+                                title="<?= $_lang==='th'?'ลบบัญชี':'Delete Account' ?>">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </form>
                     <?php endif; ?>
                   </td>
                 </tr>

@@ -3,13 +3,75 @@ require_once __DIR__ . '/../../app/helpers/init.php';
 
 use App\Core\Auth;
 use App\Core\Database;
+use App\Core\Notification;
+use App\Core\Mail;
 
 Auth::require('admin');
 $_lang  = lang();
 $appUrl = APP_URL;
 
-$paperId = intGet('id');
+$paperId = intGet('id') ?: intPost('paper_id');
 if (!$paperId) { redirect($appUrl . '/admin/papers.php'); }
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array(post('action'), ['publish', 'unpublish'], true)) {
+    Auth::verifyCsrf(post('csrf_token'));
+    $action = post('action');
+
+    try {
+        $db = Database::getInstance();
+
+        if ($action === 'publish') {
+            // Publishing here only flips the paper's own status and notifies the
+            // author. It has zero effect on `publications` — that table is managed
+            // entirely, separately by the admin on the Publications page.
+            $pStmt = $db->prepare("SELECT * FROM papers WHERE id = :id AND status_code = 'accepted'");
+            $pStmt->execute([':id' => $paperId]);
+            $paper = $pStmt->fetch();
+
+            if (!$paper) {
+                flashSet('error', $_lang==='th' ? 'บทคัดย่อไม่ได้อยู่ในสถานะยอมรับ' : 'Paper is not in accepted status.');
+            } else {
+                $db->prepare("UPDATE papers SET status_code = 'published', updated_at = NOW() WHERE id = :id")
+                   ->execute([':id' => $paperId]);
+
+                $submitterStmt = $db->prepare("SELECT * FROM users WHERE id = :uid");
+                $submitterStmt->execute([':uid' => $paper['submitter_id']]);
+                $submitter = $submitterStmt->fetch();
+
+                Notification::paperPublished((int)$paper['submitter_id'], $paper['paper_code'], (int)$paperId);
+                auditLog('publish_paper', 'papers', "Published paper {$paper['paper_code']}", Auth::id());
+
+                try {
+                    Mail::sendPublished($submitter['email'], $submitter['first_name'] . ' ' . $submitter['last_name'], $paper['paper_code'], $paper['title_en']);
+                } catch (\Throwable $mailErr) {
+                    error_log('Mail::sendPublished failed: ' . $mailErr->getMessage());
+                }
+
+                flashSet('success', $_lang==='th' ? 'เผยแพร่บทคัดย่อเรียบร้อย ผู้แต่งได้รับการแจ้งเตือนแล้ว' : 'Paper published. The author has been notified.');
+            }
+        } else {
+            $pStmt = $db->prepare("SELECT * FROM papers WHERE id = :id AND status_code = 'published'");
+            $pStmt->execute([':id' => $paperId]);
+            $paper = $pStmt->fetch();
+
+            if (!$paper) {
+                flashSet('error', $_lang==='th' ? 'บทคัดย่อไม่ได้อยู่ในสถานะเผยแพร่' : 'Paper is not published.');
+            } else {
+                $db->prepare("UPDATE papers SET status_code = 'accepted', updated_at = NOW() WHERE id = :id")
+                   ->execute([':id' => $paperId]);
+                Notification::paperUnpublished((int)$paper['submitter_id'], $paper['paper_code'], (int)$paperId);
+                auditLog('unpublish_paper', 'papers', "Unpublished paper {$paper['paper_code']}", Auth::id());
+                flashSet('success', $_lang==='th' ? 'ยกเลิกการเผยแพร่เรียบร้อย' : 'Paper unpublished.');
+            }
+        }
+    } catch (\Throwable $e) {
+        if (isset($db) && $db->inTransaction()) $db->rollBack();
+        error_log($e->getMessage());
+        flashSet('error', $_lang==='th' ? 'เกิดข้อผิดพลาด' : 'An error occurred.');
+    }
+
+    redirect($appUrl . '/admin/paper-detail.php?id=' . $paperId);
+}
 
 try {
     $db = Database::getInstance();
@@ -91,7 +153,7 @@ $activeMenu = 'papers';
           <i class="fas fa-history me-2"></i><?= $_lang==='th' ? 'ประวัติทั้งหมด' : 'Full History' ?>
         </a>
         <a href="<?= $appUrl ?>/admin/assign-reviewer.php?paper_id=<?= $paperId ?>" class="btn-outline-custom">
-          <i class="fas fa-user-plus me-2"></i><?= $_lang==='th' ? 'มอบหมายผู้ทรง' : 'Assign Reviewer' ?>
+          <i class="fas fa-user-plus me-2"></i><?= $_lang==='th' ? 'มอบหมายผู้ทรงคุณวุฒิ' : 'Assign Reviewer' ?>
         </a>
         <a href="<?= $appUrl ?>/admin/final-decision.php?paper_id=<?= $paperId ?>" class="btn-primary-custom">
           <i class="fas fa-gavel me-2"></i><?= $_lang==='th' ? 'ตัดสินผล' : 'Final Decision' ?>
@@ -325,9 +387,13 @@ $activeMenu = 'papers';
               <i class="fas fa-gavel me-2"></i><?= $_lang==='th' ? 'ตัดสินผลบทคัดย่อ' : 'Final Decision' ?>
             </a>
             <?php if ($paper['status_code'] === 'accepted'): ?>
-              <a href="<?= $appUrl ?>/admin/publications.php?paper_id=<?= $paperId ?>" class="btn btn-success rounded-pill text-center py-2 text-decoration-none">
+              <button type="button" class="btn btn-success rounded-pill py-2" onclick="new bootstrap.Modal(document.getElementById('publishModal')).show()">
                 <i class="fas fa-globe me-2"></i><?= $_lang==='th' ? 'เผยแพร่บทคัดย่อ' : 'Publish Paper' ?>
-              </a>
+              </button>
+            <?php elseif ($paper['status_code'] === 'published'): ?>
+              <button type="button" class="btn btn-outline-danger rounded-pill py-2" onclick="new bootstrap.Modal(document.getElementById('unpublishModal')).show()">
+                <i class="fas fa-ban me-2"></i><?= $_lang==='th' ? 'ยกเลิกการเผยแพร่' : 'Unpublish' ?>
+              </button>
             <?php endif; ?>
             <a href="<?= $appUrl ?>/admin/papers.php" class="btn-outline-custom text-center">
               <i class="fas fa-arrow-left me-2"></i><?= $_lang==='th' ? 'กลับรายการ' : 'Back to List' ?>
@@ -347,6 +413,62 @@ $activeMenu = 'papers';
           <?php endforeach; ?>
         </div>
         <?php endif; ?>
+      </div>
+    </div>
+
+    <!-- Publish Modal -->
+    <div class="modal fade" id="publishModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header" style="background:var(--blue-dark);color:#fff;">
+            <h5 class="modal-title"><i class="fas fa-globe me-2"></i><?= $_lang==='th' ? 'เผยแพร่บทคัดย่อ' : 'Publish Paper' ?></h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <form method="POST">
+            <input type="hidden" name="csrf_token" value="<?= Auth::csrfToken() ?>">
+            <input type="hidden" name="action" value="publish">
+            <input type="hidden" name="paper_id" value="<?= $paperId ?>">
+            <div class="modal-body">
+              <p style="font-size:.88rem;color:var(--gray-600);">
+                <?= $_lang==='th'
+                  ? 'สถานะจะเปลี่ยนเป็น "เผยแพร่แล้ว" และผู้แต่งจะได้รับการแจ้งเตือนทันที '
+                  : 'Status changes to "Published" and the author is notified immediately.' ?>
+              </p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"><?= $_lang==='th'?'ยกเลิก':'Cancel' ?></button>
+              <button type="submit" class="btn-primary-custom"><i class="fas fa-globe me-2"></i><?= $_lang==='th'?'เผยแพร่':'Publish' ?></button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Unpublish Modal -->
+    <div class="modal fade" id="unpublishModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header" style="background:#dc3545;color:#fff;">
+            <h5 class="modal-title"><i class="fas fa-ban me-2"></i><?= $_lang==='th' ? 'ยกเลิกการเผยแพร่' : 'Unpublish Paper' ?></h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <form method="POST">
+            <input type="hidden" name="csrf_token" value="<?= Auth::csrfToken() ?>">
+            <input type="hidden" name="action" value="unpublish">
+            <input type="hidden" name="paper_id" value="<?= $paperId ?>">
+            <div class="modal-body">
+              <p style="font-size:.88rem;color:var(--gray-600);">
+                <?= $_lang==='th'
+                  ? 'บทคัดย่อนี้จะถูกถอดออกและสถานะจะเปลี่ยนกลับเป็น "ยอมรับแล้ว" ผู้แต่งจะได้รับการแจ้งเตือน'
+                  : 'This paper will be removed and its status reverted to "Accepted". The author will be notified.' ?>
+              </p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"><?= $_lang==='th'?'ยกเลิก':'Cancel' ?></button>
+              <button type="submit" class="btn btn-danger"><i class="fas fa-ban me-2"></i><?= $_lang==='th'?'ยืนยันยกเลิกการเผยแพร่':'Confirm Unpublish' ?></button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   </main>

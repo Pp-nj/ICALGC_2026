@@ -91,9 +91,15 @@ $m = $messages[$result];
     </h2>
     <div class="alert <?= $m['alert'] ?>"><?= e($m['msg']) ?></div>
 
-    <a href="<?= $appUrl ?>/login.php" class="btn w-100 py-3 fw-bold mt-3" style="background:var(--blue-dark);color:var(--white);border-radius:8px;">
-      <i class="fas fa-sign-in-alt me-2"></i><?= t('auth.login') ?>
-    </a>
+    <?php if ($result === 'expired'): ?>
+      <a href="<?= $appUrl ?>/resend-verification.php" class="btn w-100 py-3 fw-bold mt-3" style="background:var(--blue-dark);color:var(--white);border-radius:8px;">
+        <i class="fas fa-paper-plane me-2"></i><?= $_lang==='th' ? 'ส่งอีเมลยืนยันใหม่' : 'Resend Verification Email' ?>
+      </a>
+    <?php else: ?>
+      <a href="<?= $appUrl ?>/login.php" class="btn w-100 py-3 fw-bold mt-3" style="background:var(--blue-dark);color:var(--white);border-radius:8px;">
+        <i class="fas fa-sign-in-alt me-2"></i><?= t('auth.login') ?>
+      </a>
+    <?php endif; ?>
     <a href="<?= $appUrl ?>/" class="d-block mt-3" style="font-size:.85rem;color:var(--gray-500);">
       <i class="fas fa-home me-1"></i><?= $_lang==='th'?'หน้าหลัก':'Home' ?>
     </a>

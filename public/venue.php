@@ -134,7 +134,7 @@ $hotels = [
               <span style="color:var(--blue-mid);" ><?= $_lang==='th'?'114 ซอยสุขุมวิท 23 เขตวัฒนา กรุงเทพฯ 10110':'114 Sukhumvit 23, Wattana, Bangkok 10110' ?></span>
             </div>
             <div class="footer-contact-item"><i class="fas fa-phone" style="color:var(--blue-mid);"></i>
-              <span style="color:var(--blue-mid);" >+66 (0) 2-649-5000 ext. XXXX</span>
+              <span style="color:var(--blue-mid);" ><?= $_lang==='th' ? '(+66) 02-649-5000 ต่อ. 16292' : '(+66) 02-649-5000 ext. 16292' ?></span>
             </div>
             <div class="footer-contact-item"><i class="fas fa-envelope" style="color:var(--blue-mid);"></i>
               <a href="mailto:icalgc2026@gmail.com" style="color:var(--blue-mid);">icalgc2026@gmail.com</a>
@@ -149,7 +149,7 @@ $hotels = [
             <i class="fas fa-share-alt me-2" style="color:var(--gold);"></i><?= $_lang==='th'?'โซเชียลมีเดีย':'Social Media' ?>
           </div>
           <div class="d-flex flex-nowrap gap-2 mt-3">
-            <a href="https://www.facebook.com/swu.humanities" target="_blank" rel="noopener noreferrer" class="d-flex align-items-center justify-content-center gap-1 rounded flex-fill" style="background:#1877f2;color:#fff;font-size:.78rem;text-decoration:none;padding:8px 4px;">
+            <a href="https://www.facebook.com/people/Icalgc-2026-International-Conference-on-ASEAN-Languages-in-Global-Contexts/61591532801584/" target="_blank" rel="noopener noreferrer" class="d-flex align-items-center justify-content-center gap-1 rounded flex-fill" style="background:#1877f2;color:#fff;font-size:.78rem;text-decoration:none;padding:8px 4px;">
               <i class="fab fa-facebook-f"></i> Facebook
             </a>
             <a href="https://www.instagram.com/swu.humanities" target="_blank" rel="noopener noreferrer" class="d-flex align-items-center justify-content-center gap-1 rounded flex-fill" style="background:#e1306c;color:#fff;font-size:.78rem;text-decoration:none;padding:8px 4px;">

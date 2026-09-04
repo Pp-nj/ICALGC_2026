@@ -143,10 +143,142 @@ require_once __DIR__ . '/../app/helpers/header.php';
           <p><?= $_lang==='th' ? 'สถานที่จัดงานและข้อมูลติดต่อ' : 'Venue details and contact info' ?></p>
         </a>
       </div>
+    </div>
+  </div>
+</section>
 
-      
+<!-- ════════════════════════════════════
+     ANNOUNCEMENTS PREVIEW
+     ════════════════════════════════════ -->
+<section class="announce-section page-section">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-label"><?= $_lang==='th' ? 'ข่าวสาร' : 'Latest News' ?></span>
+      <h2 class="section-title"><?= t('announce.title') ?></h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <div class="row g-4">
+      <!-- Announcement Card 1 -->
+      <div class="col-md-4">
+        <div class="announce-card h-100">
+          <div class="announce-card-img">
+            <img src="<?= $appUrl ?>/assets/images/announcements1.jpg" alt="">
+            <span class="ann-date-badge"><i class="far fa-calendar-alt" style="margin-right:4px;opacity:.7;"></i>
+            <?= $_lang==='th'
+                ? '6 ก.ค. 2569'
+                : '6 Jul 2026' ?></span>
+          </div>
+          <div class="announce-card-body">
+            <span class="announce-tag ann-cat--announcements"><?= $_lang==='th' ? 'บทคัดย่อ' : 'Abstract' ?></span>
+            <h3 class="announce-card-title">
+              <?= $_lang==='th'
+                ? '🚨 เปิดรับบทคัดย่อ ICALGC 2026 แล้ววันนี้'
+                : '🚨 ICALGC 2026 Abstract Submission is Now Open' ?>
+            </h3>
+            <p class="announce-card-text">
+              <?= $_lang==='th'
+                ? "✨คณะมนุษยศาสตร์ มหาวิทยาลัยศรีนครินทรวิโรฒ ร่วมกับ Guangdong University of Foreign Studies สาธารณรัฐประชาชนจีน เป็นเจ้าภาพในการจัดประชุมวิชาการระดับนานาชาติ
+              หัวข้อ “ภาษาอาเซียนในบริบทโลก” 
+              📅 วันที่ 25 พฤศจิกายน 2569 
+              📍 ณ หอดนตรีและการแสดงอโศกมนตรี ชั้น 4 อาคารนวัตกรรม : ศาสตราจารย์ ดร.สาโรช บัวศรี มหาวิทยาลัยศรีนครินทรวิโรฒ"
+                : "✨The Faculty of Humanities, Srinakharinwirot University in collaboration with Guangdong University of Foreign Studies, China, cordially invites researchers, scholars, faculty members, students, and interested participants to submit abstracts for the International Conference on 
+              'ASEAN Languages in the Global Context.'
+              📅 Conference Date : 25 November 2026
+              📍 Venue : Asok-Montri Music and Performing Arts Hall, 4th Floor, Innovation Building: Professor Dr. Saroj Buasri, Srinakharinwirot University" ?>
+            </p>
+          </div>
+          <div class="announce-card-footer">
+            <a href="<?= $appUrl ?>/announcements.php" class="ann-read-btn">
+              <?= t('announce.read_more') ?> <i class="fas fa-arrow-right" style="font-size:.75rem;"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Announcement Card 2 -->
+        <div class="col-md-4">
+        <div class="announce-card h-100">
+          <div class="announce-card-img">
+            <img src="<?= $appUrl ?>/assets/images/announcements3.jpg" alt="">
+            <span class="ann-date-badge"><i class="far fa-calendar-alt" style="margin-right:4px;opacity:.7;"></i>
+              <?= $_lang==='th'
+                ? '14 ก.ค. 2569'
+                : '14 Jul 2026' ?></span></span>
+          </div>
+          <div class="announce-card-body">
+            <span class="announce-tag ann-cat--announcements"><?= $_lang==='th' ? 'ผู้บรรยายพิเศษ' : 'Keynote' ?></span>
+            <h3 class="announce-card-title">
+              <?= $_lang==='th'
+                ? '🎤 ปาฐกถาพิเศษจากวิทยากรผู้ทรงคุณวุฒิ'
+                : '🎤 Special keynote lectures by distinguished speakers' ?>
+            </h3>
+            <p class="announce-card-text">
+              <?= $_lang==='th'
+                ? "✨ คณะมนุษยศาสตร์ มหาวิทยาลัยศรีนครินทรวิโรฒ ร่วมกับ คณะเอเชียอาคเนย์ศึกษา Guangdong University of Foreign Studies
+                ขอเชิญชวนผู้สนใจรับฟังปาฐกถาพิเศษจากวิทยากรผู้ทรงคุณวุฒิ
+                ในการประชุมวิชาการระดับนานาชาติในหัวข้อ \n
+                'ภาษาอาเซียนในบริบทโลก' 
+                ASEAN Languages in Global Context \n"
+                : "✨ The Faculty of Humanities, Srinakharinwirot University, in collaboration with the Faculty of Southeast Asian Studies, Guangdong University of Foreign Studies,
+                cordially invites all interested individuals to attend special keynote lectures by distinguished speakers
+                at the International Academic Conference on the topic: \n
+                'ASEAN Languages in Global Context' \n" ?>
+            </p>
+          </div>
+          <div class="announce-card-footer">
+            <a href="<?= $appUrl ?>/announcements.php" class="ann-read-btn">
+              <?= t('announce.read_more') ?> <i class="fas fa-arrow-right" style="font-size:.75rem;"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Announcement Card 3 -->
+       <div class="col-md-4">
+        <div class="announce-card h-100">
+          <div class="announce-card-img">
+            <img src="<?= $appUrl ?>/assets/images/announcements4.jpg" alt="">
+            <span class="ann-date-badge"><i class="far fa-calendar-alt" style="margin-right:4px;opacity:.7;"></i>
+              <?= $_lang==='th'
+                ? '18 ส.ค. 2569'
+                : '18 Aug 2026' ?></span></span>
+          </div>
+          <div class="announce-card-body">
+            <span class="announce-tag ann-cat--announcements"><?= $_lang==='th' ? 'ผู้บรรยายพิเศษ' : 'Keynote' ?></span>
+            <h3 class="announce-card-title">
+              <?= $_lang==='th'
+                ? '🎤 พบกับการเสวนาในหัวข้อ “การสอนภาษาอาเซียนในบริบทโลก”'
+                : '🎤 Join our Panel Discussion on “Teaching ASEAN Languages in a Global Context”' ?>
+            </h3>
+            <p class="announce-card-text">
+              <?= $_lang==='th'
+                ? "🌏คณะมนุษยศาสตร์ มหาวิทยาลัยศรีนครินทรวิโรฒ ร่วมกับ คณะเอเชียอาคเนย์ศึกษา Guangdong University of Foreign Studies สาธารณรัฐประชาชนจีน เป็นเจ้าภาพในการจัดประชุมวิชาการระดับนานาชาติ  “ภาษาอาเซียนในบริบทโลก” International Academic Conference: ASEAN Languages in Global Context \n
+                พบกับการเสวนาในหัวข้อ
+                🎓 “การสอนภาษาอาเซียนในบริบทโลก”
+                “Teaching ASEAN Languages in a Global Context” \n"
+                : "✨ 🌏 International Academic Conference: ASEAN Languages in Global Context \n
+                Join our Panel Discussion on
+                🎓 “Teaching ASEAN Languages in a Global Context”
+                with experts from 3 universities. \n" ?>
+            </p>
+          </div>
+          <div class="announce-card-footer">
+            <a href="<?= $appUrl ?>/announcements.php" class="ann-read-btn">
+              <?= t('announce.read_more') ?> <i class="fas fa-arrow-right" style="font-size:.75rem;"></i>
+            </a>
+          </div>
+        </div>
+      </div>
 
     </div>
+
+    <div class="text-center mt-5">
+      <a href="<?= $appUrl ?>/announcements.php" class="btn-primary-custom">
+        <?= t('announce.view_all') ?> <i class="fas fa-arrow-right ms-2"></i>
+      </a>
+    </div>
+
   </div>
 </section>
 
@@ -205,119 +337,6 @@ require_once __DIR__ . '/../app/helpers/header.php';
   </div>
 </section>
 
-<!-- ════════════════════════════════════
-     ANNOUNCEMENTS PREVIEW
-     ════════════════════════════════════ -->
-<section class="announce-section page-section">
-  <div class="container">
-    <div class="section-header">
-      <span class="section-label"><?= $_lang==='th' ? 'ข่าวสาร' : 'Latest News' ?></span>
-      <h2 class="section-title"><?= t('announce.title') ?></h2>
-      <div class="section-divider"></div>
-    </div>
-
-    <div class="row g-4">
-      <!-- Announcement Card 1 -->
-      <div class="col-md-4">
-        <div class="announce-card h-100">
-          <div class="announce-card-img">
-            <img src="<?= $appUrl ?>/assets/images/announcements1.jpg" alt="">
-            <span class="ann-date-badge"><i class="far fa-calendar-alt" style="margin-right:4px;opacity:.7;"></i>6 July 2026</span>
-          </div>
-          <div class="announce-card-body">
-            <span class="announce-tag ann-cat--announcements"><?= $_lang==='th' ? 'บทคัดย่อ' : 'Abstract' ?></span>
-            <h3 class="announce-card-title">
-              <?= $_lang==='th'
-                ? 'เปิดรับบทคัดย่อ ICALGC 2026 แล้ววันนี้!'
-                : 'ICALGC 2026 Abstract Submission is Now Open!' ?>
-            </h3>
-            <p class="announce-card-text">
-              <?= $_lang==='th'
-                ? 'ขอเชิญนักวิชาการ นักวิจัย อาจารย์ นักศึกษาระดับบัณฑิตศึกษา และผู้สนใจจากทั่วโลก ส่งบทคัดย่อเพื่อนำเสนอในการประชุมวิชาการนานาชาติ ICALGC 2026 หัวข้อ "ภาษาอาเซียนในบริบทโลก" หมดเขตส่งบทคัดย่อ: 31 สิงหาคม 2569'
-                : 'We invite academics, researchers, lecturers, graduate students, and interested parties from around the world to submit abstracts for the ICALGC 2026 International Conference on the theme "ASEAN Languages in Global Contexts." Abstract submission deadline: August 31, 2026.' ?>
-            </p>
-          </div>
-          <div class="announce-card-footer">
-            <a href="<?= $appUrl ?>/announcements.php" class="ann-read-btn">
-              <?= t('announce.read_more') ?> <i class="fas fa-arrow-right" style="font-size:.75rem;"></i>
-            </a>
-          </div>
-        </div>
-      </div>
-
-      <!-- Announcement Card 2 -->
-        <div class="col-md-4">
-        <div class="announce-card h-100">
-          <div class="announce-card-img">
-            <img src="<?= $appUrl ?>/assets/images/announcements2.jpg" alt="">
-            <span class="ann-date-badge"><i class="far fa-calendar-alt" style="margin-right:4px;opacity:.7;"></i>6 July 2026</span>
-          </div>
-          <div class="announce-card-body">
-            <span class="announce-tag ann-cat--updates"><?= $_lang==='th' ? 'ลงทะเบียน' : 'Registration' ?></span>
-            <h3 class="announce-card-title">
-              <?= $_lang==='th'
-                ? 'เปิดลงทะเบียนเข้าร่วมประชุม ICALGC 2026'
-                : 'Registration for ICALGC 2026 is Now Open' ?>
-            </h3>
-            <p class="announce-card-text">
-              <?= $_lang==='th'
-                ? 'ลงทะเบียนเข้าร่วมการประชุมวิชาการนานาชาติ ICALGC 2026 ได้แล้ววันนี้ ในรูปแบบ Onsite ณ มหาวิทยาลัยศรีนครินทรวิโรฒ ประสานมิตร'
-                : 'Register to attend ICALGC 2026 today, in person at Srinakharinwirot University Prasarnmit Campus.' ?>
-            </p>
-          </div>
-          <div class="announce-card-footer">
-            <a href="<?= $appUrl ?>/announcements.php" class="ann-read-btn">
-              <?= t('announce.read_more') ?> <i class="fas fa-arrow-right" style="font-size:.75rem;"></i>
-            </a>
-          </div>
-        </div>
-      </div>
-
-      <!-- Announcement Card 3 -->
-    </div>
-
-    <div class="text-center mt-5">
-      <a href="<?= $appUrl ?>/announcements.php" class="btn-primary-custom">
-        <?= t('announce.view_all') ?> <i class="fas fa-arrow-right ms-2"></i>
-      </a>
-    </div>
-
-  </div>
-</section>
-
-<!-- ════════════════════════════════════
-     CONFERENCE STATS STRIP
-     ════════════════════════════════════ 
-<section style="background:var(--blue-dark);padding:50px 0;color:var(--white);">
-  <div class="container">
-    <div class="row g-4 text-center">
-      <div class="col-6 col-md-3">
-        <div style="font-size:2.4rem;font-weight:800;color:var(--gold);">7</div>
-        <div style="font-size:.88rem;color:rgba(255,255,255,.7);">
-          <?= $_lang==='th' ? 'หัวข้อการประชุม' : 'Conference Themes' ?>
-        </div>
-      </div>
-      <div class="col-6 col-md-3">
-        <div style="font-size:2.4rem;font-weight:800;color:var(--gold);">2</div>
-        <div style="font-size:.88rem;color:rgba(255,255,255,.7);">
-          <?= $_lang==='th' ? 'มหาวิทยาลัยเจ้าภาพ' : 'Host Universities' ?>
-        </div>
-      </div>
-      <div class="col-6 col-md-3">
-        <div style="font-size:2.4rem;font-weight:800;color:var(--gold);">10+</div>
-        <div style="font-size:.88rem;color:rgba(255,255,255,.7);">
-          <?= $_lang==='th' ? 'ประเทศที่เข้าร่วม' : 'Participating Countries' ?>
-        </div>
-      </div>
-      <div class="col-6 col-md-3">
-        <div style="font-size:2.4rem;font-weight:800;color:var(--gold);">1</div>
-        <div style="font-size:.88rem;color:rgba(255,255,255,.7);">
-          <?= $_lang==='th' ? 'วันประชุม' : 'Conference Day' ?>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>-->
 
 <?php
 $inlineJs = "initCountdown('" . CONF_DATE . "');";

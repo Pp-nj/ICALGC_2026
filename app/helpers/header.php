@@ -39,6 +39,8 @@ $appUrl = APP_URL;
   <meta name="description" content="<?= e(CONF_NAME_EN) ?> — <?= e(CONF_DATE_EN) ?>">
   <meta property="og:title" content="<?= e($_pageTitle) ?> — ICALGC 2026">
   <meta property="og:type" content="website">
+  <meta property="og:image" content="<?= $appUrl ?>/assets/images/logo.jpg">
+
 
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">

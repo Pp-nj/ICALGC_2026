@@ -123,7 +123,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         ':ph'  => sanitize($coPhones[$i] ?? ''),
                         ':ins' => sanitize($coInstitutions[$i] ?? ''),
                         ':co'  => sanitize($coCountries[$i] ?? ''),
-                        ':isc' => in_array((string)$i, $coCorrespond) ? 'TRUE' : 'FALSE',
+                        ':isc' => in_array((string)$i, $coCorrespond) ? 1 : 0,
                         ':ord' => $i,
                     ]);
                 }

@@ -159,7 +159,7 @@ CREATE TABLE IF NOT EXISTS papers (
     submitted_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_papers_theme     FOREIGN KEY (theme_id)     REFERENCES conference_themes(id),
-    CONSTRAINT fk_papers_submitter FOREIGN KEY (submitter_id) REFERENCES users(id),
+    CONSTRAINT fk_papers_submitter FOREIGN KEY (submitter_id) REFERENCES users(id) ON DELETE CASCADE,
     CONSTRAINT fk_papers_status    FOREIGN KEY (status_code)  REFERENCES paper_statuses(code),
     INDEX idx_papers_submitter (submitter_id),
     INDEX idx_papers_status    (status_code),
@@ -201,7 +201,7 @@ CREATE TABLE IF NOT EXISTS paper_files (
     uploaded_by     INT UNSIGNED NOT NULL,
     uploaded_at     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_paper_files_paper    FOREIGN KEY (paper_id)    REFERENCES papers(id) ON DELETE CASCADE,
-    CONSTRAINT fk_paper_files_uploader FOREIGN KEY (uploaded_by) REFERENCES users(id),
+    CONSTRAINT fk_paper_files_uploader FOREIGN KEY (uploaded_by) REFERENCES users(id) ON DELETE CASCADE,
     INDEX idx_paper_files_paper (paper_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -218,8 +218,8 @@ CREATE TABLE IF NOT EXISTS review_assignments (
     assignment_status VARCHAR(20) NOT NULL DEFAULT 'pending'
                       CHECK (assignment_status IN ('pending','in_progress','completed','declined')),
     CONSTRAINT fk_assignments_paper    FOREIGN KEY (paper_id)    REFERENCES papers(id) ON DELETE CASCADE,
-    CONSTRAINT fk_assignments_reviewer FOREIGN KEY (reviewer_id) REFERENCES users(id),
-    CONSTRAINT fk_assignments_assigner FOREIGN KEY (assigned_by) REFERENCES users(id),
+    CONSTRAINT fk_assignments_reviewer FOREIGN KEY (reviewer_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT fk_assignments_assigner FOREIGN KEY (assigned_by) REFERENCES users(id) ON DELETE CASCADE,
     UNIQUE KEY uq_assignments_paper_reviewer (paper_id, reviewer_id),
     INDEX idx_assignments_paper    (paper_id),
     INDEX idx_assignments_reviewer (reviewer_id)
@@ -250,7 +250,7 @@ CREATE TABLE IF NOT EXISTS reviews (
     updated_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_reviews_assignment FOREIGN KEY (assignment_id) REFERENCES review_assignments(id) ON DELETE CASCADE,
     CONSTRAINT fk_reviews_paper      FOREIGN KEY (paper_id)      REFERENCES papers(id) ON DELETE CASCADE,
-    CONSTRAINT fk_reviews_reviewer   FOREIGN KEY (reviewer_id)   REFERENCES users(id),
+    CONSTRAINT fk_reviews_reviewer   FOREIGN KEY (reviewer_id)   REFERENCES users(id) ON DELETE CASCADE,
     INDEX idx_reviews_paper    (paper_id),
     INDEX idx_reviews_reviewer (reviewer_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -279,16 +279,33 @@ CREATE TABLE IF NOT EXISTS notifications (
 -- ============================================================
 -- 13. PUBLICATIONS
 -- ============================================================
+-- `publications` is the single source of truth for what the public site shows.
+-- A row can either be linked to a reviewed `papers` record (paper_id set,
+-- content snapshotted here at publish time) or created entirely by the admin
+-- with no paper/author involved at all (paper_id NULL).
 CREATE TABLE IF NOT EXISTS publications (
     id              INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    paper_id        INT UNSIGNED NOT NULL UNIQUE,
+    paper_id        INT UNSIGNED NULL UNIQUE,
+    title_th        TEXT NOT NULL,
+    title_en        TEXT NOT NULL,
+    keywords        TEXT,
+    authors_text    TEXT NOT NULL,
+    theme_id        INT UNSIGNED NULL,
     doi             VARCHAR(255),
+    -- File the admin uploads. Independent of paper_files
+    -- (which only ever holds what the author submitted/revised).
+    file_type       VARCHAR(10) CHECK (file_type IN ('pdf','docx')),
+    original_name   VARCHAR(255),
+    stored_name     VARCHAR(255) UNIQUE,
+    file_path       TEXT,
+    file_size       BIGINT,
     published_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     published_by    INT UNSIGNED NOT NULL,
     download_count  INT NOT NULL DEFAULT 0,
     view_count      INT NOT NULL DEFAULT 0,
     CONSTRAINT fk_publications_paper     FOREIGN KEY (paper_id)     REFERENCES papers(id) ON DELETE CASCADE,
-    CONSTRAINT fk_publications_publisher FOREIGN KEY (published_by) REFERENCES users(id),
+    CONSTRAINT fk_publications_theme     FOREIGN KEY (theme_id)     REFERENCES conference_themes(id),
+    CONSTRAINT fk_publications_publisher FOREIGN KEY (published_by) REFERENCES users(id) ON DELETE CASCADE,
     INDEX idx_publications_paper (paper_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -330,3 +347,152 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 -- "ON UPDATE CURRENT_TIMESTAMP" instead of PostgreSQL triggers,
 -- so no separate trigger/function definitions are needed.
 -- ============================================================
+
+-- ============================================================
+--นี่คือคำสั่ง SQL ที่ใช้อัปเดตครับ:
+-- ============================================================
+
+UPDATE users 
+SET email_verified = 1, updated_at = NOW() 
+WHERE id = 2;
+
+--หรือถ้าจะอิงตามอีเมลแทน id (สะดวกกว่าถ้าจะใช้ซ้ำกับบัญชีอื่น):
+
+
+UPDATE users 
+SET email_verified = 1, updated_at = NOW() 
+WHERE email = 'nichapat.juneam@g.swu.ac.th';
+
+
+--ตรวจสอบผลลัพธ์ด้วย:
+
+
+SELECT id, email, account_status, email_verified 
+FROM users 
+WHERE email = 'nichapat.juneam@g.swu.ac.th';
+
+-- ============================================================
+-- โค้ด SQL สำหรับเปลี่ยน account_status เป็น active:
+-- ============================================================
+
+UPDATE users 
+SET account_status = 'active', updated_at = NOW() 
+WHERE id = 2;
+
+--หรืออิงตามอีเมล:
+
+
+UPDATE users 
+SET account_status = 'active', updated_at = NOW() 
+WHERE email = 'nichapat.juneam@g.swu.ac.th';
+
+--ถ้าต้องการอัปเดตทั้งสองอย่างพร้อมกัน (ยืนยันอีเมล + เปิดใช้งานบัญชี) ในคำสั่งเดียว:
+
+
+UPDATE users
+SET account_status = 'active', email_verified = 1, updated_at = NOW()
+WHERE email = 'nichapat.juneam@g.swu.ac.th';
+
+UPDATE users 
+SET account_status = 'pending', email_verified = 0, updated_at = NOW() 
+WHERE email = 'nichapat.juneam@g.swu.ac.th';
+
+
+-- ============================================================
+-- MIGRATION: store the admin-uploaded published file on `publications`
+-- itself, independent of `paper_files` (which stays 100% author-owned).
+-- Run this once on databases created before this change.
+-- ============================================================
+
+ALTER TABLE publications
+    ADD COLUMN file_type     VARCHAR(10)  NULL CHECK (file_type IN ('pdf','docx')) AFTER doi,
+    ADD COLUMN original_name VARCHAR(255) NULL AFTER file_type,
+    ADD COLUMN stored_name   VARCHAR(255) NULL UNIQUE AFTER original_name,
+    ADD COLUMN file_path     TEXT         NULL AFTER stored_name,
+    ADD COLUMN file_size     BIGINT       NULL AFTER file_path;
+
+-- ============================================================
+-- MIGRATION: let admin create standalone publications with no
+-- linked paper/author at all. `publications` now carries its own
+-- content (title/keywords/authors/theme) instead of always
+-- borrowing it from `papers` via JOIN.
+-- Run this once on databases created before this change.
+-- ============================================================
+
+ALTER TABLE publications
+    MODIFY COLUMN paper_id INT UNSIGNED NULL;
+
+ALTER TABLE publications
+    ADD COLUMN title_th     TEXT NULL AFTER paper_id,
+    ADD COLUMN title_en     TEXT NULL AFTER title_th,
+    ADD COLUMN keywords     TEXT NULL AFTER title_en,
+    ADD COLUMN authors_text TEXT NULL AFTER keywords,
+    ADD COLUMN theme_id     INT UNSIGNED NULL AFTER authors_text,
+    ADD CONSTRAINT fk_publications_theme FOREIGN KEY (theme_id) REFERENCES conference_themes(id);
+
+-- Backfill existing paper-linked rows from `papers` so they keep working
+-- once `publication.php` / `publication-detail.php` read only from `publications`.
+-- (MySQL doesn't allow a correlated derived table here, so build the author
+-- list from a scalar GROUP_CONCAT instead of a UNION subquery.)
+UPDATE publications pub
+JOIN papers p ON p.id = pub.paper_id
+JOIN users u ON u.id = p.submitter_id
+SET pub.title_th = p.title_th,
+    pub.title_en = p.title_en,
+    pub.keywords = p.keywords,
+    pub.theme_id = p.theme_id,
+    pub.authors_text = CONCAT(
+        CONCAT(u.first_name, ' ', u.last_name),
+        COALESCE(
+            (SELECT CONCAT('; ', GROUP_CONCAT(ca.full_name ORDER BY ca.sort_order SEPARATOR '; '))
+             FROM paper_co_authors ca WHERE ca.paper_id = p.id),
+            ''
+        )
+    )
+WHERE pub.title_th IS NULL;
+
+-- Once backfilled, the columns can be made required for future inserts:
+ALTER TABLE publications
+    MODIFY COLUMN title_th     TEXT NOT NULL,
+    MODIFY COLUMN title_en     TEXT NOT NULL,
+    MODIFY COLUMN authors_text TEXT NOT NULL;
+
+-- ============================================================
+-- MIGRATION: allow admin to delete a user account regardless of
+-- what papers/reviews/publications are tied to it. Re-point the
+-- FKs that used to RESTRICT the delete to ON DELETE CASCADE so
+-- deleting a user cascades away everything they submitted/
+-- reviewed/uploaded/published. Run this once on databases
+-- created before this change.
+-- ============================================================
+
+-- Run DROP/ADD as separate statements (MariaDB 10.4 rejects dropping and
+-- re-adding the same FK name within a single ALTER TABLE — errno 121).
+-- Constraint names may have drifted on your database (e.g. reviews'
+-- reviewer FK was found renamed to `fk_reviews_reviewer_v2` on this
+-- project's dev DB) — check information_schema.REFERENTIAL_CONSTRAINTS
+-- for the actual name before running if a DROP fails with error 1091.
+
+ALTER TABLE papers DROP FOREIGN KEY fk_papers_submitter;
+ALTER TABLE papers ADD CONSTRAINT fk_papers_submitter FOREIGN KEY (submitter_id) REFERENCES users(id) ON DELETE CASCADE;
+
+ALTER TABLE paper_files DROP FOREIGN KEY fk_paper_files_uploader;
+ALTER TABLE paper_files ADD CONSTRAINT fk_paper_files_uploader FOREIGN KEY (uploaded_by) REFERENCES users(id) ON DELETE CASCADE;
+
+ALTER TABLE review_assignments DROP FOREIGN KEY fk_assignments_reviewer;
+ALTER TABLE review_assignments ADD CONSTRAINT fk_assignments_reviewer FOREIGN KEY (reviewer_id) REFERENCES users(id) ON DELETE CASCADE;
+ALTER TABLE review_assignments DROP FOREIGN KEY fk_assignments_assigner;
+ALTER TABLE review_assignments ADD CONSTRAINT fk_assignments_assigner FOREIGN KEY (assigned_by) REFERENCES users(id) ON DELETE CASCADE;
+
+ALTER TABLE reviews DROP FOREIGN KEY fk_reviews_reviewer;
+ALTER TABLE reviews ADD CONSTRAINT fk_reviews_reviewer FOREIGN KEY (reviewer_id) REFERENCES users(id) ON DELETE CASCADE;
+
+ALTER TABLE publications DROP FOREIGN KEY fk_publications_publisher;
+ALTER TABLE publications ADD CONSTRAINT fk_publications_publisher FOREIGN KEY (published_by) REFERENCES users(id) ON DELETE CASCADE;
+
+--หมวด (bucket)	ตัวอย่างหัวข้อ	Icon แนะนำ	class
+--announcements (บทคัดย่อ/Abstract)	เปิดรับบทคัดย่อ	📄 เอกสาร	fa-file-alt
+--announcements (Keynote)	ผู้บรรยายพิเศษ	🎤 ไมค์/วิทยากร	fa-microphone-alt หรือ fa-chalkboard-teacher
+--updates (ลงทะเบียน/Registration)	เปิดลงทะเบียน	📝 สมัคร	fa-user-plus (ของเดิมโอเคแล้ว)
+--news (การตีพิมพ์/Publication)	ตีพิมพ์ผลงาน	📰 หนังสือ/ตีพิมพ์	fa-book-open หรือ fa-newspaper
+--reminders (ข้อมูลทั่วไป/General)	แจ้งเตือนทั่วไป	🔔 แจ้งเตือน	fa-bell หรือ fa-info-circle

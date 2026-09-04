@@ -882,6 +882,7 @@ a:hover { color: var(--gold); }
   color: var(--gray-700);
   flex: 1;
   line-height: 1.6;
+  white-space: pre-line;
   display: -webkit-box;
   -webkit-line-clamp: 3;
   line-clamp: 3;
@@ -933,6 +934,32 @@ a:hover { color: var(--gold); }
   transition: var(--transition);
   text-decoration: none;
   padding: 0 6px;
+}
+/* Pagination Dots (แทนที่ Numeric Pagination) */
+.ann-pagination-dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 36px;
+}
+.ann-dot {
+  width: 12px;
+  height: 12px;
+  background-color: var(--gray-200);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: var(--transition);
+  text-decoration: none;
+  display: inline-block;
+}
+.ann-dot:hover {
+  background-color: var(--blue-mid);
+}
+.ann-dot.active {
+  width: 32px;
+  background-color: var(--blue-dark);
+  border-radius: 10px;
 }
 .ann-page-btn:hover { border-color: var(--blue-dark); color: var(--blue-dark); }
 .ann-page-btn.active {
@@ -997,8 +1024,15 @@ a:hover { color: var(--gold); }
   display: flex; align-items: center; justify-content: center;
   font-size: 4rem; color: var(--gold);
 }
+.ann-modal-cover.has-image {
+  height: auto; background: none;
+}
+.ann-modal-cover.has-image img {
+  width: 100%; height: auto; display: block;
+  border-radius: var(--radius);
+}
 .ann-modal-meta { font-size: .82rem; color: var(--gray-500); margin-bottom: 14px; }
-.ann-modal-full { font-size: .95rem; color: var(--gray-700); line-height: 1.8; }
+.ann-modal-full { font-size: .95rem; color: var(--gray-700); line-height: 1.8; white-space: pre-line; }
 
 .ann-modal-footer {
   padding: 16px 24px;

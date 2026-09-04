@@ -24,6 +24,54 @@ $certTypeMeta = [
     'reviewer'     => ['th' => 'ใบรับรองผู้ทรงคุณวุฒิ', 'en' => 'Reviewer',    'color' => '#a07c10', 'icon' => 'fa-user-tie',           'needs_paper' => false],
 ];
 
+/* ── AJAX: recipient search / per-user papers ───────────── */
+if (isset($_GET['ajax'])) {
+    header('Content-Type: application/json; charset=utf-8');
+    try {
+        $db = Database::getInstance();
+        $isMysql = $db->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql';
+
+        if ($_GET['ajax'] === 'search_users') {
+            $q = trim((string)get('q'));
+            $sql    = "SELECT id, first_name, last_name, email, role FROM users WHERE role IN ('author','reviewer')";
+            $params = [];
+            if ($q !== '') {
+                $sql .= $isMysql
+                    ? " AND (CONCAT(first_name, ' ', last_name) LIKE :q1 OR email LIKE :q2)"
+                    : " AND ((first_name || ' ' || last_name) ILIKE :q1 OR email ILIKE :q2)";
+                $params[':q1'] = "%{$q}%";
+                $params[':q2'] = "%{$q}%";
+            }
+            $sql .= " ORDER BY first_name, last_name LIMIT 20";
+            $stmt = $db->prepare($sql);
+            $stmt->execute($params);
+            echo json_encode($stmt->fetchAll(), JSON_UNESCAPED_UNICODE);
+            exit;
+        }
+
+        if ($_GET['ajax'] === 'user_papers') {
+            $uid  = intGet('user_id');
+            $stmt = $db->prepare("
+                SELECT id, paper_code, title_en, title_th, status_code
+                FROM papers
+                WHERE submitter_id = :uid AND status_code IN ('accepted','published')
+                ORDER BY paper_code
+            ");
+            $stmt->execute([':uid' => $uid]);
+            echo json_encode($stmt->fetchAll(), JSON_UNESCAPED_UNICODE);
+            exit;
+        }
+
+        echo json_encode([]);
+        exit;
+    } catch (\Throwable $e) {
+        error_log($e->getMessage());
+        http_response_code(500);
+        echo json_encode(['error' => 'server_error']);
+        exit;
+    }
+}
+
 /* ── POST: upload or delete ─────────────────────────────── */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     Auth::verifyCsrf(post('csrf_token'));
@@ -121,10 +169,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $chk = $db->prepare("
                 SELECT id, pdf_path FROM certificates
                 WHERE cert_type = :ct AND user_id = :uid
-                  AND (paper_id = :pid OR (:pid IS NULL AND paper_id IS NULL))
+                  AND (paper_id = :pid1 OR (:pid2 IS NULL AND paper_id IS NULL))
                 LIMIT 1
             ");
-            $chk->execute([':ct' => $certType, ':uid' => $userId, ':pid' => $paperId]);
+            $chk->execute([':ct' => $certType, ':uid' => $userId, ':pid1' => $paperId, ':pid2' => $paperId]);
             $existing = $chk->fetch();
 
             if ($existing) {
@@ -216,9 +264,10 @@ try {
     $isMysql = $db->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql';
     if ($search) {
         $where[] = $isMysql
-            ? "(CONCAT(u.first_name, ' ', u.last_name) LIKE :q OR u.email LIKE :q)"
-            : "((u.first_name || ' ' || u.last_name) ILIKE :q OR u.email ILIKE :q)";
-        $params[':q'] = "%{$search}%";
+            ? "(CONCAT(u.first_name, ' ', u.last_name) LIKE :q1 OR u.email LIKE :q2)"
+            : "((u.first_name || ' ' || u.last_name) ILIKE :q1 OR u.email ILIKE :q2)";
+        $params[':q1'] = "%{$search}%";
+        $params[':q2'] = "%{$search}%";
     }
     $whereStr = implode(' AND ', array_values($where));
 
@@ -247,29 +296,10 @@ try {
     $stmt->execute();
     $certs = $stmt->fetchAll();
 
-    // All users (author + reviewer) for upload form
-    $allUsers = $db->query("
-        SELECT id, first_name, last_name, email, role
-        FROM users
-        WHERE role IN ('author','reviewer')
-        ORDER BY first_name, last_name
-    ")->fetchAll();
-
-    // All accepted/published papers for paper dropdown (preload as JSON)
-    $allPapers = $db->query("
-        SELECT id, submitter_id, paper_code, title_en, title_th, status_code
-        FROM papers
-        WHERE status_code IN ('accepted','published')
-        ORDER BY paper_code
-    ")->fetchAll();
-
 } catch (\Throwable $e) {
     error_log($e->getMessage());
     $certs = []; $total = 0; $pg = paginate(0, $perPage, 1);
-    $allUsers = []; $allPapers = [];
 }
-
-$papersJson = json_encode(array_values($allPapers), JSON_UNESCAPED_UNICODE);
 
 $pageTitle  = $_lang === 'th' ? 'จัดการใบรับรอง' : 'Certificates';
 $activeMenu = 'certificates';
@@ -620,16 +650,7 @@ $activeMenu = 'certificates';
 <script src="<?= $appUrl ?>/assets/js/main.js"></script>
 <script>
 (function () {
-  /* ── Users data ── */
-  const allUsers = <?= json_encode(array_values($allUsers), JSON_UNESCAPED_UNICODE) ?>;
-
-  /* ── Papers data (keyed by submitter_id) ── */
-  const papers = <?= $papersJson ?>;
-  const papersByUser = {};
-  papers.forEach(p => {
-    if (!papersByUser[p.submitter_id]) papersByUser[p.submitter_id] = [];
-    papersByUser[p.submitter_id].push(p);
-  });
+  const ajaxUrl = '<?= $appUrl ?>/admin/certificates.php';
 
   const certTypeSelect = document.getElementById('certTypeSelect');
   const userIdInput    = document.getElementById('userIdInput');
@@ -645,6 +666,8 @@ $activeMenu = 'certificates';
   const roleLabelTh = { author: 'ผู้แต่ง', reviewer: 'ผู้ทรง' };
   const isTh = <?= $_lang === 'th' ? 'true' : 'false' ?>;
   let selectedUserId = '';
+  let searchTimer = null;
+  let searchSeq = 0;
 
   /* ── Select a user ── */
   function selectUser(u) {
@@ -657,22 +680,15 @@ $activeMenu = 'certificates';
     updatePaperDropdown();
   }
 
-  /* ── Open dropdown with filtered list ── */
-  function openDropdown(q) {
-    const term = (q || '').toLowerCase();
-    const matched = allUsers.filter(u => {
-      const full = (u.first_name + ' ' + u.last_name + ' ' + u.email).toLowerCase();
-      return !term || full.includes(term);
-    });
-
+  function renderUsers(list) {
     userDropdown.innerHTML = '';
-    if (matched.length === 0) {
+    if (list.length === 0) {
       const noRes = document.createElement('div');
       noRes.id = 'userNoResult';
       noRes.textContent = isTh ? 'ไม่พบผู้ใช้งาน' : 'No users found';
       userDropdown.appendChild(noRes);
     } else {
-      matched.forEach(u => {
+      list.forEach(u => {
         const roleLabel = isTh ? (roleLabelTh[u.role] || u.role) : (u.role.charAt(0).toUpperCase() + u.role.slice(1));
         const div = document.createElement('div');
         div.className = 'user-option';
@@ -689,8 +705,21 @@ $activeMenu = 'certificates';
     userDropdown.classList.add('open');
   }
 
+  /* ── Query server for matching users (debounced) ── */
+  function openDropdown(q) {
+    clearTimeout(searchTimer);
+    const seq = ++searchSeq;
+    searchTimer = setTimeout(function () {
+      fetch(ajaxUrl + '?ajax=search_users&q=' + encodeURIComponent(q || ''))
+        .then(r => r.json())
+        .then(list => { if (seq === searchSeq) renderUsers(Array.isArray(list) ? list : []); })
+        .catch(() => { if (seq === searchSeq) renderUsers([]); });
+    }, 250);
+  }
+
   function closeDropdown() {
     userDropdown.classList.remove('open');
+    clearTimeout(searchTimer);
   }
 
   userSearch.addEventListener('focus', function () {
@@ -721,7 +750,8 @@ $activeMenu = 'certificates';
     }, 0);
   });
 
-  /* ── Paper dropdown update ── */
+  /* ── Paper dropdown update (fetched per selected user) ── */
+  let paperSeq = 0;
   function updatePaperDropdown() {
     const userId    = parseInt(selectedUserId, 10);
     const certType  = certTypeSelect.value;
@@ -732,14 +762,20 @@ $activeMenu = 'certificates';
 
     if (!needsPaper || !userId) return;
 
-    const userPapers = papersByUser[userId] || [];
-    userPapers.forEach(p => {
-      if (certType === 'presentation' && p.status_code !== 'published') return;
-      const opt = document.createElement('option');
-      opt.value = p.id;
-      opt.textContent = p.paper_code + ' — ' + (p.title_en || p.title_th || '');
-      paperSelect.appendChild(opt);
-    });
+    const seq = ++paperSeq;
+    fetch(ajaxUrl + '?ajax=user_papers&user_id=' + userId)
+      .then(r => r.json())
+      .then(list => {
+        if (seq !== paperSeq || !Array.isArray(list)) return;
+        list.forEach(p => {
+          if (certType === 'presentation' && p.status_code !== 'published') return;
+          const opt = document.createElement('option');
+          opt.value = p.id;
+          opt.textContent = p.paper_code + ' — ' + (p.title_en || p.title_th || '');
+          paperSelect.appendChild(opt);
+        });
+      })
+      .catch(() => {});
   }
 
   certTypeSelect.addEventListener('change', updatePaperDropdown);

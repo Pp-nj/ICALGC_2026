@@ -38,7 +38,7 @@ $appUrl = APP_URL;
           <?php endif; ?>
         </p>
         <div class="footer-social">
-          <a href="https://www.facebook.com/swu.humanities" class="social-btn" title="Facebook" aria-label="Facebook">
+          <a href="https://www.facebook.com/people/Icalgc-2026-International-Conference-on-ASEAN-Languages-in-Global-Contexts/61591532801584/" class="social-btn" title="Facebook" aria-label="Facebook">
             <i class="fab fa-facebook-f"></i>
           </a>
           <a href="https://www.instagram.com/swu.humanities" class="social-btn" title="Instagram" aria-label="Instagram">
@@ -99,7 +99,7 @@ $appUrl = APP_URL;
         </div>
         <div class="footer-contact-item">
           <i class="fas fa-phone"></i>
-          <span>+66 (0) 2-649-5000 ext. XXXX</span>
+          <span><?= $_lang==='th' ? '(+66) 02-649-5000 ต่อ. 16292' : '(+66) 02-649-5000 ext. 16292' ?></span>
         </div>
         <div class="footer-contact-item">
           <i class="fas fa-envelope"></i>

@@ -42,40 +42,153 @@ $announcements = [
     'bucket'   => 'announcements',
     'icon'     => 'file-alt',
     'image'    => '/assets/images/announcements1.jpg',
-    'date'     => '6 July 2026',
-    'title'    => ['th' => 'เปิดรับบทคัดย่อ ICALGC 2026 แล้ววันนี้', 'en' => 'ICALGC 2026 Abstract Submission is Now Open'],
+    'date'     => ['th' => '6 ก.ค. 2569', 'en' => '6 Jul 2026'],
+    'title'    => ['th' => '🚨 เปิดรับบทคัดย่อ ICALGC 2026 แล้ววันนี้', 'en' => '🚨 ICALGC 2026 Abstract Submission is Now Open'],
     'body'     => [
-      'th' => 'ขอเชิญนักวิชาการ นักวิจัย อาจารย์ นักศึกษาระดับบัณฑิตศึกษา และผู้สนใจจากทั่วโลก ส่งบทคัดย่อเพื่อนำเสนอในการประชุมวิชาการนานาชาติ ICALGC 2026 หัวข้อ "ภาษาอาเซียนในบริบทโลก" หมดเขตส่งบทคัดย่อ: 31 สิงหาคม 2569',
-      'en' => 'We invite academics, researchers, lecturers, graduate students, and interested parties from around the world to submit abstracts for the ICALGC 2026 International Conference on the theme "ASEAN Languages in Global Contexts." Abstract submission deadline: August 31, 2026.',
+      'th' => "✨คณะมนุษยศาสตร์ มหาวิทยาลัยศรีนครินทรวิโรฒ ร่วมกับ Guangdong University of Foreign Studies สาธารณรัฐประชาชนจีน เป็นเจ้าภาพในการจัดประชุมวิชาการระดับนานาชาติ
+              หัวข้อ “ภาษาอาเซียนในบริบทโลก” 
+              📅 วันที่ 25 พฤศจิกายน 2569 
+              📍 ณ หอดนตรีและการแสดงอโศกมนตรี ชั้น 4 อาคารนวัตกรรม : ศาสตราจารย์ ดร.สาโรช บัวศรี มหาวิทยาลัยศรีนครินทรวิโรฒ \n
+              หัวข้อในการประชุม: 
+              • ภาษา วรรณคดี ศิลปวัฒนรรรม และการสอนภาษาไทย 
+              • ภาษาอาเซียน การสอนภาษาอาเซียน อาเซียนศึกษา 
+              • ภาษาและการเรียนการสอนภาษาลาว 
+              • ภาษาและการเรียนการสอนภาษาเวียดนาม 
+              • ภาษาและการเรียนการสอนภาษามลายู 
+              • ภาษาและการเรียนการสอนภาษาอินโดนีเซีย 
+              • ภาษาและการเรียนการสอนภาษาพม่า - ภาษาและการเรียนการสอนภาษาเขมร\n
+              กำหนดการ 
+              ✍🏻 เปิดรับบทคัดย่อ : 6 กรกฎาคม 2569 – 31 สิงหาคม 2569 
+              📄 ได้รับผลการพิจารณา : ภายใน 15 กันยายน 2569
+              🎤 นำเสนอ : 25 พฤศจิกายน 2569",
+      'en' => "✨The Faculty of Humanities, Srinakharinwirot University in collaboration with Guangdong University of Foreign Studies, China, cordially invites researchers, scholars, faculty members, students, and interested participants to submit abstracts for the International Conference on 
+              'ASEAN Languages in the Global Context.'
+              📅 Conference Date : 25 November 2026
+              📍 Venue : Asok-Montri Music and Performing Arts Hall, 4th Floor, Innovation Building: Professor Dr. Saroj Buasri, Srinakharinwirot University\n
+              Conference Themes
+              • Thai Language, Literature, Arts and Culture, and Thai Language Education
+              • ASEAN Languages, ASEAN Language Education, and ASEAN Studies
+              • Lao Language and Lao Language Education
+              • Vietnamese Language and Vietnamese Language Education
+              • Malay Language and Malay Language Education
+              • Indonesian Language and Indonesian Language Education
+              • Burmese Language and Burmese Language Education
+              • Khmer Language and Khmer Language Education\n
+              Important Dates
+              ✍🏻 Abstract Submission : 6 July 2026 - 31 August 2026
+              📄 Notification of Acceptance : By 15 September 2026
+              🎤 Conference Presentation : 25 November 2026",
     ],
   ],
   [
     'id'       => 2,
-    'category' => ['th' => 'ลงทะเบียน', 'en' => 'Registration'],
+    'category' => ['th' => 'ลงทะเบียน', 'en' => 'Announcements'],
     'bucket'   => 'updates',
     'icon'     => 'user-plus',
     'image'    => '/assets/images/announcements2.jpg',
-    'date'     => '6 July 2026',
-    'title'    => ['th' => 'เปิดลงทะเบียนเข้าร่วมประชุม', 'en' => 'Conference Registration is Now Open'],
+    'date'     => ['th' => '6 ก.ค. 2569', 'en' => '6 Jul 2026'],
+    'title'    => ['th' => '📌 เปิดลงทะเบียนเข้าร่วมประชุม', 'en' => '📌 Conference Registration is Now Open'],
     'body'     => [
       'th' => 'ลงทะเบียนเข้าร่วมการประชุมวิชาการนานาชาติ ICALGC 2026 ได้แล้ววันนี้ ในรูปแบบ Onsite ณ มหาวิทยาลัยศรีนครินทรวิโรฒ ประสานมิตร',
       'en' => 'Register to attend ICALGC 2026 today, in person at Srinakharinwirot University Prasarnmit Campus.',
     ],
   ],
+  [
+    'id'       => 3,
+    'category' => ['th' => 'ผู้บรรยายพิเศษ', 'en' => 'Keynote'],
+    'bucket'   => 'announcements',
+    'icon'     => 'fa-microphone-alt',
+    'image'    => '/assets/images/announcements3.jpg',
+    'date'     => ['th' => '14 ก.ค. 2569', 'en' => '14 Jul 2026'],
+    'title'    => ['th' => '🎤 ปาฐกถาพิเศษจากวิทยากรผู้ทรงคุณวุฒิ', 'en' => '🎤 Special keynote lectures by distinguished speakers'],
+    'body'     => [
+      'th' => "✨ คณะมนุษยศาสตร์ มหาวิทยาลัยศรีนครินทรวิโรฒ ร่วมกับ คณะเอเชียอาคเนย์ศึกษา Guangdong University of Foreign Studies
+                ขอเชิญชวนผู้สนใจรับฟังปาฐกถาพิเศษจากวิทยากรผู้ทรงคุณวุฒิ
+                ในการประชุมวิชาการระดับนานาชาติในหัวข้อ \n
+                'ภาษาอาเซียนในบริบทโลก' 
+                ASEAN Languages in Global Context \n
+                พบกับ Keynote Speakers ผู้เชี่ยวชาญด้านภาษาและภูมิภาคอาเซียน ที่จะมาร่วมแลกเปลี่ยนมุมมองทางวิชาการเกี่ยวกับบทบาทของภาษาอาเซียนในบริบทโลกปัจจุบัน\n
+                🎤 หัวข้อ: ภาษาอาเซียนในบริบทโลก
+                ✨Professor Liu Zhiqiang, Ph.D.
+                คณบดีคณะเอเชียอาคเนย์ศึกษา มหาวิทยาลัยภาษาและการค้าต่างประเทศกวางตุ้ง
+                ✨ผู้ช่วยศาสตราจารย์ ดร.อัญชลี จันทร์เสม
+                คณบดีคณะมนุษยศาสตร์ มหาวิทยาลัยศรีนครินทรวิโรฒ\n
+                🎤 หัวข้อ: การสอนภาษาไทยในประเทศจีนในยุค AI 
+                ✨Associate Professor Luo Yiyuan
+                ผู้รับผิดชอบหลักสูตรระดับปริญญาตรี ภาควิชาภาษาไทย มหาวิทยาลัยภาษาและการค้าต่างประเทศกวางตุ้ง  \n
+                📅 วันที่ 25 พฤศจิกายน 2569
+                📍 ณ หอดนตรีและการแสดงอโศกมนตรี 1
+                ชั้น 4 อาคารนวัตกรรม: ศาสตราจารย์ ดร.สาโรช บัวศรี มหาวิทยาลัยศรีนครินทรวิโรฒ\n
+                ร่วมเปิดมุมมองใหม่ของภาษาอาเซียนในเวทีวิชาการระดับนานาชาติไปพร้อมกัน",
+      'en' => "✨ The Faculty of Humanities, Srinakharinwirot University, in collaboration with the Faculty of Southeast Asian Studies, Guangdong University of Foreign Studies,
+                cordially invites all interested individuals to attend special keynote lectures by distinguished speakers
+                at the International Academic Conference on the topic: \n
+                'ASEAN Languages in Global Context' \n
+                Meet expert Keynote Speakers specializing in ASEAN languages and the region, who will join us to share their academic perspectives on the role of ASEAN languages in today's global context.\n              
+                🎤 Topic: ASEAN Languages in Global Context
+                ✨Professor Liu Zhiqiang, Ph.D.
+                Dean of the Faculty of Southeast Asian Studies, Guangdong University of Foreign Studies
+                ✨Asst. Prof. Dr. Anchalee Jansem
+                Dean, Faculty of Humanities, Srinakharinwirot University\n
+                🎤 Teaching Thai Language in China in the AI Era
+                ✨Associate Professor Luo Yiyuan
+                Undergraduate Program Coordinator, Department of Thai Language, Guangdong University of Foreign Studies  \n
+                📅 Conference Date : 25 November 2026
+                📍 Venue : Asok-Montri Music and Performing Arts Hall, 4th Floor, Innovation Building: Professor Dr. Saroj Buasri, Srinakharinwirot University\n
+                Join us in exploring new perspectives on ASEAN languages ​​at an international academic forum.",
+    ],
+  ],
+  [
+    'id'       => 4,
+    'category' => ['th' => 'ผู้บรรยายพิเศษ', 'en' => 'Keynote'],
+    'bucket'   => 'announcements',
+    'icon'     => 'fa-microphone-alt',
+    'image'    => '/assets/images/announcements4.jpg',
+    'date'     => ['th' => '18 ส.ค. 2569', 'en' => '18 Aug 2026'],
+    'title'    => ['th' => '🎤 พบกับการเสวนาในหัวข้อ “การสอนภาษาอาเซียนในบริบทโลก”', 'en' => '🎤 Join our Panel Discussion on “Teaching ASEAN Languages in a Global Context”'],
+    'body'     => [
+      'th' => "🌏คณะมนุษยศาสตร์ มหาวิทยาลัยศรีนครินทรวิโรฒ ร่วมกับ คณะเอเชียอาคเนย์ศึกษา Guangdong University of Foreign Studies สาธารณรัฐประชาชนจีน เป็นเจ้าภาพในการจัดประชุมวิชาการระดับนานาชาติ  “ภาษาอาเซียนในบริบทโลก” International Academic Conference: ASEAN Languages in Global Context \n
+              พบกับการเสวนาในหัวข้อ
+              🎓 “การสอนภาษาอาเซียนในบริบทโลก”
+              “Teaching ASEAN Languages in a Global Context” \n
+              ร่วมแลกเปลี่ยนมุมมองการสอนภาษาอาเซียนกับอาจารย์ผู้เชี่ยวชาญจาก 3 มหาวิทยาลัย ได้แก่ \n
+              ✨อาจารย์ ดร. ณประภาพร รุจจนเวท
+              คณะมนุษยศาสตร์ มหาวิทยาลัยศรีนครินทรวิโรฒ
+              ✨Associate Professor Chen Shi, Ph.D.
+              Faculty of Southeast Asian Studies, Guangdong University of Foreign Studies
+              ✨ผู้ช่วยศาสตราจารย์ ดร. ภัสธิดา บุญชวลิต
+              คณะมนุษยศาสตร์ มหาวิทยาลัยรามคำแหง \n
+              📅 25 พฤศจิกายน 2569 
+              ⏰ เวลา 10.00–10.45 น.
+              📍 หอศิลป์และการแสดงอโศกมนตรี 1 ชั้น 4 อาคารนวัตกรรม: ศาสตราจารย์ ดร.สาโรช บัวศรี มหาวิทยาลัยศรีนครินทรวิโรฒ \n
+              มาร่วมเปิดมุมมองใหม่เกี่ยวกับการเรียนการสอนภาษาอาเซียน และบทบาทของภาษาในโลกยุคไร้พรมแดนไปด้วยกัน 🌏✨",
+      'en' => "🌏 International Academic Conference: ASEAN Languages in Global Context \n
+              Join our Panel Discussion on
+              🎓 “Teaching ASEAN Languages in a Global Context”
+              with experts from 3 universities. \n
+              ✨ Dr. Naprapaporn Rootjanawat
+              Faculty of Humanities, Srinakharinwirot University
+              ✨Associate Professor Chen Shi, Ph.D.
+              Faculty of Southeast Asian Studies, Guangdong University of Foreign Studies
+              ✨ Assistant Professor Dr. Patthida Bunchavalit
+              Faculty of Humanities, Ramkhamhaeng University \n
+              📅 November 25, 2026
+              ⏰ 10:00–10:45 AM
+              📍 Asok-Montri Music and Performing Arts Hall: MPA Hall 4 FL., Innovation Building: Prof. Dr. Saroj Buasri, Srinakharinwirot University \n
+              Join us as we explore new perspectives on teaching ASEAN languages and the role of languages in an increasingly interconnected world. 🌏✨",
+    ],
+  ],
+  
 ];
 
 // ── Filtering & Pagination ─────────────────────────────────────────────────────
 $activeFilter = sanitize(get('cat', 'all'));
-$currentPage  = max(1, intGet('page', 1));
-$perPage      = 3;
 
 $filtered = $activeFilter && $activeFilter !== 'all'
     ? array_values(array_filter($announcements, fn($a) => $a['bucket'] === $activeFilter))
     : array_values($announcements);
 
-$total = count($filtered);
-$pg    = paginate($total, $perPage, $currentPage);
-$displayed = array_slice($filtered, $pg['offset'], $perPage);
+$displayed = $filtered;
 
 // Count per bucket for filter badges
 $bucketCounts = ['all' => count($announcements)];
@@ -139,7 +252,7 @@ require_once __DIR__ . '/../app/helpers/header.php';
                     <i class="fas fa-<?= e($ann['icon']) ?>"></i>
                   <?php endif; ?>
                   <span class="ann-date-badge">
-                    <i class="far fa-calendar-alt" style="margin-right:4px;opacity:.7;"></i><?= e($ann['date']) ?>
+                    <i class="far fa-calendar-alt" style="margin-right:4px;opacity:.7;"></i><?= e($ann['date'][$_lang]) ?>
                   </span>
                 </div>
 
@@ -170,28 +283,8 @@ require_once __DIR__ . '/../app/helpers/header.php';
       </button>
     </div>
 
-    <!-- ── Numeric Pagination ── -->
-    <?php if ($pg['total_pages'] > 1): ?>
-      <div class="ann-pagination">
-        <a href="?cat=<?= urlencode($activeFilter) ?>&page=1"
-           class="ann-page-btn <?= $pg['page']===1?'disabled':'' ?>">«</a>
-        <a href="?cat=<?= urlencode($activeFilter) ?>&page=<?= max(1,$pg['page']-1) ?>"
-           class="ann-page-btn <?= $pg['page']===1?'disabled':'' ?>">‹</a>
-
-        <?php for ($i = 1; $i <= $pg['total_pages']; $i++): ?>
-          <a href="?cat=<?= urlencode($activeFilter) ?>&page=<?= $i ?>"
-             class="ann-page-btn <?= $i===$pg['page']?'active':'' ?>"><?= $i ?></a>
-        <?php endfor; ?>
-
-        <a href="?cat=<?= urlencode($activeFilter) ?>&page=<?= min($pg['total_pages'],$pg['page']+1) ?>"
-           class="ann-page-btn <?= $pg['page']===$pg['total_pages']?'disabled':'' ?>">›</a>
-        <a href="?cat=<?= urlencode($activeFilter) ?>&page=<?= $pg['total_pages'] ?>"
-           class="ann-page-btn <?= $pg['page']===$pg['total_pages']?'disabled':'' ?>">»</a>
-      </div>
-      <p style="text-align:center;font-size:.82rem;color:var(--gray-500);margin-top:10px;">
-        <?= t('common.page') ?> <?= $pg['page'] ?> <?= t('common.of') ?> <?= $pg['total_pages'] ?>
-      </p>
-    <?php endif; ?>
+        <!-- ── Pagination Dots ── -->
+    <div class="ann-pagination-dots" id="ann-dots"></div>
 
   </div>
 </section>
@@ -226,7 +319,7 @@ const ANN_DATA = <?php
       'bucket' => $a['bucket'],
       'icon'   => $a['icon'],
       'image'  => !empty($a['image']) ? $appUrl . '/' . $a['image'] : '',
-      'date'   => $a['date'],
+      'date'    => $a['date'][$_lang],
       'cat'    => $a['category'][$_lang],
       'title'  => $a['title'][$_lang],
       'body'   => $a['body'][$_lang],
@@ -254,9 +347,11 @@ function openAnnModal(id) {
 
   const cover = document.getElementById('ann-modal-cover');
   if (a.image) {
-    cover.innerHTML = '';
-    cover.style.background = `url('${a.image}') center/cover no-repeat`;
+    cover.classList.add('has-image');
+    cover.style.background = '';
+    cover.innerHTML = `<img src="${a.image}" alt="">`;
   } else {
+    cover.classList.remove('has-image');
     cover.innerHTML = `<i class="fas fa-${a.icon}"></i>`;
     cover.style.background = `linear-gradient(135deg, ${color}, #0057b7)`;
   }
@@ -285,22 +380,51 @@ document.getElementById('ann-modal-backdrop').addEventListener('click', function
 // Close on Escape
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAnnModal(); });
 
-// ── Slider: mouse drag + touch + arrow buttons ────────────────────────────────
+// ── Slider: mouse drag + touch + arrow buttons + dots (เหมือน activities.php) ──
 (function() {
   const track = document.getElementById('ann-track');
   const prev  = document.getElementById('ann-prev');
   const next  = document.getElementById('ann-next');
+  const dotsContainer = document.getElementById('ann-dots');
   if (!track) return;
 
-  const scrollBy = () => {
-    const slide = track.querySelector('.ann-slide');
-    return slide ? slide.offsetWidth + 24 : 300;
-  };
+  function getSlides() {
+    return Array.from(track.querySelectorAll('.ann-slide'));
+  }
 
-  prev.addEventListener('click', () => track.scrollBy({ left: -scrollBy(), behavior: 'smooth' }));
-  next.addEventListener('click', () => track.scrollBy({ left:  scrollBy(), behavior: 'smooth' }));
+  function getScrollAmount() {
+    const slides = getSlides();
+    return slides.length ? slides[0].offsetWidth + 24 : 300;
+  }
 
-  // Mouse drag
+  // ── ปุ่มถัดไป/ก่อนหน้า (loop เมื่อสุดขอบ) ──
+  next.addEventListener('click', () => {
+    const slides = getSlides();
+    if (slides.length === 0) return;
+    const scrollAmount  = getScrollAmount();
+    const maxScrollLeft = track.scrollWidth - track.clientWidth;
+
+    if (Math.ceil(track.scrollLeft) >= maxScrollLeft - 10) {
+      track.scrollTo({ left: 0, behavior: 'smooth' });
+    } else {
+      track.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+  });
+
+  prev.addEventListener('click', () => {
+    const slides = getSlides();
+    if (slides.length === 0) return;
+    const scrollAmount  = getScrollAmount();
+    const maxScrollLeft = track.scrollWidth - track.clientWidth;
+
+    if (track.scrollLeft <= 10) {
+      track.scrollTo({ left: maxScrollLeft, behavior: 'smooth' });
+    } else {
+      track.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+    }
+  });
+
+  // ── Mouse drag (คงเดิม) ──
   let isDown = false, startX = 0, scrollLeft = 0;
   track.addEventListener('mousedown', e => {
     isDown = true; startX = e.pageX - track.offsetLeft; scrollLeft = track.scrollLeft;
@@ -314,6 +438,58 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAnnModa
     const x = e.pageX - track.offsetLeft;
     track.scrollLeft = scrollLeft - (x - startX);
   });
+
+  // ── Pagination Dots (สร้าง/อัปเดตจากตำแหน่ง scroll จริง) ──
+  function generateDots() {
+    if (!dotsContainer) return;
+    dotsContainer.innerHTML = '';
+
+    const slides = getSlides();
+    const maxScrollLeft = track.scrollWidth - track.clientWidth;
+    if (slides.length === 0 || maxScrollLeft <= 0) return;
+
+    const scrollAmount = getScrollAmount();
+    const numDots = Math.ceil(maxScrollLeft / scrollAmount) + 1;
+
+    for (let i = 0; i < numDots; i++) {
+      const dot = document.createElement('span');
+      dot.classList.add('ann-dot');
+      dot.addEventListener('click', () => {
+        track.scrollTo({ left: scrollAmount * i, behavior: 'smooth' });
+      });
+      dotsContainer.appendChild(dot);
+    }
+    updatePagination();
+  }
+
+  function updatePagination() {
+    if (!dotsContainer) return;
+    const currentDots = dotsContainer.querySelectorAll('.ann-dot');
+    if (currentDots.length === 0) return;
+
+    const maxScrollLeft = track.scrollWidth - track.clientWidth;
+    const scrollAmount  = getScrollAmount();
+    const currentScroll = track.scrollLeft;
+
+    let currentIndex = 0;
+    if (Math.ceil(currentScroll) >= maxScrollLeft - 10) {
+      currentIndex = currentDots.length - 1;
+    } else {
+      currentIndex = Math.round(currentScroll / scrollAmount);
+    }
+    if (currentIndex >= currentDots.length) currentIndex = currentDots.length - 1;
+    if (currentIndex < 0) currentIndex = 0;
+
+    currentDots.forEach(d => d.classList.remove('active'));
+    if (currentDots[currentIndex]) currentDots[currentIndex].classList.add('active');
+  }
+
+  track.addEventListener('scroll', () => {
+    window.requestAnimationFrame(updatePagination);
+  });
+  window.addEventListener('resize', generateDots);
+
+  generateDots(); // รันครั้งแรกตอนโหลดหน้า
 })();
 </script>
 

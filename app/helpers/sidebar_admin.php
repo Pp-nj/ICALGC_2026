@@ -59,7 +59,7 @@ $_adminUnread = Notification::countUnread((int)$user['id']);
       <i class="fas fa-gavel"></i><?= $_lang==='th'?'ตัดสินผลบทคัดย่อ':'Final Decision' ?>
     </a>
     <a class="sidebar-link <?= $_menu==='publications'?'active':'' ?>" href="<?= $appUrl ?>/admin/publications.php">
-      <i class="fas fa-globe"></i><?= $_lang==='th'?'เผยแพร่บทคัดย่อ':'Publish Papers' ?>
+      <i class="fas fa-file-upload"></i><?= $_lang==='th'?'จัดการไฟล์เผยแพร่':'Manage Published Files' ?>
     </a>
   </div>
 

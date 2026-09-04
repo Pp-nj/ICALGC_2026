@@ -15,8 +15,9 @@ $yearFilter= intGet('year');
 $page      = max(1, intGet('page', 1));
 $perPage   = 9;
 
-// Build query
-$where  = ["p.status_code = 'published'"];
+// Build query — `publications` is the single source of truth for public listing,
+// covering both paper-linked and admin-added standalone entries alike.
+$where  = ["pub.stored_name IS NOT NULL"];
 $params = [];
 
 try {
@@ -25,12 +26,12 @@ try {
 
     if ($search) {
         $where[] = $isMysql
-            ? "(p.title_en LIKE :q OR p.title_th LIKE :q OR p.keywords LIKE :q OR u.first_name LIKE :q OR u.last_name LIKE :q)"
-            : "(p.title_en ILIKE :q OR p.title_th ILIKE :q OR p.keywords ILIKE :q OR u.first_name ILIKE :q OR u.last_name ILIKE :q)";
+            ? "(pub.title_en LIKE :q OR pub.title_th LIKE :q OR pub.keywords LIKE :q OR pub.authors_text LIKE :q)"
+            : "(pub.title_en ILIKE :q OR pub.title_th ILIKE :q OR pub.keywords ILIKE :q OR pub.authors_text ILIKE :q)";
         $params[':q'] = '%' . $search . '%';
     }
     if ($themeId) {
-        $where[]         = "p.theme_id = :theme_id";
+        $where[]         = "pub.theme_id = :theme_id";
         $params[':theme_id'] = $themeId;
     }
     if ($yearFilter) {
@@ -41,11 +42,7 @@ try {
     $whereStr = implode(' AND ', $where);
 
     // Total count
-    $cntSql  = "SELECT COUNT(*) FROM papers p
-                JOIN publications pub ON pub.paper_id = p.id
-                JOIN users u ON u.id = p.submitter_id
-                JOIN conference_themes ct ON ct.id = p.theme_id
-                WHERE {$whereStr}";
+    $cntSql  = "SELECT COUNT(*) FROM publications pub WHERE {$whereStr}";
     $cntStmt = $db->prepare($cntSql);
     $cntStmt->execute($params);
     $total = (int)$cntStmt->fetchColumn();
@@ -53,14 +50,10 @@ try {
     $pg     = paginate($total, $perPage, $page);
     $offset = $pg['offset'];
 
-    // Fetch papers
-    $sql = "SELECT p.*, pub.doi, pub.published_at, pub.download_count, pub.view_count, pub.id AS pub_id,
-                   u.first_name, u.last_name, u.title AS u_title,
-                   ct.name_th AS theme_th, ct.name_en AS theme_en
-            FROM papers p
-            JOIN publications pub ON pub.paper_id = p.id
-            JOIN users u ON u.id = p.submitter_id
-            JOIN conference_themes ct ON ct.id = p.theme_id
+    // Fetch publications
+    $sql = "SELECT pub.*, ct.name_th AS theme_th, ct.name_en AS theme_en
+            FROM publications pub
+            LEFT JOIN conference_themes ct ON ct.id = pub.theme_id
             WHERE {$whereStr}
             ORDER BY pub.published_at DESC
             LIMIT :lim OFFSET :off";
@@ -71,23 +64,12 @@ try {
     $stmt->execute();
     $papers = $stmt->fetchAll();
 
-    // Fetch co-authors for each paper
-    foreach ($papers as &$paper) {
-        $coStmt = $db->prepare("SELECT full_name FROM paper_co_authors WHERE paper_id = :pid ORDER BY sort_order");
-        $coStmt->execute([':pid' => $paper['id']]);
-        $paper['co_authors'] = $coStmt->fetchAll(\PDO::FETCH_COLUMN);
-    }
-    unset($paper);
-
     // Themes for filter
     $themes = $db->query("SELECT * FROM conference_themes WHERE is_active = TRUE ORDER BY code")->fetchAll();
 
     // Years for filter
-    $yearsStmt = $db->query("SELECT DISTINCT EXTRACT(YEAR FROM pub.published_at)::int AS yr FROM publications pub ORDER BY yr DESC");
+    $yearsStmt = $db->query("SELECT DISTINCT YEAR(pub.published_at) AS yr FROM publications pub ORDER BY yr DESC");
     $years = $yearsStmt->fetchAll(\PDO::FETCH_COLUMN);
-
-    // Track view count (lightweight)
-    // (Implemented in detail page)
 
 } catch (\Throwable $e) {
     $papers = []; $total = 0; $pg = paginate(0, $perPage, 1); $themes = []; $years = [];
@@ -180,17 +162,13 @@ require_once __DIR__ . '/../app/helpers/header.php';
       <div class="row g-4">
         <?php foreach ($papers as $paper): ?>
           <?php
-          // All authors
-          $allAuthors = [$paper['u_title'] . ' ' . $paper['first_name'] . ' ' . $paper['last_name']];
-          foreach ($paper['co_authors'] as $co) $allAuthors[] = $co;
-          $authorStr = implode(', ', $allAuthors);
-          $keywords  = array_map('trim', explode(',', $paper['keywords']));
+          $keywords = $paper['keywords'] ? array_map('trim', explode(',', $paper['keywords'])) : [];
           ?>
           <div class="col-lg-4 col-md-6">
             <div class="pub-card">
               <div class="d-flex justify-content-between align-items-start mb-3">
                 <span class="keyword-tag" style="background:var(--blue-dark);color:var(--gold);">
-                  <?= e($_lang==='th'?$paper['theme_th']:$paper['theme_en']) ?>
+                  <?= e($paper['theme_id'] ? ($_lang==='th'?$paper['theme_th']:$paper['theme_en']) : '') ?>
                 </span>
                 <span style="font-size:.75rem;color:var(--gray-500);">
                   <i class="fas fa-download me-1"></i><?= (int)$paper['download_count'] ?>
@@ -202,7 +180,7 @@ require_once __DIR__ . '/../app/helpers/header.php';
                 </a>
               </h3>
               <p class="pub-card-authors">
-                <i class="fas fa-users me-1"></i><?= e($authorStr) ?>
+                <i class="fas fa-users me-1"></i><?= e($paper['authors_text']) ?>
               </p>
               <div class="pub-card-keywords">
                 <?php foreach (array_slice($keywords, 0, 4) as $kw): ?>
@@ -214,7 +192,7 @@ require_once __DIR__ . '/../app/helpers/header.php';
                    class="btn-outline-custom flex-fill text-center" style="padding:8px 12px;font-size:.82rem;">
                   <i class="fas fa-eye me-1"></i><?= t('pub.view_detail') ?>
                 </a>
-                <a href="<?= $appUrl ?>/download.php?paper_id=<?= (int)$paper['id'] ?>&type=latest"
+                <a href="<?= $appUrl ?>/download.php?pub_id=<?= (int)$paper['id'] ?>"
                    class="btn-primary-custom flex-fill text-center" style="padding:8px 12px;font-size:.82rem;">
                   <i class="fas fa-download me-1"></i>PDF
                 </a>

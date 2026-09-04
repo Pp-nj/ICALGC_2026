@@ -77,6 +77,9 @@ define('PAPER_CODE_PREFIX', 'ICALGC2026-');
 define('MAIL_FROM',       getenv('MAIL_FROM')      ?: 'noreply@icalgc2026.com');
 define('MAIL_FROM_NAME',  getenv('MAIL_FROM_NAME') ?: 'ICALGC 2026');
 
+// ── reCAPTCHA ──────────────────────────────────────────────
+define('RECAPTCHA_SECRET_KEY', getenv('RECAPTCHA_SECRET_KEY') ?: '');
+
 // ── Error handling ────────────────────────────────────────
 if (APP_DEBUG) {
     ini_set('display_errors', 1);

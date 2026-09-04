@@ -55,18 +55,7 @@ require_once __DIR__ . '/../app/helpers/header.php';
         </div>
 
         <!-- Schedule -->
-        <div class="content-card">
-          <div class="content-card-title">
-            <i class="fas fa-calendar-alt me-2" style="color:var(--gold);"></i>
-            <?= $_lang==='th'?'กำหนดการ 25 พฤศจิกายน 2569':'Schedule – November 25, 2026' ?>
-          </div>
-          <?php
-          $schedule = $_lang==='th' ? [
-            ['time'=>'08:30', 'event'=>'ลงทะเบียน'],
-            ['time'=>'09:00', 'event'=>'พิธีเปิดการประชุม'],
-            ['time'=>'09:30', 'event'=>'การบรรยายพิเศษ (Keynote 1)'],
-            ['time'=>'10:30', 'event'=>'พักรับประทานอาหารว่าง'],
-            ['time'=>'11:00', 'event'=>'การบรรยายพิเศษ (Keynote 2)'],
+        <!-- nt'=>'การบรรยายพิเศษ (Keynote 2)'],
             ['time'=>'12:00', 'event'=>'พักรับประทานอาหารกลางวัน'],
             ['time'=>'13:30', 'event'=>'การนำเสนอบทคัดย่อ(ภาคบ่าย)'],
             ['time'=>'16:00', 'event'=>'พิธีมอบใบประกาศนียบัตร'],
@@ -101,7 +90,7 @@ require_once __DIR__ . '/../app/helpers/header.php';
               </tbody>
             </table>
           </div>
-        </div>
+        </div> -->
 
       </div>
     </div>

@@ -7,6 +7,7 @@ use App\Core\Database;
 Auth::redirectIfLoggedIn();
 
 $error   = '';
+$showResend = false;
 $appUrl  = APP_URL;
 $_lang   = lang();
 
@@ -32,6 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $error = $_lang === 'th'
                             ? 'กรุณายืนยันอีเมลของคุณก่อนเข้าสู่ระบบ ตรวจสอบกล่องจดหมายของคุณ'
                             : 'Please verify your email before logging in. Check your inbox.';
+                        $showResend = true;
                         auditLog('login_failed', 'auth', 'Unverified login attempt: ' . $email);
                     } elseif ($user['account_status'] !== 'active') {
                         $error = $_lang === 'th' ? 'บัญชีนี้ถูกระงับการใช้งาน' : 'This account has been suspended.';
@@ -97,6 +99,14 @@ $csrf = Auth::csrfToken();
         <i class="fas fa-exclamation-circle"></i>
         <span><?= e($error) ?></span>
       </div>
+      <?php if ($showResend): ?>
+        <div class="text-center mb-4" style="margin-top:-12px;font-size:.85rem;">
+          <a href="<?= $appUrl ?>/resend-verification.php" style="color:var(--blue-mid);font-weight:700;">
+            <i class="fas fa-paper-plane me-1"></i>
+            <?= $_lang==='th' ? 'ส่งอีเมลยืนยันใหม่' : 'Resend verification email' ?>
+          </a>
+        </div>
+      <?php endif; ?>
     <?php endif; ?>
 
     <?php if (!empty($_GET['error']) && $_GET['error'] === 'timeout'): ?>
