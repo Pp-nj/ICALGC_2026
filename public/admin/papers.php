@@ -8,6 +8,50 @@ Auth::require('admin');
 $_lang  = lang();
 $appUrl = APP_URL;
 
+
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = generateToken(32);
+}
+$csrfToken = $_SESSION['csrf_token'];
+
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && post('action') === 'delete_paper') {
+
+    if (!hash_equals($_SESSION['csrf_token'] ?? '', post('csrf_token'))) {
+        flashSet('danger', $_lang === 'th' ? 'คำขอไม่ถูกต้อง กรุณาลองใหม่' : 'Invalid request. Please try again.');
+        redirect($appUrl . '/admin/papers');
+    }
+
+    $targetId = intPost('id');
+
+    if ($targetId > 0) {
+        try {
+            $db = Database::getInstance();
+
+            $chk = $db->prepare("SELECT COUNT(*) FROM review_assignments WHERE paper_id = :id AND assignment_status = 'completed'");
+            $chk->execute([':id' => $targetId]);
+            $hasReviews = (int)$chk->fetchColumn() > 0;
+
+            if ($hasReviews) {
+                flashSet('warning', $_lang === 'th'
+                    ? 'ไม่สามารถลบถาวรได้ เนื่องจากมีการประเมินผลเสร็จแล้ว'
+                    : 'Cannot permanently delete: this paper already has completed reviews.');
+            } else {
+                $del = $db->prepare("DELETE FROM papers WHERE id = :id");
+                $del->execute([':id' => $targetId]);
+                auditLog('delete_paper', 'papers', "paper_id={$targetId}");
+                flashSet('success', $_lang === 'th' ? 'ลบบทความถาวรเรียบร้อยแล้ว' : 'Paper permanently deleted.');
+            }
+        } catch (\Throwable $e) {
+            error_log($e->getMessage());
+            flashSet('danger', $_lang === 'th' ? 'เกิดข้อผิดพลาด กรุณาลองใหม่' : 'An error occurred. Please try again.');
+        }
+    }
+    redirect($appUrl . '/admin/papers');
+}
+
+
+
 $statusFilter = sanitize(get('status'));
 $themeFilter  = intGet('theme_id');
 $search       = sanitize(get('q'));
@@ -202,7 +246,7 @@ $activeMenu = 'papers';
                       <?= (int)$p['review_count'] ?>
                     </span>
                   </td>
-                  <td>
+                                    <td>
                     <div class="d-flex gap-1">
                       <a href="<?= $appUrl ?>/admin/paper-detail.php?id=<?= (int)$p['id'] ?>"
                          class="btn btn-sm btn-outline-primary rounded-pill" style="font-size:.72rem;">
@@ -214,6 +258,18 @@ $activeMenu = 'papers';
                           <i class="fas fa-user-plus"></i>
                         </a>
                       <?php endif; ?>
+
+                      <!-- ปุ่ม: ลบถาวร (ใช้เมื่อมั่นใจ 100% เท่านั้น) -->
+                      <form method="POST" action="" style="display:inline;"
+                            onsubmit="return confirm('<?= $_lang==='th' ? 'ยืนยันลบบทความนี้ถาวร? ไฟล์แนบ/ผลรีวิวที่เกี่ยวข้องจะถูกลบไปด้วย และไม่สามารถกู้คืนได้' : 'Permanently delete this paper? Related files/reviews will also be deleted. This cannot be undone.' ?>');">
+                        <input type="hidden" name="csrf_token" value="<?= e($csrfToken) ?>">
+                        <input type="hidden" name="action" value="delete_paper">
+                        <input type="hidden" name="id" value="<?= (int)$p['id'] ?>">
+                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill" style="font-size:.72rem;"
+                                title="<?= $_lang==='th'?'ลบถาวร':'Delete permanently' ?>">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </form>
                     </div>
                   </td>
                 </tr>
