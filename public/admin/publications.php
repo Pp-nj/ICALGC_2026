@@ -12,7 +12,7 @@ $errors = [];
 
 // Admin creates a brand-new, standalone publication — no paper, no author involved.
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && post('action') === 'create') {
-    Auth::verifyCsrf(post('csrf_token'));
+    requireCsrf();
 
     $titleTh = trim(post('title_th'));
     $titleEn = trim(post('title_en'));
@@ -76,7 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && post('action') === 'create') {
 
 // Admin edits an existing publication's details (no file change here).
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && post('action') === 'edit') {
-    Auth::verifyCsrf(post('csrf_token'));
+    requireCsrf();
 
     $pubId    = intPost('pub_id');
     $titleTh  = trim(post('title_th'));
@@ -121,7 +121,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && post('action') === 'edit') {
 
 // Admin deletes a publication entirely (removes its file from disk too).
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && post('action') === 'delete') {
-    Auth::verifyCsrf(post('csrf_token'));
+    requireCsrf();
 
     $pubId = intPost('pub_id');
     if ($pubId) {
@@ -143,11 +143,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && post('action') === 'delete') {
                 auditLog('delete_publication', 'publications', "Deleted publication #{$pubId}", Auth::id());
                 flashSet('success', $_lang==='th' ? 'ลบบทคัดย่อเรียบร้อย' : 'Publication deleted successfully.');
             } else {
-                flashSet('error', $_lang==='th' ? 'ไม่พบรายการ' : 'Publication not found.');
+                flashSet('danger', $_lang==='th' ? 'ไม่พบรายการ' : 'Publication not found.');
             }
         } catch (\Throwable $e) {
             error_log($e->getMessage());
-            flashSet('error', $_lang==='th' ? 'เกิดข้อผิดพลาด' : 'An error occurred.');
+            flashSet('danger', $_lang==='th' ? 'เกิดข้อผิดพลาด' : 'An error occurred.');
         }
     }
     redirect($appUrl . '/admin/publications.php');
@@ -156,7 +156,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && post('action') === 'delete') {
 // Admin uploads/replaces the public-facing file for an existing publication
 // (standalone or paper-linked). Never touches papers.status_code, never notifies anyone.
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && post('action') === 'upload_file') {
-    Auth::verifyCsrf(post('csrf_token'));
+    requireCsrf();
 
     $pubId = intPost('pub_id');
     $doi   = trim(post('doi'));

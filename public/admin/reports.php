@@ -10,6 +10,15 @@ $appUrl = APP_URL;
 
 try {
     $db = Database::getInstance();
+    $isMysql = $db->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql';
+
+    // TO_CHAR exists only in PostgreSQL; MySQL needs DATE_FORMAT. The plain
+    // TO_CHAR call that used to be below threw "FUNCTION TO_CHAR does not
+    // exist", and since every report query shares this one try block, that
+    // single failure skipped the rest and the catch blanked all six results —
+    // the whole page rendered as zeros.
+    $monthCreated   = $isMysql ? "DATE_FORMAT(created_at, '%Y-%m')"   : "TO_CHAR(created_at, 'YYYY-MM')";
+    $monthSubmitted = $isMysql ? "DATE_FORMAT(submitted_at, '%Y-%m')" : "TO_CHAR(submitted_at, 'YYYY-MM')";
 
     // Paper stats by status
     $byStatus = $db->query("
@@ -32,14 +41,14 @@ try {
 
     // User registrations by month
     $byMonth = $db->query("
-        SELECT TO_CHAR(created_at, 'YYYY-MM') AS month, COUNT(*) AS cnt
+        SELECT {$monthCreated} AS month, COUNT(*) AS cnt
         FROM users WHERE role = 'author'
         GROUP BY month ORDER BY month DESC LIMIT 12
     ")->fetchAll();
 
     // Submissions by month
     $submByMonth = $db->query("
-        SELECT TO_CHAR(submitted_at, 'YYYY-MM') AS month, COUNT(*) AS cnt
+        SELECT {$monthSubmitted} AS month, COUNT(*) AS cnt
         FROM papers
         GROUP BY month ORDER BY month DESC LIMIT 12
     ")->fetchAll();

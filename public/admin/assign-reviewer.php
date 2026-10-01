@@ -19,7 +19,7 @@ if (!$paperId) {
     try {
         $db = Database::getInstance();
         $pendingPapers = $db->query("
-            SELECT p.*, CONCAT(u.first_name, ' ', u.last_name) AS submitter_name,
+            SELECT p.*, " . sqlFullName('u') . " AS submitter_name,
                    ct.name_th AS theme_th, ct.name_en AS theme_en,
                    (SELECT COUNT(*) FROM review_assignments ra WHERE ra.paper_id = p.id AND ra.assignment_status != 'declined') AS assigned_count
             FROM papers p
@@ -124,7 +124,7 @@ if (!$paperId) {
 // ──────────────────────────────────────────────────────────────────
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    Auth::verifyCsrf(post('csrf_token'));
+    requireCsrf();
 
     $reviewerIds = array_filter(array_map('intval', (array)($_POST['reviewer_id'] ?? [])));
     $dueDate     = post('due_date');
@@ -144,31 +144,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $pStmt->execute([':pid' => $paperId]);
             $paper = $pStmt->fetch();
 
-            $chk = $db->prepare("SELECT id FROM review_assignments WHERE paper_id = :pid AND reviewer_id = :rid AND assignment_status != 'declined'");
-            $ins = $db->prepare("INSERT INTO review_assignments (paper_id, reviewer_id, assigned_by, due_date, assignment_status) VALUES (:pid, :rid, :aby, :dd, 'pending')");
-            $rvStmt = $db->prepare("SELECT * FROM users WHERE id = :rid");
+            if (!$paper) {
+                $errors[] = $_lang==='th' ? 'ไม่พบบทคัดย่อนี้' : 'Paper not found.';
+            }
 
-            foreach ($reviewerIds as $reviewerId) {
-                $chk->execute([':pid' => $paperId, ':rid' => $reviewerId]);
-                $alreadyAssigned = $chk->fetch();
-                $chk->closeCursor();
-                if ($alreadyAssigned) {
-                    $errors[] = $_lang==='th' ? 'ผู้ทรงคุณวุฒิบางคนถูกมอบหมายแล้ว' : 'One or more reviewers are already assigned.';
-                    break;
+            if (empty($errors)) {
+                $chk = $db->prepare("SELECT id FROM review_assignments WHERE paper_id = :pid AND reviewer_id = :rid AND assignment_status != 'declined'");
+                $ins = $db->prepare("INSERT INTO review_assignments (paper_id, reviewer_id, assigned_by, due_date, assignment_status) VALUES (:pid, :rid, :aby, :dd, 'pending')");
+                $rvStmt = $db->prepare("SELECT * FROM users WHERE id = :rid");
+
+                foreach ($reviewerIds as $reviewerId) {
+                    $chk->execute([':pid' => $paperId, ':rid' => $reviewerId]);
+                    $alreadyAssigned = $chk->fetch();
+                    $chk->closeCursor();
+                    if ($alreadyAssigned) {
+                        $errors[] = $_lang==='th' ? 'ผู้ทรงคุณวุฒิบางคนถูกมอบหมายแล้ว' : 'One or more reviewers are already assigned.';
+                        break;
+                    }
                 }
             }
 
             if (empty($errors)) {
+                // All database writes go in one transaction: assigning only one of
+                // the two reviewers, or assigning them without moving the paper to
+                // under_review, leaves the workflow in a state no page expects.
+                $db->beginTransaction();
+
+                $assignedReviewers = [];
                 foreach ($reviewerIds as $reviewerId) {
-                    $ins->execute([':pid' => $paperId, ':rid' => $reviewerId, ':aby' => Auth::user()['id'], ':dd' => $dueDate]);
+                    $ins->execute([':pid' => $paperId, ':rid' => $reviewerId, ':aby' => Auth::id(), ':dd' => $dueDate]);
 
                     $rvStmt->execute([':rid' => $reviewerId]);
                     $reviewer = $rvStmt->fetch();
                     $rvStmt->closeCursor();
-
-                    Notification::reviewAssigned($reviewerId, $paper['paper_code'], $_lang==='th' ? ($paper['title_th'] ?? $paper['title_en']) : ($paper['title_en'] ?? $paper['title_th']), $paperId);
-                    Mail::sendReviewAssignment($reviewer['email'], $reviewer['first_name'] . ' ' . $reviewer['last_name'], $paper['paper_code'], $_lang==='th' ? ($paper['title_th'] ?? $paper['title_en']) : ($paper['title_en'] ?? $paper['title_th']), $dueDate);
-                    auditLog('assign_reviewer', 'papers', "Paper $paperId → Reviewer $reviewerId");
+                    if ($reviewer) $assignedReviewers[] = $reviewer;
                 }
 
                 $updStmt = $db->prepare("UPDATE papers SET status_code = 'under_review', updated_at = NOW() WHERE id = :pid AND status_code = 'submitted'");
@@ -180,13 +189,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $cntStmt2->execute([':pid' => $paperId]);
                 $totalAssigned = (int)$cntStmt2->fetchColumn();
 
+                // Also ensure status is under_review even if it was already set
+                if ($totalAssigned >= 2 && !$statusChanged) {
+                    $db->prepare("UPDATE papers SET status_code = 'under_review', updated_at = NOW() WHERE id = :pid AND status_code NOT IN ('accepted','published','rejected')")
+                       ->execute([':pid' => $paperId]);
+                }
+
+                $db->commit();
+
+                // Notifications, email and the audit trail come after the commit.
+                // Sending mail mid-transaction would either announce assignments
+                // that later got rolled back, or let an SMTP outage undo them.
+                $paperTitle = $_lang==='th'
+                    ? ($paper['title_th'] ?? $paper['title_en'])
+                    : ($paper['title_en'] ?? $paper['title_th']);
+
+                foreach ($assignedReviewers as $reviewer) {
+                    auditLog('assign_reviewer', 'papers', "Paper $paperId → Reviewer {$reviewer['id']}");
+                    try {
+                        Notification::reviewAssigned((int)$reviewer['id'], $paper['paper_code'], $paperTitle, $paperId);
+                        Mail::sendReviewAssignment($reviewer['email'], fullName($reviewer), $paper['paper_code'], $paperTitle, $dueDate);
+                    } catch (\Throwable $notifyError) {
+                        error_log('Reviewer assignment notification failed: ' . $notifyError->getMessage());
+                    }
+                }
+
                 // Notify author when paper has >= 2 reviewers assigned
                 if ($totalAssigned >= 2) {
-                    Notification::underReview((int)$paper['submitter_id'], $paper['paper_code'], (int)$paperId);
-                    // Also ensure status is under_review even if it was already set
-                    if (!$statusChanged) {
-                        $db->prepare("UPDATE papers SET status_code = 'under_review', updated_at = NOW() WHERE id = :pid AND status_code NOT IN ('accepted','published','rejected')")
-                           ->execute([':pid' => $paperId]);
+                    try {
+                        Notification::underReview((int)$paper['submitter_id'], $paper['paper_code'], (int)$paperId);
+                    } catch (\Throwable $notifyError) {
+                        error_log('Author under-review notification failed: ' . $notifyError->getMessage());
                     }
                 }
 
@@ -194,6 +227,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 redirect($appUrl . '/admin/paper-detail.php?id=' . $paperId);
             }
         } catch (\Throwable $e) {
+            if (isset($db) && $db->inTransaction()) $db->rollBack();
             error_log($e->getMessage());
             $errors[] = $_lang==='th' ? 'เกิดข้อผิดพลาด' : 'An error occurred.';
         }
@@ -229,7 +263,7 @@ try {
 
     // Current assignments
     $curStmt = $db->prepare("
-        SELECT ra.*, CONCAT(u.first_name, ' ', u.last_name) AS reviewer_name, u.email AS reviewer_email,
+        SELECT ra.*, " . sqlFullName('u') . " AS reviewer_name, u.email AS reviewer_email,
                r.score_overall, r.recommendation
         FROM review_assignments ra
         JOIN users u ON u.id = ra.reviewer_id
@@ -316,7 +350,7 @@ $activeMenu = 'assign-reviewer';
                     <option value=""><?= $_lang==='th' ? '-- เลือกผู้ทรงคุณวุฒิ --' : '-- Select Reviewer --' ?></option>
                     <?php foreach ($reviewers as $rv): ?>
                       <option value="<?= $rv['id'] ?>">
-                        <?= e($rv['first_name'] . ' ' . $rv['last_name']) ?> (<?= e($rv['affiliation'] ?? $rv['email']) ?>)
+                        <?= e(fullName($rv)) ?> (<?= e($rv['affiliation'] ?? $rv['email']) ?>)
                         — <?= $_lang==='th' ? 'งานปัจจุบัน:' : 'Active:' ?> <?= (int)$rv['active_assignments'] ?>
                       </option>
                     <?php endforeach; ?>
@@ -326,7 +360,7 @@ $activeMenu = 'assign-reviewer';
                     <option value=""><?= $_lang==='th' ? '-- เลือกผู้ทรงคุณวุฒิ --' : '-- Select Reviewer --' ?></option>
                     <?php foreach ($reviewers as $rv): ?>
                       <option value="<?= $rv['id'] ?>">
-                        <?= e($rv['first_name'] . ' ' . $rv['last_name']) ?> (<?= e($rv['affiliation'] ?? $rv['email']) ?>)
+                        <?= e(fullName($rv)) ?> (<?= e($rv['affiliation'] ?? $rv['email']) ?>)
                         — <?= $_lang==='th' ? 'งานปัจจุบัน:' : 'Active:' ?> <?= (int)$rv['active_assignments'] ?>
                       </option>
                     <?php endforeach; ?>

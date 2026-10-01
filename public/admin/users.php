@@ -10,7 +10,7 @@ $appUrl = APP_URL;
 
 // Handle suspend/activate/reset-password
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    Auth::verifyCsrf(post('csrf_token'));
+    requireCsrf();
     $userId = intPost('user_id');
     $action = post('action');
     if ($userId && in_array($action, ['suspend', 'activate', 'reset_password', 'delete'])) {
@@ -72,10 +72,14 @@ try {
     $db = Database::getInstance();
     $isMysql = $db->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql';
     if ($search) {
-        $where[] = $isMysql
-            ? "(CONCAT(u.first_name, ' ', u.last_name) LIKE :q OR u.email LIKE :q OR u.affiliation LIKE :q)"
-            : "((u.first_name || ' ' || u.last_name) ILIKE :q OR u.email ILIKE :q OR u.affiliation ILIKE :q)";
-        $params[':q'] = "%$search%";
+        // sqlNameSearch() covers name (with and without middle name) and email;
+        // affiliation is specific to this page. Each comparison needs its own
+        // placeholder because PDO rejects repeating one named placeholder while
+        // ATTR_EMULATE_PREPARES is false.
+        $like    = $isMysql ? 'LIKE' : 'ILIKE';
+        $where[] = "(" . sqlNameSearch('u', ':qn', $isMysql) . " OR u.affiliation {$like} :qaff)";
+        $params[':qaff'] = "%$search%";
+        $params += nameSearchParams(':qn', $search);
     }
     $whereStr = implode(' AND ', $where);
     $cntStmt = $db->prepare("SELECT COUNT(*) FROM users u WHERE $whereStr");
@@ -202,7 +206,7 @@ $activeMenu = 'users';
               ?>
                 <tr>
                   <td style="font-weight:600;font-size:.88rem;">
-                    <?= e($u['first_name'] . ' ' . $u['last_name']) ?>
+                    <?= e(fullName($u)) ?>
                     <?php if (!$u['email_verified']): ?>
                       <i class="fas fa-exclamation-circle ms-1" style="color:#fd7e14;font-size:.72rem;" title="Unverified email"></i>
                     <?php endif; ?>
@@ -256,7 +260,7 @@ $activeMenu = 'users';
                         <?php endif; ?>
                       </form>
                       <button type="button" class="btn btn-sm btn-outline-warning rounded-pill" style="font-size:.72rem;"
-                              onclick="openResetPwd(<?= (int)$u['id'] ?>, '<?= e($u['first_name'].' '.$u['last_name']) ?>')"
+                              onclick="openResetPwd(<?= (int)$u['id'] ?>, '<?= e(fullName($u)) ?>')"
                               title="<?= $_lang==='th'?'ตั้งค่ารหัสผ่านใหม่':'Reset Password' ?>">
                         <i class="fas fa-key"></i>
                       </button>

@@ -13,6 +13,7 @@ $_lang  = lang();
 $appUrl = APP_URL;
 $csrf   = Auth::csrfToken();
 $errors = [];
+$submissionOpen = isSubmissionOpen();
 
 // Load themes
 try {
@@ -22,7 +23,10 @@ try {
 
 // Handle submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!Auth::verifyCsrf(post('csrf_token'))) {
+    if (!$submissionOpen) {
+        // A form opened before the admin closed submissions can still be posted.
+        $errors[] = $_lang==='th' ? 'ขณะนี้ปิดรับบทคัดย่อแล้ว' : 'Submissions are currently closed.';
+    } elseif (!Auth::verifyCsrf(post('csrf_token'))) {
         $errors[] = 'Invalid CSRF token.';
     } else {
         $titleTh    = sanitize(post('title_th'));
@@ -62,26 +66,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (empty($errors)) {
             try {
+                $paperCode   = null;
+                $paperId     = null;
+                $submitted   = false;
+                $maxAttempts = 5;
+                for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
+                    $paperCode = generatePaperCode();
+                    try {
+                        $db->beginTransaction();
+                        $ins = $db->prepare("
+                            INSERT INTO papers
+                                (paper_code, title_th, title_en, keywords, theme_id, submitter_id, status_code)
+                            VALUES
+                                (:code, :tth, :ten, :kw, :tid, :uid, 'submitted')
+                        ");
+                        $ins->execute([
+                            ':code' => $paperCode,
+                            ':tth'  => $titleTh,
+                            ':ten'  => $titleEn,
+                            ':kw'   => $keywords,
+                            ':tid'  => $themeId,
+                            ':uid'  => $user['id'],
+                        ]);
+                        $paperId = (int)$db->lastInsertId();
+                        $db->commit();
+                        break;
+                    } catch (\PDOException $e) {
+                        if ($db->inTransaction()) $db->rollBack();
+                        $isDuplicateCode = (($e->errorInfo[1] ?? null) == 1062)
+                            && stripos($e->getMessage(), 'paper_code') !== false;
+                        if ($isDuplicateCode && $attempt < $maxAttempts) {
+                            continue; // try again with a new code
+                        }
+                        throw $e;
+                    }
+                }
+
                 $db->beginTransaction();
-
-                $paperCode = generatePaperCode();
-
-                // Insert paper
-                $ins = $db->prepare("
-                    INSERT INTO papers
-                        (paper_code, title_th, title_en, keywords, theme_id, submitter_id, status_code)
-                    VALUES
-                        (:code, :tth, :ten, :kw, :tid, :uid, 'submitted')
-                ");
-                $ins->execute([
-                    ':code' => $paperCode,
-                    ':tth'  => $titleTh,
-                    ':ten'  => $titleEn,
-                    ':kw'   => $keywords,
-                    ':tid'  => $themeId,
-                    ':uid'  => $user['id'],
-                ]);
-                $paperId = (int)$db->lastInsertId();
 
                 // Upload files (PDF + DOCX)
                 foreach (['paper_file_pdf' => 'pdf', 'paper_file_docx' => 'docx'] as $field => $fileType) {
@@ -129,28 +150,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
 
                 $db->commit();
+                $submitted = true;
 
-                // Notifications (author + all active admins)
-                Notification::paperSubmitted($user['id'], $paperCode, $titleEn);
+                // Notifications / email / audit log are side effects. The submission
+                // is already committed at this point, so a failure here must not be
+                // treated as a failed submission.
+                try {
+                    // Notifications (author + all active admins)
+                    Notification::paperSubmitted($user['id'], $paperCode, $titleEn);
 
-                // Email to author
-                $authorRow = $db->prepare("SELECT email, first_name, last_name FROM users WHERE id = :uid");
-                $authorRow->execute([':uid' => $user['id']]);
-                $authorData = $authorRow->fetch();
-                if ($authorData) {
-                    Mail::sendPaperSubmitted($authorData['email'], $authorData['first_name'].' '.$authorData['last_name'], $paperCode, $titleEn);
+                    // Email to author
+                    // title and middle_name are needed by fullName() below.
+                    $authorRow = $db->prepare("SELECT email, title, first_name, middle_name, last_name FROM users WHERE id = :uid");
+                    $authorRow->execute([':uid' => $user['id']]);
+                    $authorData = $authorRow->fetch();
+                    if ($authorData) {
+                        Mail::sendPaperSubmitted($authorData['email'], fullName($authorData), $paperCode, $titleEn);
+                    }
+
+                    auditLog('submit_paper', 'paper', 'Submitted: ' . $paperCode, $user['id']);
+                } catch (\Throwable $notifyError) {
+                    error_log('Post-submission notification error: ' . $notifyError->getMessage());
                 }
-
-                auditLog('submit_paper', 'paper', 'Submitted: ' . $paperCode, $user['id']);
 
                 flashSet('success', $_lang==='th'
                     ? "ส่งบทคัดย่อสำเร็จ! รหัสบทคัดย่อ: {$paperCode}"
                     : "Paper submitted successfully! Code: {$paperCode}");
-                redirect('/author/my-papers.php');
+                redirect($appUrl . '/author/my-papers.php');
 
             } catch (\Throwable $e) {
                 if ($db->inTransaction()) $db->rollBack();
-                $errors[] = 'System error: ' . $e->getMessage();
+
+                // The papers row is committed in its own transaction so that a
+                // duplicate paper_code can be retried. If a later step fails, that
+                // row would be left behind with no files and no co-authors, so
+                // remove it and let the author submit again from a clean slate.
+                if (!$submitted && $paperId) {
+                    try {
+                        $db->prepare("DELETE FROM papers WHERE id = :pid")->execute([':pid' => $paperId]);
+                    } catch (\Throwable $cleanupError) {
+                        error_log("Orphan paper cleanup failed (id {$paperId}): " . $cleanupError->getMessage());
+                    }
+                }
+
+                $errors[] = $_lang==='th'
+                    ? 'เกิดข้อผิดพลาดของระบบ กรุณาลองใหม่อีกครั้ง'
+                    : 'A system error occurred. Please try again.';
                 error_log($e->getMessage());
             }
         }
@@ -184,6 +229,21 @@ $activeMenu = 'submit';
         / <?= e($pageTitle) ?>
       </p>
     </div>
+
+    <?php if (!$submissionOpen): ?>
+      <div class="content-card text-center p-5">
+        <i class="fas fa-lock mb-3" style="font-size:2.5rem;color:var(--gray-400);"></i>
+        <h4 style="color:var(--blue-dark);"><?= $_lang==='th' ? 'ขณะนี้ปิดรับบทคัดย่อแล้ว' : 'Submissions Are Closed' ?></h4>
+        <p style="color:var(--gray-500);">
+          <?= $_lang==='th'
+              ? 'ระบบไม่เปิดรับบทคัดย่อใหม่ในขณะนี้ ท่านยังสามารถติดตามสถานะและส่งฉบับแก้ไขของบทคัดย่อที่ส่งไว้แล้วได้'
+              : 'New submissions are not being accepted at this time. You can still track and revise papers you have already submitted.' ?>
+        </p>
+        <a href="<?= $appUrl ?>/author/my-papers.php" class="btn-primary-custom mt-2">
+          <i class="fas fa-list me-2"></i><?= $_lang==='th' ? 'บทคัดย่อของฉัน' : 'My Papers' ?>
+        </a>
+      </div>
+    <?php else: ?>
 
     <?php if (!empty($errors)): ?>
       <div class="alert alert-danger mb-4">
@@ -304,6 +364,7 @@ $activeMenu = 'submit';
       </div>
 
     </form>
+    <?php endif; ?>
   </main>
 </div>
 

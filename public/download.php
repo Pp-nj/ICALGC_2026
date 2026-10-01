@@ -107,6 +107,29 @@ if ($pubId) {
 }
 
 /* ── Paper / file download (author's own paper_files — never public) ── */
+
+/**
+ * Is the logged-in reviewer actually assigned to this paper?
+ *
+ * Holding the reviewer role is not enough: without this check any reviewer
+ * could walk file_id / paper_id and pull every submission in the conference.
+ * Matches the rule reviewer/review.php uses (the assignment must belong to
+ * them), including declined assignments so a reviewer who already opened a
+ * paper does not lose access to the files still linked on that page.
+ */
+function isAssignedReviewer(\PDO $db, int $paperId): bool
+{
+    if (!Auth::isReviewer() || !$paperId) return false;
+
+    $stmt = $db->prepare("
+        SELECT 1 FROM review_assignments
+        WHERE paper_id = :pid AND reviewer_id = :rid
+        LIMIT 1
+    ");
+    $stmt->execute([':pid' => $paperId, ':rid' => Auth::id()]);
+    return (bool)$stmt->fetchColumn();
+}
+
 try {
     if ($fileId) {
         Auth::require();
@@ -126,7 +149,7 @@ try {
 
         $canAccess = Auth::isAdmin()
                   || (int)$file['submitter_id'] === (int)$user['id']
-                  || Auth::isReviewer();
+                  || isAssignedReviewer($db, (int)$file['paper_id']);
 
         if (!$canAccess) { http_response_code(403); die('Access denied.'); }
 
@@ -142,7 +165,7 @@ try {
 
         $canAccess = Auth::isAdmin()
                   || (int)$paper['submitter_id'] === (int)$user['id']
-                  || Auth::isReviewer();
+                  || isAssignedReviewer($db, $paperId);
         if (!$canAccess) { http_response_code(403); die('Access denied.'); }
 
         $fileStmt = $db->prepare("

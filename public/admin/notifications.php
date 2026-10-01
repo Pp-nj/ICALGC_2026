@@ -11,7 +11,7 @@ $appUrl = APP_URL;
 $uid    = $user['id'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && post('action') === 'mark_read') {
-    Auth::verifyCsrf(post('csrf_token'));
+    requireCsrf();
     $nid = intPost('notif_id');
     if ($nid) {
         try {
@@ -24,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && post('action') === 'mark_read') {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && post('action') === 'mark_all') {
-    Auth::verifyCsrf(post('csrf_token'));
+    requireCsrf();
     try {
         $db = Database::getInstance();
         $db->prepare("UPDATE notifications SET is_read = TRUE WHERE user_id = :uid")

@@ -10,7 +10,26 @@
       "Bash(php.exe -l \"d:/xampp/htdocs/ICALGC_2026/public/admin/users.php\")",
       "Bash(\"/d/xampp/mysql/bin/mysql.exe\" -h127.0.0.1 -P3307 -uroot icalgc2026 -e \"SELECT CONSTRAINT_NAME, DELETE_RULE FROM information_schema.REFERENTIAL_CONSTRAINTS WHERE CONSTRAINT_SCHEMA='icalgc2026' AND TABLE_NAME='reviews';\")",
       "Bash(\"/d/xampp/mysql/bin/mysql.exe\" -h127.0.0.1 -P3307 -uroot icalgc2026 -e \"SELECT CONSTRAINT_NAME, DELETE_RULE FROM information_schema.REFERENTIAL_CONSTRAINTS WHERE CONSTRAINT_SCHEMA='icalgc2026' AND TABLE_NAME='publications';\")",
-      "Bash(/d/xampp/mysql/bin/mysql.exe -h127.0.0.1 -P3307 -uroot icalgc2026 -e ' *)"
+      "Bash(/d/xampp/mysql/bin/mysql.exe -h127.0.0.1 -P3307 -uroot icalgc2026 -e ' *)",
+      "Bash(grep -n 'try {\\\\|} catch\\\\|beginTransaction\\\\|commit\\(\\)\\\\|rollBack\\\\|if \\(empty\\($errors\\)\\)' public/author/submit.php)",
+      "Bash(/d/xampp/php/php.exe -l public/author/submit.php)",
+      "Bash(echo \"exit=$?\")",
+      "Bash(sed 's/\\\\$$//')",
+      "Bash(/d/xampp/php/php.exe /c/Users/nicha/AppData/Local/Temp/claude/nullscan.php)",
+      "Bash(sed -n '174,210p;231,258p' database/schema.mysql.sql; echo \"=== publications ===\"; sed -n '/CREATE TABLE IF NOT EXISTS publications/,/ENGINE=InnoDB/p' database/schema.mysql.sql)",
+      "Bash(grep -E \"create\\\\\\(|^\\\\S+-\\\\s+\\(null|\\\\\\(int\\\\\\)|\\\\\\\\\\\\$\\)\")",
+      "Bash(grep -n 'recaptcha\\\\|g-recaptcha\\\\|data-sitekey\\\\|$error' public/register.php)",
+      "Bash(grep -rho \"App\\\\\\\\\\\\\\\\Core\\\\\\\\\\\\\\\\[A-Za-z]*\" public app --include=*.php)",
+      "Bash(grep -i \"app\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\Core\\\\|ICALGC\" vendor/composer/autoload_classmap.php)",
+      "Bash(grep -rhoE 'App\\\\\\\\\\\\\\\\Core\\\\\\\\\\\\\\\\[A-Za-z]+' public app --include=*.php)",
+      "Bash(/d/xampp/php/php.exe -r '$d=glob\\(\"app/*\",GLOB_ONLYDIR\\); foreach\\($d as $x\\) echo $x.\"\\\\n\";')",
+      "Bash(grep -n -E '\\\\$error|recaptcha|sitekey|data-sitekey|<\\\\?= *\\\\$' register.php)",
+      "Bash(grep -n -E '<\\\\?= *\\\\$[a-zA-Z_]+\\\\[' publication.php publication-detail.php index.php announcements.php)",
+      "Bash(grep -n -E '/ *\\\\$max|\\\\$max[A-Za-z]+ *\\\\\\)' admin/reports.php admin/dashboard.php)",
+      "PowerShell(& 'D:\\\\xampp\\\\php\\\\php.exe' -r \"require 'app/helpers/init.php'; var_dump\\(isSubmissionOpen\\(\\)\\); settingSet\\('submission_open','0'\\); var_dump\\(isSubmissionOpen\\(\\)\\); settingSet\\('submission_open','1'\\); var_dump\\(isSubmissionOpen\\(\\)\\);\")"
+    ],
+    "additionalDirectories": [
+      "D:\\xampp\\htdocs\\ICALGC_2026\\database"
     ]
   }
 }

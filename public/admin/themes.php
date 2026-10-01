@@ -11,7 +11,7 @@ $appUrl = APP_URL;
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    Auth::verifyCsrf(post('csrf_token'));
+    requireCsrf();
     $action = post('action');
 
     if ($action === 'delete') {
@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $chk = $db->prepare("SELECT COUNT(*) FROM papers WHERE theme_id = :id");
                 $chk->execute([':id' => $id]);
                 if ((int)$chk->fetchColumn() > 0) {
-                    flashSet('error', $_lang==='th' ? 'ไม่สามารถลบหัวข้อที่มีบทคัดย่ออยู่' : 'Cannot delete theme that has papers.');
+                    flashSet('danger', $_lang==='th' ? 'ไม่สามารถลบหัวข้อที่มีบทคัดย่ออยู่' : 'Cannot delete theme that has papers.');
                 } else {
                     $db->prepare("DELETE FROM conference_themes WHERE id = :id")->execute([':id' => $id]);
                     flashSet('success', $_lang==='th' ? 'ลบหัวข้อแล้ว' : 'Theme deleted.');
@@ -34,8 +34,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $nameTh  = trim(post('name_th'));
     $nameEn  = trim(post('name_en'));
-    $descTh  = trim(post('description_th'));
-    $descEn  = trim(post('description_en'));
+    // conference_themes stores a single, language-neutral `description` — the
+    // same column call-for-abstract.php already reads. The previous code wrote
+    // description_th/description_en, which do not exist on this table, so both
+    // adding and editing a theme failed with "Unknown column".
+    $desc    = trim(post('description'));
     $editId  = intPost('edit_id');
 
     if (!$nameTh || !$nameEn) $errors[] = $_lang==='th' ? 'กรุณากรอกชื่อทั้งสองภาษา' : 'Both names required.';
@@ -44,12 +47,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             $db = Database::getInstance();
             if ($editId) {
-                $db->prepare("UPDATE conference_themes SET name_th=:nt, name_en=:ne, description_th=:dt, description_en=:de WHERE id=:id")
-                   ->execute([':nt'=>$nameTh,':ne'=>$nameEn,':dt'=>$descTh,':de'=>$descEn,':id'=>$editId]);
+                $db->prepare("UPDATE conference_themes SET name_th=:nt, name_en=:ne, description=:d WHERE id=:id")
+                   ->execute([':nt'=>$nameTh,':ne'=>$nameEn,':d'=>$desc ?: null,':id'=>$editId]);
                 flashSet('success', $_lang==='th' ? 'อัปเดตแล้ว' : 'Updated.');
             } else {
-                $db->prepare("INSERT INTO conference_themes (name_th, name_en, description_th, description_en) VALUES (:nt, :ne, :dt, :de)")
-                   ->execute([':nt'=>$nameTh,':ne'=>$nameEn,':dt'=>$descTh,':de'=>$descEn]);
+                // `code` is UNIQUE NOT NULL with no default and the form does not
+                // ask for one, so continue the existing THEMEnn series. Computed in
+                // PHP rather than SQL to stay driver-neutral; the UNIQUE index is
+                // what actually guarantees no duplicate slips through.
+                $maxNum = 0;
+                foreach ($db->query("SELECT code FROM conference_themes")->fetchAll(\PDO::FETCH_COLUMN) as $existing) {
+                    if (preg_match('/^THEME(\d+)$/', (string)$existing, $m)) {
+                        $maxNum = max($maxNum, (int)$m[1]);
+                    }
+                }
+                $newCode = 'THEME' . str_pad((string)($maxNum + 1), 2, '0', STR_PAD_LEFT);
+
+                $db->prepare("INSERT INTO conference_themes (code, name_th, name_en, description) VALUES (:c, :nt, :ne, :d)")
+                   ->execute([':c'=>$newCode,':nt'=>$nameTh,':ne'=>$nameEn,':d'=>$desc ?: null]);
                 flashSet('success', $_lang==='th' ? 'เพิ่มหัวข้อแล้ว' : 'Theme added.');
             }
         } catch (\Throwable $e) {
@@ -135,12 +150,10 @@ $activeMenu = 'themes';
                 <input type="text" name="name_en" class="form-control" value="<?= e($editItem['name_en'] ?? post('name_en')) ?>" required>
               </div>
               <div>
-                <label class="form-label fw-bold" style="font-size:.85rem;"><?= $_lang==='th'?'คำอธิบาย (ไทย)':'Description (Thai)' ?></label>
-                <textarea name="description_th" class="form-control" rows="3"><?= e($editItem['description_th'] ?? post('description_th')) ?></textarea>
-              </div>
-              <div>
-                <label class="form-label fw-bold" style="font-size:.85rem;"><?= $_lang==='th'?'คำอธิบาย (อังกฤษ)':'Description (English)' ?></label>
-                <textarea name="description_en" class="form-control" rows="3"><?= e($editItem['description_en'] ?? post('description_en')) ?></textarea>
+                <?php /* One field: the table has a single `description` column, which is
+                         what call-for-abstract.php prints under each theme name. */ ?>
+                <label class="form-label fw-bold" style="font-size:.85rem;"><?= $_lang==='th'?'คำอธิบาย':'Description' ?></label>
+                <textarea name="description" class="form-control" rows="3"><?= e($editItem['description'] ?? post('description')) ?></textarea>
               </div>
               <div class="d-flex gap-2">
                 <button type="submit" class="btn-primary-custom flex-fill">

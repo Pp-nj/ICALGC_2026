@@ -15,7 +15,7 @@ $errors = [];
 
 // Handle POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    Auth::verifyCsrf(post('csrf_token'));
+    requireCsrf();
     $formType = post('form_type');
 
     if ($formType === 'profile') {

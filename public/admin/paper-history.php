@@ -15,7 +15,7 @@ try {
     $db = Database::getInstance();
 
     $stmt = $db->prepare("
-        SELECT p.*, CONCAT(u.first_name, ' ', u.last_name) AS submitter_name, u.email AS submitter_email,
+        SELECT p.*, " . sqlFullName('u') . " AS submitter_name, u.email AS submitter_email,
                ct.name_th AS theme_th, ct.name_en AS theme_en,
                ps.name_th AS status_th, ps.name_en AS status_en, ps.color_hex, ps.progress_step, ps.description
         FROM papers p
@@ -32,7 +32,7 @@ try {
 
     // Paper files with uploader name
     $fileStmt = $db->prepare("
-        SELECT f.*, CONCAT(u.first_name, ' ', u.last_name) AS uploader_name
+        SELECT f.*, " . sqlFullName('u') . " AS uploader_name
         FROM paper_files f
         JOIN users u ON u.id = f.uploaded_by
         WHERE f.paper_id = :pid ORDER BY f.uploaded_at ASC
@@ -47,8 +47,8 @@ try {
 
     // Review assignments with reviewer + assigner + full review detail
     $raStmt = $db->prepare("
-        SELECT ra.*, CONCAT(rv.first_name, ' ', rv.last_name) AS reviewer_name, rv.email AS reviewer_email,
-               CONCAT(ab.first_name, ' ', ab.last_name) AS assigner_name,
+        SELECT ra.*, " . sqlFullName('rv') . " AS reviewer_name, rv.email AS reviewer_email,
+               " . sqlFullName('ab') . " AS assigner_name,
                r.id AS review_id, r.recommendation, r.score_originality, r.score_relevance,
                r.score_methodology, r.score_writing, r.score_contribution, r.score_overall,
                r.final_score, r.comment_for_author, r.comment_for_editor, r.reviewed_at, r.created_at AS review_created_at
@@ -64,7 +64,7 @@ try {
 
     // All notifications tied to this paper (any recipient)
     $notifStmt = $db->prepare("
-        SELECT n.*, CONCAT(u.first_name, ' ', u.last_name) AS recipient_name, u.role AS recipient_role
+        SELECT n.*, " . sqlFullName('u') . " AS recipient_name, u.role AS recipient_role
         FROM notifications n
         LEFT JOIN users u ON u.id = n.user_id
         WHERE n.related_paper_id = :pid
@@ -75,7 +75,7 @@ try {
 
     // Publication info
     $pubStmt = $db->prepare("
-        SELECT pub.*, CONCAT(u.first_name, ' ', u.last_name) AS publisher_name
+        SELECT pub.*, " . sqlFullName('u') . " AS publisher_name
         FROM publications pub
         JOIN users u ON u.id = pub.published_by
         WHERE pub.paper_id = :pid LIMIT 1

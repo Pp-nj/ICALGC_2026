@@ -19,7 +19,7 @@ try {
     $stmt = $db->prepare("
         SELECT p.*, ct.name_th AS theme_th, ct.name_en AS theme_en,
                ps.name_th AS status_th, ps.name_en AS status_en,
-               ps.color_hex, ps.progress_step, ps.description_th, ps.description_en
+               ps.color_hex, ps.progress_step, ps.description
         FROM papers p
         JOIN conference_themes ct ON ct.id = p.theme_id
         JOIN paper_statuses ps ON ps.code = p.status_code
@@ -187,7 +187,8 @@ $recommendationColor = function($rec) {
         <strong style="color:<?= e($paper['color_hex']) ?>;">
           <?= e($_lang==='th' ? $paper['status_th'] : $paper['status_en']) ?>
         </strong>
-        <?php $desc = $_lang==='th' ? $paper['description_th'] : $paper['description_en']; ?>
+        <?php /* paper_statuses has a single, language-neutral `description`. */ ?>
+        <?php $desc = $paper['description']; ?>
         <?php if ($desc): ?>
           <span style="color:var(--gray-700);font-size:.88rem;margin-left:8px;"><?= e($desc) ?></span>
         <?php endif; ?>

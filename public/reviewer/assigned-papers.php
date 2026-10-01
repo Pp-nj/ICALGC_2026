@@ -12,7 +12,7 @@ $uid    = $user['id'];
 
 // Accept or decline assignment
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    Auth::verifyCsrf(post('csrf_token'));
+    requireCsrf();
     $action = post('action');
     $aid    = intPost('assignment_id');
 

@@ -23,7 +23,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             try {
                 $db   = Database::getInstance();
-                $stmt = $db->prepare("SELECT id, first_name, last_name FROM users WHERE email = :email AND account_status = 'pending' LIMIT 1");
+                // title and middle_name are needed by fullName() below.
+                $stmt = $db->prepare("SELECT id, title, first_name, middle_name, last_name FROM users WHERE email = :email AND account_status = 'pending' LIMIT 1");
                 $stmt->execute([':email' => $email]);
                 $user = $stmt->fetch();
 
@@ -38,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $db->prepare("INSERT INTO email_verifications (user_id, token, expires_at) VALUES (:uid, :tok, :exp)")
                        ->execute([':uid' => $user['id'], ':tok' => $token, ':exp' => $expires]);
 
-                    Mail::sendEmailVerification($email, $user['first_name'] . ' ' . $user['last_name'], $token);
+                    Mail::sendEmailVerification($email, fullName($user), $token);
                     auditLog('resend_verification', 'auth', 'Verification email resent: ' . $email, $user['id']);
                 }
                 // Always show sent message to prevent email enumeration

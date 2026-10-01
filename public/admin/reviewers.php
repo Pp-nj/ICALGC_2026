@@ -13,7 +13,7 @@ $errors  = [];
 
 // Create reviewer
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && post('form_type') === 'create') {
-    Auth::verifyCsrf(post('csrf_token'));
+    requireCsrf();
 
     $title      = trim(post('title'));
     $titleOther = trim(post('title_other'));
@@ -58,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && post('form_type') === 'create') {
 
 // Suspend/Activate
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && post('form_type') === 'toggle') {
-    Auth::verifyCsrf(post('csrf_token'));
+    requireCsrf();
     $uid    = intPost('user_id');
     $action = post('action');
     if ($uid && in_array($action, ['suspend','activate'])) {
@@ -233,7 +233,7 @@ $activeMenu = 'reviewers';
                   <?php foreach ($reviewers as $rv): ?>
                     <tr>
                       <td>
-                        <div style="font-weight:700;font-size:.88rem;"><?= e(trim(($rv['title'] ? $rv['title'].' ' : '') . $rv['first_name'] . ' ' . ($rv['middle_name'] ? $rv['middle_name'].' ' : '') . $rv['last_name'])) ?></div>
+                        <div style="font-weight:700;font-size:.88rem;"><?= e(fullName($rv)) ?></div>
                         <div style="font-size:.75rem;color:var(--gray-500);"><?= e($rv['email']) ?></div>
                       </td>
                       <td style="font-size:.82rem;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">

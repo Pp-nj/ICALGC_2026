@@ -14,7 +14,7 @@ $paperId = intGet('id') ?: intPost('paper_id');
 if (!$paperId) { redirect($appUrl . '/admin/papers.php'); }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array(post('action'), ['publish', 'unpublish'], true)) {
-    Auth::verifyCsrf(post('csrf_token'));
+    requireCsrf();
     $action = post('action');
 
     try {
@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array(post('action'), ['publish'
             $paper = $pStmt->fetch();
 
             if (!$paper) {
-                flashSet('error', $_lang==='th' ? 'บทคัดย่อไม่ได้อยู่ในสถานะยอมรับ' : 'Paper is not in accepted status.');
+                flashSet('danger', $_lang==='th' ? 'บทคัดย่อไม่ได้อยู่ในสถานะยอมรับ' : 'Paper is not in accepted status.');
             } else {
                 $db->prepare("UPDATE papers SET status_code = 'published', updated_at = NOW() WHERE id = :id")
                    ->execute([':id' => $paperId]);
@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array(post('action'), ['publish'
                 auditLog('publish_paper', 'papers', "Published paper {$paper['paper_code']}", Auth::id());
 
                 try {
-                    Mail::sendPublished($submitter['email'], $submitter['first_name'] . ' ' . $submitter['last_name'], $paper['paper_code'], $paper['title_en']);
+                    Mail::sendPublished($submitter['email'], fullName($submitter), $paper['paper_code'], $paper['title_en']);
                 } catch (\Throwable $mailErr) {
                     error_log('Mail::sendPublished failed: ' . $mailErr->getMessage());
                 }
@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array(post('action'), ['publish'
             $paper = $pStmt->fetch();
 
             if (!$paper) {
-                flashSet('error', $_lang==='th' ? 'บทคัดย่อไม่ได้อยู่ในสถานะเผยแพร่' : 'Paper is not published.');
+                flashSet('danger', $_lang==='th' ? 'บทคัดย่อไม่ได้อยู่ในสถานะเผยแพร่' : 'Paper is not published.');
             } else {
                 $db->prepare("UPDATE papers SET status_code = 'accepted', updated_at = NOW() WHERE id = :id")
                    ->execute([':id' => $paperId]);
@@ -67,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array(post('action'), ['publish'
     } catch (\Throwable $e) {
         if (isset($db) && $db->inTransaction()) $db->rollBack();
         error_log($e->getMessage());
-        flashSet('error', $_lang==='th' ? 'เกิดข้อผิดพลาด' : 'An error occurred.');
+        flashSet('danger', $_lang==='th' ? 'เกิดข้อผิดพลาด' : 'An error occurred.');
     }
 
     redirect($appUrl . '/admin/paper-detail.php?id=' . $paperId);
@@ -77,7 +77,7 @@ try {
     $db = Database::getInstance();
 
     $stmt = $db->prepare("
-        SELECT p.*, CONCAT(u.first_name, ' ', u.last_name) AS submitter_name, u.email AS submitter_email, u.affiliation AS submitter_affiliation,
+        SELECT p.*, " . sqlFullName('u') . " AS submitter_name, u.email AS submitter_email, u.affiliation AS submitter_affiliation,
                ct.name_th AS theme_th, ct.name_en AS theme_en,
                ps.name_th AS status_th, ps.name_en AS status_en, ps.color_hex, ps.progress_step, ps.description
         FROM papers p
@@ -100,7 +100,7 @@ try {
     $files = $fStmt->fetchAll();
 
     $raStmt = $db->prepare("
-        SELECT ra.*, CONCAT(rv.first_name, ' ', rv.last_name) AS reviewer_name, rv.email AS reviewer_email,
+        SELECT ra.*, " . sqlFullName('rv') . " AS reviewer_name, rv.email AS reviewer_email,
                r.id AS review_id, r.recommendation, r.score_overall, r.comment_for_author,
                r.comment_for_editor, r.reviewed_at
         FROM review_assignments ra

@@ -231,23 +231,46 @@ function initCountdown(targetDateStr) {
 }
 
 // ── Notification read ──────────────────────────────────────
-function markNotifRead(notifId) {
-  fetch('/api/notifications.php', {
+// api/notifications.php reads $_POST and requires a CSRF token, so the body has
+// to be form-encoded (PHP does not populate $_POST from a JSON body) and carry
+// the token that header.php exposes as window.CSRF_TOKEN.
+function postNotifAction(fields) {
+  const base = window.APP_URL || '';
+  const body = new URLSearchParams(fields);
+  body.set('csrf_token', window.CSRF_TOKEN || '');
+
+  return fetch(base + '/api/notifications.php', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action: 'mark_read', id: notifId })
-  }).catch(() => {});
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: body
+  })
+    .then(res => res.json())
+    .then(data => (data && data.ok) ? data : Promise.reject(data));
+}
+
+// Reflect the unread count the server reported back onto the bell badge.
+function renderUnreadBadge(unread) {
+  const badge = document.querySelector('.notification-badge');
+  if (!badge) return;
+  if (unread > 0) badge.textContent = unread > 9 ? '9+' : String(unread);
+  else badge.remove();
+}
+
+function markNotifRead(notifId, item) {
+  postNotifAction({ action: 'mark_read', notif_id: notifId })
+    .then(data => {
+      if (item) item.classList.remove('unread');
+      renderUnreadBadge(data.unread);
+    })
+    .catch(() => {});
 }
 
 function markAllNotifRead() {
-  fetch('/api/notifications.php', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action: 'mark_all_read' })
-  }).then(() => {
-    document.querySelectorAll('.notif-item.unread').forEach(el => el.classList.remove('unread'));
-    const badge = document.querySelector('.notification-badge');
-    if (badge) badge.remove();
-  }).catch(() => {});
+  postNotifAction({ action: 'mark_all' })
+    .then(() => {
+      document.querySelectorAll('.notif-item.unread').forEach(el => el.classList.remove('unread'));
+      renderUnreadBadge(0);
+    })
+    .catch(() => {});
 }
 

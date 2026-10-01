@@ -11,7 +11,7 @@ $appUrl = APP_URL;
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    Auth::verifyCsrf(post('csrf_token'));
+    requireCsrf();
     $action = post('action');
 
     // Delete
@@ -100,8 +100,9 @@ $activeMenu = 'important-dates';
 
     <?= flashHtml() ?>
 
-    <?php if (!empty($debugError)): ?>
-      <div class="alert alert-danger"><strong>DEBUG:</strong> <?= htmlspecialchars($debugError) ?></div>
+    <?php /* Raw exception text is for the developer, not for a production page. */ ?>
+    <?php if (APP_DEBUG && !empty($debugError)): ?>
+      <div class="alert alert-danger"><strong>DEBUG:</strong> <?= e($debugError) ?></div>
     <?php endif; ?>
     <?php if (isset($dates)): ?>
       <div class="alert alert-info"><strong>DEBUG:</strong> found <?= count($dates) ?> rows</div>

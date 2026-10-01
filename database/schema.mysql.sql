@@ -78,6 +78,18 @@ INSERT IGNORE INTO important_dates (title_th, title_en, event_date, sort_order) 
 ('ดาวน์โหลดใบประกาศนียบัตร',      'Certificate Download Available',      '2026-12-02', 5);
 
 -- ============================================================
+-- 3b. SITE SETTINGS (admin-editable key/value)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS site_settings (
+    setting_key   VARCHAR(100) PRIMARY KEY,
+    setting_value TEXT,
+    updated_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES
+('submission_open', '1');
+
+-- ============================================================
 -- 4. USERS
 -- ============================================================
 CREATE TABLE IF NOT EXISTS users (

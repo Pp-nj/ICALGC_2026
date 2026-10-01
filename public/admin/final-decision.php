@@ -19,9 +19,9 @@ if (!$paperId) {
     try {
         $db = Database::getInstance();
         $isMysql = $db->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql';
-        $submitterNameExpr = $isMysql
-            ? "CONCAT(u.first_name, ' ', u.last_name)"
-            : "(u.first_name || ' ' || u.last_name)";
+        // sqlFullName() uses CONCAT_WS, which both MySQL and PostgreSQL support,
+        // so this no longer needs to branch on the driver.
+        $submitterNameExpr = sqlFullName('u');
         $decisionPapers = $db->query("
             SELECT p.*, {$submitterNameExpr} AS submitter_name,
                    ct.name_th AS theme_th, ct.name_en AS theme_en,
@@ -33,7 +33,7 @@ if (!$paperId) {
             LEFT JOIN review_assignments ra ON ra.paper_id = p.id AND ra.assignment_status = 'completed'
             LEFT JOIN reviews r ON r.assignment_id = ra.id
             WHERE p.status_code = 'under_review'
-            GROUP BY p.id, u.first_name, u.last_name, ct.name_th, ct.name_en
+            GROUP BY p.id, u.title, u.first_name, u.middle_name, u.last_name, ct.name_th, ct.name_en
             ORDER BY p.submitted_at ASC
         ")->fetchAll();
     } catch (\Throwable $e) {
@@ -144,7 +144,7 @@ if (!$paperId) {
 try {
     $db    = Database::getInstance();
     $pStmt = $db->prepare("
-        SELECT p.*, (u.first_name || ' ' || u.last_name) AS submitter_name, u.email AS submitter_email,
+        SELECT p.*, " . sqlFullName('u') . " AS submitter_name, u.email AS submitter_email,
                ct.name_th AS theme_th, ct.name_en AS theme_en
         FROM papers p
         JOIN users u ON u.id = p.submitter_id
@@ -157,7 +157,7 @@ try {
 
     // Reviews
     $revStmt = $db->prepare("
-        SELECT r.*, (u.first_name || ' ' || u.last_name) AS reviewer_name, ra.assignment_status AS assign_status
+        SELECT r.*, " . sqlFullName('u') . " AS reviewer_name, ra.assignment_status AS assign_status
         FROM reviews r
         JOIN review_assignments ra ON ra.id = r.assignment_id
         JOIN users u ON u.id = ra.reviewer_id
@@ -176,11 +176,18 @@ try {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    Auth::verifyCsrf(post('csrf_token'));
+    requireCsrf();
 
     $decision       = post('decision');
     $editorNote     = trim(post('editor_note'));
     $pIdPost        = intPost('paper_id');
+
+    // $paper (used below for the author's name, email and paper code) was loaded
+    // from $paperId, while the status update uses $pIdPost. If the two ever
+    // disagree we would flip one paper's status and notify another paper's
+    // author, so refuse instead of guessing which one was meant.
+    if ($pIdPost !== $paperId)
+        $errors[] = $_lang==='th' ? 'คำขอไม่ถูกต้อง กรุณาโหลดหน้านี้ใหม่' : 'Invalid request. Please reload this page.';
 
     $allowedDecisions = ['accepted', 'rejected', 'revision_required'];
     if (!in_array($decision, $allowedDecisions))

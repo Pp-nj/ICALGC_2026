@@ -30,7 +30,7 @@ try {
 
 // Handle Profile Update
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && post('form_type') === 'profile') {
-    Auth::verifyCsrf(post('csrf_token'));
+    requireCsrf();
 
     $firstName  = trim(post('first_name'));
     $middleName = trim(post('middle_name'));
@@ -119,7 +119,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && post('form_type') === 'profile') {
 
 // Handle Password Change
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && post('form_type') === 'password') {
-    Auth::verifyCsrf(post('csrf_token'));
+    requireCsrf();
     $tabView = 'security';
 
     $currentPw  = post('current_password');

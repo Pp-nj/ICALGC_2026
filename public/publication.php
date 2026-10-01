@@ -25,10 +25,20 @@ try {
     $isMysql = $db->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql';
 
     if ($search) {
-        $where[] = $isMysql
-            ? "(pub.title_en LIKE :q OR pub.title_th LIKE :q OR pub.keywords LIKE :q OR pub.authors_text LIKE :q)"
-            : "(pub.title_en ILIKE :q OR pub.title_th ILIKE :q OR pub.keywords ILIKE :q OR pub.authors_text ILIKE :q)";
-        $params[':q'] = '%' . $search . '%';
+        // One placeholder per comparison. Reusing a single :q made PDO throw
+        // "Invalid parameter number" (it forbids repeating a named placeholder
+        // while ATTR_EMULATE_PREPARES is false), and the catch below turned that
+        // into a silently empty result list.
+        $like    = $isMysql ? 'LIKE' : 'ILIKE';
+        $where[] = "(pub.title_en {$like} :qen"
+                 . " OR pub.title_th {$like} :qth"
+                 . " OR pub.keywords {$like} :qkw"
+                 . " OR pub.authors_text {$like} :qau)";
+        $term = '%' . $search . '%';
+        $params[':qen'] = $term;
+        $params[':qth'] = $term;
+        $params[':qkw'] = $term;
+        $params[':qau'] = $term;
     }
     if ($themeId) {
         $where[]         = "pub.theme_id = :theme_id";

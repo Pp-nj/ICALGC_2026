@@ -21,7 +21,7 @@ if (!$dbUser) redirect($appUrl . '/admin/users.php');
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    Auth::verifyCsrf(post('csrf_token'));
+    requireCsrf();
 
     $firstName  = trim(post('first_name'));
     $middleName = trim(post('middle_name'));

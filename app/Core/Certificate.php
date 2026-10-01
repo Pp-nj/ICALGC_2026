@@ -50,10 +50,13 @@ class Certificate
             $mpdf->Output($filepath, 'F');
 
             // Save record to DB
+            // :pid and :pid_null both carry $paperId. They cannot share one name:
+            // PDO forbids repeating a named placeholder while ATTR_EMULATE_PREPARES
+            // is false (see app/config/database.php), which would raise PDOException.
             $check = $db->prepare(
-                "SELECT id FROM certificates WHERE cert_type = :ct AND user_id = :uid AND (paper_id = :pid OR (:pid IS NULL AND paper_id IS NULL))"
+                "SELECT id FROM certificates WHERE cert_type = :ct AND user_id = :uid AND (paper_id = :pid OR (:pid_null IS NULL AND paper_id IS NULL))"
             );
-            $check->execute([':ct' => $certType, ':uid' => $userId, ':pid' => $paperId]);
+            $check->execute([':ct' => $certType, ':uid' => $userId, ':pid' => $paperId, ':pid_null' => $paperId]);
             $existing = $check->fetch();
 
             if ($existing) {
@@ -75,7 +78,10 @@ class Certificate
 
             return $relPath;
 
-        } catch (MpdfException $e) {
+        } catch (\Throwable $e) {
+            // Not just MpdfException: the database writes above can raise
+            // PDOException, and this method's contract is to return null on
+            // failure rather than let the caller's page die with a 500.
             error_log('Certificate generation error: ' . $e->getMessage());
             return null;
         }
@@ -103,7 +109,7 @@ class Certificate
             default => "has participated in the",
         };
 
-        $logoPath = PUBLIC_PATH . '/assets/images/logo-swu.png';
+        $logoPath = PUBLIC_PATH . '/assets/images/swu_Logo.png';
         $logoData = file_exists($logoPath)
             ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath))
             : '';

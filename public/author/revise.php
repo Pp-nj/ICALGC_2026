@@ -27,7 +27,7 @@ try {
     $paper = $stmt->fetch();
 
     if (!$paper) {
-        flashSet('error', $_lang==='th' ? 'ไม่พบบทคัดย่อหรือไม่อยู่ในสถานะที่ต้องแก้ไข' : 'Paper not found or not requiring revision.');
+        flashSet('danger', $_lang==='th' ? 'ไม่พบบทคัดย่อหรือไม่อยู่ในสถานะที่ต้องแก้ไข' : 'Paper not found or not requiring revision.');
         redirect($appUrl . '/author/my-papers.php');
     }
 
@@ -55,7 +55,7 @@ try {
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    Auth::verifyCsrf(post('csrf_token'));
+    requireCsrf();
 
     $titleTh    = trim(post('title_th'));
     $titleEn    = trim(post('title_en'));
@@ -150,14 +150,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 auditLog('revision_submitted', 'papers', "Paper ID: $paperId | Note: $note", $uid);
             }
 
-            // Notify admin
-            Notification::create(
-                null, 'revision_submitted',
+            // Notify every active admin individually. Notification::create(null, ...)
+            // would store one row with user_id = NULL, and since every notifications
+            // page filters on "user_id = :uid", no admin would ever see it.
+            Notification::notifyAdmins(
+                'revision_submitted',
                 'บทคัดย่อส่งแก้ไขแล้ว',
                 'Paper Revision Submitted',
                 "บทคัดย่อ {$paper['paper_code']} ส่งการแก้ไขแล้ว",
                 "Paper {$paper['paper_code']} has been revised and resubmitted.",
-                $paperId, 'system'
+                $paperId
             );
 
             $db->commit();

@@ -7,7 +7,10 @@
  *   $extraCss   - (optional) additional CSS files array
  *   $bodyClass  - (optional) class(es) for <body>
  */
-if (!defined('ROOT_PATH')) require_once '/home/icalgc/init.php';
+// Safety net for a page that forgot to bootstrap. Resolved relative to this
+// file — the previous absolute '/home/icalgc/init.php' was one deployment's
+// path and is a fatal error anywhere else, including local XAMPP.
+if (!defined('ROOT_PATH')) require_once __DIR__ . '/init.php';
 
 use App\Core\Auth;
 use App\Core\Notification;
@@ -195,7 +198,7 @@ $appUrl = APP_URL;
                   <?= t('notif.no_notif') ?>
                 </div>
               <?php else: foreach ($notifs as $n): ?>
-                <div class="notif-item unread" onclick="markNotifRead(<?= (int)$n['id'] ?>)">
+                <div class="notif-item unread" onclick="markNotifRead(<?= (int)$n['id'] ?>, this)">
                   <div class="notif-item-title"><?= e($_lang==='th' ? $n['title_th'] : $n['title_en']) ?></div>
                   <div class="notif-item-msg"><?= e($_lang==='th' ? $n['message_th'] : $n['message_en']) ?></div>
                   <div class="notif-item-time"><?= humanDate($n['created_at']) ?></div>
@@ -255,6 +258,16 @@ $appUrl = APP_URL;
     </div>
   </div>
 </nav>
+
+<?php /* Globals for main.js — the notification dropdown above needs the app's
+         base URL (the app may live in a subdirectory) and a CSRF token. */ ?>
+<script>
+  window.APP_LANG = <?= json_encode($_lang) ?>;
+  window.APP_URL  = <?= json_encode($appUrl) ?>;
+  <?php if ($isLoggedIn): ?>
+  window.CSRF_TOKEN = <?= json_encode(Auth::csrfToken()) ?>;
+  <?php endif; ?>
+</script>
 
 <!-- Back to Top -->
 <button id="backToTop" aria-label="Back to top" title="Back to top">

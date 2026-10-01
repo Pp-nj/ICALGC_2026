@@ -27,7 +27,6 @@ $whereStr = implode(' AND ', $where);
 
 try {
     $db   = Database::getInstance();
-    $total = (int)$db->prepare("SELECT COUNT(*) FROM papers p WHERE {$whereStr}")->execute($params) ? null : 0;
 
     $cntStmt = $db->prepare("SELECT COUNT(*) FROM papers p WHERE {$whereStr}");
     $cntStmt->execute($params);

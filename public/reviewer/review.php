@@ -50,7 +50,7 @@ $readOnly = ($assignment['assignment_status'] === 'completed' || $assignment['as
 $errors   = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$readOnly) {
-    Auth::verifyCsrf(post('csrf_token'));
+    requireCsrf();
 
     $scoreFields = ['score_relevance', 'score_methodology', 'score_originality', 'score_contribution', 'score_writing'];
     $scoreMaxes  = [10, 25, 25, 25, 15];

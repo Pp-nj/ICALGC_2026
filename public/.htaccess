@@ -3,7 +3,11 @@ Options +FollowSymLinks
 
 RewriteEngine On
 
-# If a request comes in for foo.php, redirect the browser to foo (no extension)
+# If a request comes in for foo.php, redirect the browser to foo (no extension).
+# Never do this for POST: a 301 makes the client retry as GET and drop the
+# request body, so any POST aimed at a .php URL arrives empty. That is exactly
+# how the notification API broke — it answered 403 because $_POST was empty.
+RewriteCond %{REQUEST_METHOD} !=POST
 RewriteCond %{THE_REQUEST} \s/+(.+?)\.php[\s?] [NC]
 RewriteRule ^ /%1 [R=301,L]
 
@@ -18,11 +22,31 @@ RewriteRule ^(.*)$ $1.php [L]
 # RewriteCond %{HTTPS} off
 # RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
-# Prevent direct access to sensitive files
+# Prevent direct access to sensitive files.
+# "Order/Deny" is Apache 2.2 syntax: on 2.4 it only works while
+# mod_access_compat is loaded, and where it is not, Apache treats these as
+# unknown directives and answers 500 for the whole directory. Use the 2.4
+# directive when available and keep the old one as a fallback.
 <FilesMatch "\.(env|log|sql|ini|bak|sh)$">
-    Order allow,deny
-    Deny from all
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
 </FilesMatch>
+
+# Security headers (skipped silently when mod_headers is unavailable)
+<IfModule mod_headers.c>
+    # Do not let the browser guess a different content type than we sent.
+    Header always set X-Content-Type-Options "nosniff"
+    # Block framing by other sites (clickjacking on the admin pages).
+    Header always set X-Frame-Options "SAMEORIGIN"
+    # Send the full referrer within the site, only the origin to other sites,
+    # and nothing at all when downgrading HTTPS -> HTTP.
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
 
 # PHP settings (only applies when mod_php is loaded; PHP-FPM/CGI setups ignore this safely)
 <IfModule mod_php.c>

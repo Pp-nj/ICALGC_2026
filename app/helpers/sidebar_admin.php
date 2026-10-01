@@ -90,6 +90,12 @@ $_adminUnread = Notification::countUnread((int)$user['id']);
     <a class="sidebar-link <?= $_menu==='reports'?'active':'' ?>" href="<?= $appUrl ?>/admin/reports.php">
       <i class="fas fa-chart-bar"></i><?= $_lang==='th'?'รายงานสถิติ':'Reports' ?>
     </a>
+    <a class="sidebar-link <?= $_menu==='submission-settings'?'active':'' ?>" href="<?= $appUrl ?>/admin/submission-settings.php">
+      <i class="fas fa-door-open"></i><?= $_lang==='th'?'เปิด/ปิดรับบทคัดย่อ':'Submission Status' ?>
+      <?php if (!isSubmissionOpen()): ?>
+        <span class="badge rounded-pill ms-auto bg-danger" style="font-size:.65rem;"><?= $_lang==='th'?'ปิด':'Closed' ?></span>
+      <?php endif; ?>
+    </a>
     <a class="sidebar-link <?= $_menu==='important-dates'?'active':'' ?>" href="<?= $appUrl ?>/admin/important-dates.php">
       <i class="fas fa-calendar-alt"></i><?= $_lang==='th'?'วันสำคัญ':'Important Dates' ?>
     </a>

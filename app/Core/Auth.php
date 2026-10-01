@@ -11,10 +11,18 @@ class Auth
     {
         if (session_status() === PHP_SESSION_NONE) {
             session_name(SESSION_NAME);
+            // Some servers set HTTPS to the string "off" on plain HTTP requests,
+            // where isset() is still true. Marking the cookie secure over HTTP
+            // means the browser never sends it back, so login silently loops.
+            // Compare the value the way config.php already does, and trust the
+            // proxy header when the app sits behind one.
+            $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+                    || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
+
             session_set_cookie_params([
                 'lifetime' => SESSION_LIFETIME,
                 'path'     => '/',
-                'secure'   => isset($_SERVER['HTTPS']),
+                'secure'   => $isHttps,
                 'httponly' => true,
                 'samesite' => 'Lax',
             ]);
@@ -30,7 +38,9 @@ class Auth
         $_SESSION['user_id']    = $user['id'];
         $_SESSION['user_role']  = $user['role'];
         $_SESSION['user_email'] = $user['email'];
-        $_SESSION['user_name']  = trim($user['first_name'] . ' ' . $user['last_name']);
+        // \fullName() is a global helper from app/helpers/functions.php, which
+        // init.php always loads before this class is used.
+        $_SESSION['user_name']  = \fullName($user);
         $_SESSION['logged_in']  = true;
         $_SESSION['login_time'] = time();
     }

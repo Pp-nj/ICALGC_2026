@@ -42,9 +42,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         Auth::login($user);
                         auditLog('login', 'auth', 'User logged in: ' . $email, $user['id']);
 
-                        // Redirect
-                        $redirect = get('redirect');
-                        if ($redirect && strpos($redirect, '/') === 0) {
+                        // Redirect — only ever to a path on this site. "//evil.com"
+                        // and "/\evil.com" also start with '/', but a browser reads
+                        // them as protocol-relative URLs and would leave the site,
+                        // which turns ?redirect= into an open redirect.
+                        $redirect = strv(get('redirect'));
+                        if ($redirect !== ''
+                            && $redirect[0] === '/'
+                            && !in_array($redirect[1] ?? '', ['/', '\\'], true)) {
                             redirect($redirect);
                         }
                         redirect(Auth::dashboardUrl());

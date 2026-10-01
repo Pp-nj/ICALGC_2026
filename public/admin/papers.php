@@ -75,10 +75,17 @@ try {
     $isMysql = $db->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql';
 
     if ($search) {
-        $where[] = $isMysql
-            ? "(p.paper_code LIKE :q OR p.title_th LIKE :q OR p.title_en LIKE :q OR CONCAT(u.first_name, ' ', u.last_name) LIKE :q)"
-            : "(p.paper_code ILIKE :q OR p.title_th ILIKE :q OR p.title_en ILIKE :q OR (u.first_name || ' ' || u.last_name) ILIKE :q)";
-        $params[':q']  = "%{$search}%";
+        // Every comparison gets its own placeholder: PDO rejects a repeated
+        // named placeholder while ATTR_EMULATE_PREPARES is false.
+        $like    = $isMysql ? 'LIKE' : 'ILIKE';
+        $where[] = "(p.paper_code {$like} :qcode"
+                 . " OR p.title_th {$like} :qth"
+                 . " OR p.title_en {$like} :qen"
+                 . " OR " . sqlNameSearch('u', ':qn', $isMysql) . ")";
+        $params[':qcode'] = "%{$search}%";
+        $params[':qth']   = "%{$search}%";
+        $params[':qen']   = "%{$search}%";
+        $params += nameSearchParams(':qn', $search);
     }
     $whereStr = implode(' AND ', $where);
 
@@ -89,7 +96,7 @@ try {
     $pg = paginate($total, $perPage, $page);
 
     $stmt = $db->prepare("
-        SELECT p.*, (u.first_name || ' ' || u.last_name) AS submitter_name, u.affiliation,
+        SELECT p.*, " . sqlFullName('u') . " AS submitter_name, u.affiliation,
                ct.name_th AS theme_th, ct.name_en AS theme_en,
                ps.color_hex,
                (SELECT COUNT(*) FROM review_assignments ra WHERE ra.paper_id = p.id AND ra.assignment_status = 'completed') AS review_count

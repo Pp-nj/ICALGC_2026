@@ -12,7 +12,7 @@ $errors = [];
 
 // Create admin account
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && post('form_type') === 'create') {
-    Auth::verifyCsrf(post('csrf_token'));
+    requireCsrf();
 
     $name    = trim(post('name'));
     $email   = sanitizeEmail(post('email'));
@@ -54,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && post('form_type') === 'create') {
 
 // Suspend/Activate admin
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && post('form_type') === 'toggle') {
-    Auth::verifyCsrf(post('csrf_token'));
+    requireCsrf();
     $uid    = intPost('user_id');
     $action = post('action');
     if ($uid && in_array($action, ['suspend', 'activate'])) {
@@ -201,7 +201,7 @@ $activeMenu = 'admins';
                   <?php foreach ($admins as $adm): ?>
                     <tr>
                       <td>
-                        <div style="font-weight:700;font-size:.88rem;"><?= e($adm['first_name'] . ' ' . $adm['last_name']) ?></div>
+                        <div style="font-weight:700;font-size:.88rem;"><?= e(fullName($adm)) ?></div>
                         <?php if ($adm['id'] === Auth::id()): ?>
                           <span style="font-size:.7rem;color:var(--gold);font-weight:600;">(<?= $_lang==='th'?'คุณ':'You' ?>)</span>
                         <?php endif; ?>

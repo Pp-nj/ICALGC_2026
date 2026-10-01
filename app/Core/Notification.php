@@ -52,7 +52,13 @@ class Notification
     {
         $db   = Database::getInstance();
         $stmt = $db->prepare("SELECT * FROM notifications WHERE user_id = :uid ORDER BY created_at DESC LIMIT :lim OFFSET :off");
-        $stmt->execute([':uid' => $userId, ':lim' => $limit, ':off' => $offset]);
+        // LIMIT/OFFSET have to be bound as integers. Passing them through
+        // execute() sends them as strings, and with ATTR_EMULATE_PREPARES off
+        // MySQL rejects the resulting "LIMIT '50'" as a syntax error.
+        $stmt->bindValue(':uid', $userId, \PDO::PARAM_INT);
+        $stmt->bindValue(':lim', $limit,  \PDO::PARAM_INT);
+        $stmt->bindValue(':off', $offset, \PDO::PARAM_INT);
+        $stmt->execute();
         return $stmt->fetchAll();
     }
 

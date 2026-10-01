@@ -41,9 +41,9 @@ try {
     $pendingReviews = (int)$db->query("SELECT COUNT(*) FROM review_assignments WHERE assignment_status IN ('pending','in_progress')")->fetchColumn();
 
     // Recent papers (10)
-    $submitterNameExpr = $isMysql
-        ? "CONCAT(u.first_name, ' ', u.last_name)"
-        : "(u.first_name || ' ' || u.last_name)";
+    // sqlFullName() uses CONCAT_WS, supported by both MySQL and PostgreSQL,
+    // so this no longer needs to branch on the driver.
+    $submitterNameExpr = sqlFullName('u');
     $recentPapers = $db->query("
         SELECT p.*, {$submitterNameExpr} AS submitter_name,
                ps.name_th, ps.name_en AS ps_name_en, ps.color_hex

@@ -33,14 +33,14 @@ if (isset($_GET['ajax'])) {
 
         if ($_GET['ajax'] === 'search_users') {
             $q = trim((string)get('q'));
-            $sql    = "SELECT id, first_name, last_name, email, role FROM users WHERE role IN ('author','reviewer')";
+            // full_name is composed here so the browser never has to reimplement
+            // the naming rule; the picker below just prints what it receives.
+            $sql    = "SELECT id, email, role, " . sqlFullName() . " AS full_name"
+                    . " FROM users WHERE role IN ('author','reviewer')";
             $params = [];
             if ($q !== '') {
-                $sql .= $isMysql
-                    ? " AND (CONCAT(first_name, ' ', last_name) LIKE :q1 OR email LIKE :q2)"
-                    : " AND ((first_name || ' ' || last_name) ILIKE :q1 OR email ILIKE :q2)";
-                $params[':q1'] = "%{$q}%";
-                $params[':q2'] = "%{$q}%";
+                $sql .= " AND " . sqlNameSearch('', ':qn', $isMysql);
+                $params += nameSearchParams(':qn', $q);
             }
             $sql .= " ORDER BY first_name, last_name LIMIT 20";
             $stmt = $db->prepare($sql);
@@ -74,7 +74,7 @@ if (isset($_GET['ajax'])) {
 
 /* ── POST: upload or delete ─────────────────────────────── */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    Auth::verifyCsrf(post('csrf_token'));
+    requireCsrf();
     $action = post('action', 'upload');
 
     // ── Delete ──────────────────────────────────────────
@@ -98,7 +98,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         } catch (\Throwable $e) {
             error_log($e->getMessage());
-            flashSet('error', $_lang === 'th' ? 'เกิดข้อผิดพลาด' : 'An error occurred.');
+            flashSet('danger', $_lang === 'th' ? 'เกิดข้อผิดพลาด' : 'An error occurred.');
         }
         redirect($appUrl . '/admin/certificates.php');
     }
@@ -138,7 +138,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $db = Database::getInstance();
 
             // Verify user exists
-            $uStmt = $db->prepare("SELECT id, first_name, last_name, email, role FROM users WHERE id = :uid LIMIT 1");
+            // title and middle_name are selected because fullName() needs them —
+            // without them it would quietly return a shortened name.
+            $uStmt = $db->prepare("SELECT id, title, first_name, middle_name, last_name, email, role FROM users WHERE id = :uid LIMIT 1");
             $uStmt->execute([':uid' => $userId]);
             $uRow = $uStmt->fetch();
             if (!$uRow) {
@@ -154,7 +156,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             $db = Database::getInstance();
 
-            $recipientName = trim($uRow['first_name'] . ' ' . $uRow['last_name']);
+            $recipientName = fullName($uRow);
 
             // Generate safe filename
             $filename = strtoupper($certType) . '_' . $userId . '_' . time() . '.pdf';
@@ -237,10 +239,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         } catch (\Throwable $e) {
             error_log($e->getMessage());
-            flashSet('error', $_lang === 'th' ? 'เกิดข้อผิดพลาดในการบันทึก' : 'Failed to save certificate.');
+            flashSet('danger', $_lang === 'th' ? 'เกิดข้อผิดพลาดในการบันทึก' : 'Failed to save certificate.');
         }
     } else {
-        flashSet('error', implode(' ', $errors));
+        flashSet('danger', implode(' ', $errors));
     }
 
     redirect($appUrl . '/admin/certificates.php');
@@ -263,11 +265,9 @@ try {
     $db = Database::getInstance();
     $isMysql = $db->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql';
     if ($search) {
-        $where[] = $isMysql
-            ? "(CONCAT(u.first_name, ' ', u.last_name) LIKE :q1 OR u.email LIKE :q2)"
-            : "((u.first_name || ' ' || u.last_name) ILIKE :q1 OR u.email ILIKE :q2)";
-        $params[':q1'] = "%{$search}%";
-        $params[':q2'] = "%{$search}%";
+        // Name (with and without the middle name) plus email, one placeholder each.
+        $where[] = sqlNameSearch('u', ':qn', $isMysql);
+        $params += nameSearchParams(':qn', $search);
     }
     $whereStr = implode(' AND ', array_values($where));
 
@@ -278,7 +278,7 @@ try {
 
     $stmt = $db->prepare("
         SELECT c.*,
-               (u.first_name || ' ' || u.last_name) AS user_name,
+               " . sqlFullName('u') . " AS user_name,
                u.email AS user_email,
                u.role  AS user_role,
                p.paper_code,
@@ -674,7 +674,7 @@ $activeMenu = 'certificates';
     selectedUserId  = String(u.id);
     userIdInput.value = selectedUserId;
     const roleLabel = isTh ? (roleLabelTh[u.role] || u.role) : (u.role.charAt(0).toUpperCase() + u.role.slice(1));
-    userSearch.value = u.first_name + ' ' + u.last_name + ' (' + u.email + ') [' + roleLabel + ']';
+    userSearch.value = u.full_name + ' (' + u.email + ') [' + roleLabel + ']';
     userSearch.classList.add('has-selection');
     closeDropdown();
     updatePaperDropdown();
@@ -692,7 +692,7 @@ $activeMenu = 'certificates';
         const roleLabel = isTh ? (roleLabelTh[u.role] || u.role) : (u.role.charAt(0).toUpperCase() + u.role.slice(1));
         const div = document.createElement('div');
         div.className = 'user-option';
-        div.innerHTML = '<div class="user-option-name">' + u.first_name + ' ' + u.last_name +
+        div.innerHTML = '<div class="user-option-name">' + u.full_name +
           ' <span style="font-weight:400;font-size:.75rem;">[' + roleLabel + ']</span></div>' +
           '<div class="user-option-sub">' + u.email + '</div>';
         div.addEventListener('mousedown', function (e) {

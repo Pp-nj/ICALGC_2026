@@ -29,9 +29,9 @@ try {
     $stats = $sStmt->fetch();
 
     // Pending assignments
-    $submitterNameExpr = $isMysql
-        ? "CONCAT(u.first_name, ' ', u.last_name)"
-        : "(u.first_name || ' ' || u.last_name)";
+    // sqlFullName() uses CONCAT_WS, supported by both MySQL and PostgreSQL,
+    // so this no longer needs to branch on the driver.
+    $submitterNameExpr = sqlFullName('u');
     $pendingStmt = $db->prepare("
         SELECT ra.*, p.paper_code, p.title_th, p.title_en, p.status_code,
                ct.name_th AS theme_th, ct.name_en AS theme_en,

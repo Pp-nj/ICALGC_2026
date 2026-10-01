@@ -12,7 +12,14 @@ if (!Auth::isLoggedIn()) {
     exit;
 }
 
-Auth::verifyCsrf(post('csrf_token'));
+// This endpoint answers with JSON, so it cannot use requireCsrf() (which
+// redirects). Same rule though: a bad token must stop the request here.
+$csrfToken = $_POST['csrf_token'] ?? '';
+if (!is_string($csrfToken) || !Auth::verifyCsrf($csrfToken)) {
+    http_response_code(403);
+    echo json_encode(['ok' => false, 'message' => 'Invalid or expired request']);
+    exit;
+}
 
 $action = post('action');
 
