@@ -178,8 +178,53 @@ $announcements = [
               Join us as we explore new perspectives on teaching ASEAN languages and the role of languages in an increasingly interconnected world. 🌏✨",
     ],
   ],
-  
+  [
+    'id'       => 5,
+    'category' => ['th' => 'บทคัดย่อ', 'en' => 'Abstract'],
+    'bucket'   => 'announcements',
+    'icon'     => 'file-alt',
+    'image' => ['th' => '/assets/images/announcements5-th.jpg','en' => '/assets/images/announcements5-en.jpg',],
+    'date'     => ['th' => '1 ต.ค. 2569', 'en' => '1 Oct 2026'],
+    'title'    => ['th' => '📣 ปิดรับบทคัดย่อ', 'en' => '📣 Abstract Submission Closed'],
+    'body'     => [
+      'th' => "✨การประชุมวิชาการระดับนานาชาติ
+                International Conference on ASEAN Languages in Global Contexts\n
+                📣 ปิดรับบทคัดย่อ 
+                ขอขอบคุณทุกท่านที่ให้ความสนใจ
+                Thank You for Being Part of ICALGC 2026\n
+                📝 ติดตามประกาศผลการพิจารณาบทคัดย่อ วันที่ 31 ตุลาคม 2569
+                🚨 ผ่านทาง 🚨
+                🌐 เว็บไซต์: https://icalgc.swu.ac.th
+                🌐 เฟซบุ๊ก: Icalgc 2026-International Conference on ASEAN Languages in Global Contexts
+                คณะมนุษยศาสตร์ มหาวิทยาลัยศรีนครินทรวิโรฒ",
+      'en' => "✨International Conference on ASEAN Languages in Global Contexts\n
+                📣 Abstract Submission Closed
+                Thank You for Being Part of ICALGC 2026\n
+                📝 Stay Tuned for Abstract Review Results on October 31, 2026
+                🚨 via  🚨
+                🌐 Website: https://icalgc.swu.ac.th
+                🌐 Facebook: Icalgc 2026-International Conference on ASEAN Languages in Global Contexts
+                คณะมนุษยศาสตร์ มหาวิทยาลัยศรีนครินทรวิโรฒ",
+    ],
+  ],
+
 ];
+
+// ── Sort newest → oldest (by English date; same date → higher id first) ─────────
+usort($announcements, function ($a, $b) {
+  $cmp = strtotime($b['date']['en']) <=> strtotime($a['date']['en']);
+  return $cmp !== 0 ? $cmp : $b['id'] <=> $a['id'];
+});
+
+// ── Resolve per-language image ────────────────────────────────────────────────
+// 'image' can be a single path (shared) or ['th' => ..., 'en' => ...].
+// Falls back to the other language if the current one is missing.
+foreach ($announcements as &$a) {
+  if (is_array($a['image'] ?? null)) {
+    $a['image'] = $a['image'][$_lang] ?? $a['image']['th'] ?? $a['image']['en'] ?? '';
+  }
+}
+unset($a);
 
 // ── Filtering & Pagination ─────────────────────────────────────────────────────
 $activeFilter = sanitize(get('cat', 'all'));

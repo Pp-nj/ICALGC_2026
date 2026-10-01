@@ -45,7 +45,7 @@ $hotels = [
                 <?= $_lang==='th'?'มหาวิทยาลัยศรีนครินทรวิโรฒ ประสานมิตร':'Srinakharinwirot University Prasarnmit Campus' ?>
               </h3>
               <div class="footer-contact-item"><i class="fas fa-map-marker-alt" style="color:var(--blue-mid);"></i>
-                <span style="color:var(--blue-mid);"><?= $_lang==='th'?'114 ซอยสุขุมวิท 23 แขวงคลองเตยเหนือ เขตวัฒนา กรุงเทพมหานคร 10110':'114 Sukhumvit Soi 23, Klongtoey Nua, Wattana, Bangkok 10110' ?></span>
+                <span style="color:var(--blue-mid);"><?= $_lang==='th'?'ณ หอดนตรีและการแสดงอโศกมนตรี ชั้น 4 อาคารนวัตกรรม : ศาสตราจารย์ ดร.สาโรช บัวศรี มหาวิทยาลัยศรีนครินทรวิโรฒ':'Asok-Montri Music and Performing Arts Hall, 4th Floor, Innovation Building: Professor Dr. Saroj Buasri, Srinakharinwirot University' ?></span>
               </div>
               <div class="footer-contact-item"><i class="fas fa-train" style="color:var(--blue-mid);"></i>
                 <span style="color:var(--blue-mid);" ><?= $_lang==='th'?'BTS สถานีอโศก หรือ MRT สถานนีเพรชบุรี':'BTS Asok Station or MRT Phetchaburi' ?></span>
@@ -53,7 +53,7 @@ $hotels = [
               <div class="footer-contact-item"><i class="fas fa-car" style="color:var(--blue-mid);"></i>
                 <span style="color:var(--blue-mid);"><?= $_lang==='th'?'มีที่จอดรถภายในมหาวิทยาลัย':'Parking available on campus' ?></span>
               </div>
-              <a href="https://maps.google.com/?q=Srinakharinwirot+University" target="_blank" rel="noopener noreferrer" class="btn-primary-custom mt-3 d-inline-block">
+              <a href="https://maps.app.goo.gl/Gx4EcHdxUhp8WsjZ6" target="_blank" rel="noopener noreferrer" class="btn-primary-custom mt-3 d-inline-block">
                 <i class="fas fa-directions me-2"></i><?= $_lang==='th'?'นำทาง':'Get Directions' ?>
               </a>
             </div>

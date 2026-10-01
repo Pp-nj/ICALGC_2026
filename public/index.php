@@ -163,29 +163,37 @@ require_once __DIR__ . '/../app/helpers/header.php';
       <div class="col-md-4">
         <div class="announce-card h-100">
           <div class="announce-card-img">
-            <img src="<?= $appUrl ?>/assets/images/announcements1.jpg" alt="">
+            <img src="<?= $appUrl ?>/assets/images/announcements5-<?= $_lang==='th' ? 'th' : 'en' ?>.jpg" alt="">
             <span class="ann-date-badge"><i class="far fa-calendar-alt" style="margin-right:4px;opacity:.7;"></i>
             <?= $_lang==='th'
-                ? '6 ก.ค. 2569'
-                : '6 Jul 2026' ?></span>
+                ? '1 ต.ค. 2569'
+                : '1 Oct 2026' ?></span>
           </div>
           <div class="announce-card-body">
             <span class="announce-tag ann-cat--announcements"><?= $_lang==='th' ? 'บทคัดย่อ' : 'Abstract' ?></span>
             <h3 class="announce-card-title">
               <?= $_lang==='th'
-                ? '🚨 เปิดรับบทคัดย่อ ICALGC 2026 แล้ววันนี้'
-                : '🚨 ICALGC 2026 Abstract Submission is Now Open' ?>
+                ? '📣 ปิดรับบทคัดย่อ'
+                : '📣 Abstract Submission Closed' ?>
             </h3>
             <p class="announce-card-text">
               <?= $_lang==='th'
-                ? "✨คณะมนุษยศาสตร์ มหาวิทยาลัยศรีนครินทรวิโรฒ ร่วมกับ Guangdong University of Foreign Studies สาธารณรัฐประชาชนจีน เป็นเจ้าภาพในการจัดประชุมวิชาการระดับนานาชาติ
-              หัวข้อ “ภาษาอาเซียนในบริบทโลก” 
-              📅 วันที่ 25 พฤศจิกายน 2569 
-              📍 ณ หอดนตรีและการแสดงอโศกมนตรี ชั้น 4 อาคารนวัตกรรม : ศาสตราจารย์ ดร.สาโรช บัวศรี มหาวิทยาลัยศรีนครินทรวิโรฒ"
-                : "✨The Faculty of Humanities, Srinakharinwirot University in collaboration with Guangdong University of Foreign Studies, China, cordially invites researchers, scholars, faculty members, students, and interested participants to submit abstracts for the International Conference on 
-              'ASEAN Languages in the Global Context.'
-              📅 Conference Date : 25 November 2026
-              📍 Venue : Asok-Montri Music and Performing Arts Hall, 4th Floor, Innovation Building: Professor Dr. Saroj Buasri, Srinakharinwirot University" ?>
+                ? "✨การประชุมวิชาการระดับนานาชาติ
+                    International Conference on ASEAN Languages in Global Contexts
+                    📣 ปิดรับบทคัดย่อ| Abstract Submission Closed
+                    ขอขอบคุณทุกท่านที่ให้ความสนใจ
+                    Thank You for Being Part of ICALGC 2026
+                    📝 ติดตามประกาศผลการพิจารณาบทคัดย่อ วันที่ 31 ตุลาคม 2569
+                    🚨 ผ่านทาง 🚨
+                    🌐 เว็บไซต์: https://icalgc.swu.ac.th
+                    🌐 เฟซบุ๊ก: Icalgc 2026-International Conference on ASEAN Languages in Global Contexts
+                    คณะมนุษยศาสตร์ มหาวิทยาลัยศรีนครินทรวิโรฒ"
+                : "✨International Conference on ASEAN Languages in Global Contexts
+                  📝 Stay Tuned for Abstract Review Results on October 31, 2026
+                  🚨 via  🚨
+                  🌐 Website: https://icalgc.swu.ac.th
+                  🌐 Facebook: Icalgc 2026-International Conference on ASEAN Languages in Global Contexts
+                  คณะมนุษยศาสตร์ มหาวิทยาลัยศรีนครินทรวิโรฒ" ?>
             </p>
           </div>
           <div class="announce-card-footer">

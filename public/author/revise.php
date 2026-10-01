@@ -225,6 +225,19 @@ $activeMenu = 'my-papers';
       </div>
     <?php endif; ?>
 
+    <!-- Editor's Note -->
+    <?php if (!empty($paper['admin_note'])): ?>
+    <div class="content-card mb-4" style="border-left:4px solid var(--blue-mid);">
+      <div class="content-card-title">
+        <i class="fas fa-comment-dots me-2" style="color:var(--blue-mid);"></i>
+        <?= $_lang==='th' ? 'หมายเหตุบรรณาธิการ' : "Editor's Note" ?>
+      </div>
+      <div style="font-size:.9rem;line-height:1.8;padding:12px;background:var(--gray-100);border-radius:var(--radius);">
+        <?= nl2br(e($paper['admin_note'])) ?>
+      </div>
+    </div>
+    <?php endif; ?>
+
     <!-- Reviewer Comments -->
     <?php if (!empty($allReviews)): ?>
     <div class="content-card mb-4" style="border-left:4px solid var(--warning);">

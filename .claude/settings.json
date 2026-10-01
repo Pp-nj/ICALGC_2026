@@ -26,7 +26,9 @@
       "Bash(grep -n -E '\\\\$error|recaptcha|sitekey|data-sitekey|<\\\\?= *\\\\$' register.php)",
       "Bash(grep -n -E '<\\\\?= *\\\\$[a-zA-Z_]+\\\\[' publication.php publication-detail.php index.php announcements.php)",
       "Bash(grep -n -E '/ *\\\\$max|\\\\$max[A-Za-z]+ *\\\\\\)' admin/reports.php admin/dashboard.php)",
-      "PowerShell(& 'D:\\\\xampp\\\\php\\\\php.exe' -r \"require 'app/helpers/init.php'; var_dump\\(isSubmissionOpen\\(\\)\\); settingSet\\('submission_open','0'\\); var_dump\\(isSubmissionOpen\\(\\)\\); settingSet\\('submission_open','1'\\); var_dump\\(isSubmissionOpen\\(\\)\\);\")"
+      "PowerShell(& 'D:\\\\xampp\\\\php\\\\php.exe' -r \"require 'app/helpers/init.php'; var_dump\\(isSubmissionOpen\\(\\)\\); settingSet\\('submission_open','0'\\); var_dump\\(isSubmissionOpen\\(\\)\\); settingSet\\('submission_open','1'\\); var_dump\\(isSubmissionOpen\\(\\)\\);\")",
+      "PowerShell(\\(Get-Item public/admin/final-decision.php\\).LastWriteTime; Get-Date)",
+      "PowerShell(& \"D:\\\\xampp\\\\php\\\\php.exe\" -l public/author/revise.php)"
     ],
     "additionalDirectories": [
       "D:\\xampp\\htdocs\\ICALGC_2026\\database"

@@ -127,10 +127,45 @@ class Mail
         return self::send($email, $name, $subject, $html);
     }
 
-    public static function sendReviewResult(string $email, string $name, string $paperCode, string $paperTitle, string $decision): bool
+    /** HTML block for the editor's note in decision emails ('' when there is no note). */
+    private static function editorNoteHtml(string $note): string
     {
+        $note = trim($note);
+        if ($note === '') return '';
+        $safe = nl2br(htmlspecialchars($note, ENT_QUOTES, 'UTF-8'));
+        return "<div style='margin:20px 0;padding:12px 16px;background:#f8f9fa;border-left:4px solid #003087;'>
+                <strong>Editor's Note / หมายเหตุบรรณาธิการ</strong><br>{$safe}
+            </div>";
+    }
+
+    /**
+     * HTML block listing reviewers' comments to the author ('' when there are none).
+     * Only pass comment_for_author here — never the confidential comment_for_editor.
+     */
+    private static function reviewerCommentsHtml(array $comments): string
+    {
+        $comments = array_values(array_filter(array_map('trim', $comments), fn($c) => $c !== ''));
+        if (empty($comments)) return '';
+        $items = '';
+        foreach ($comments as $i => $c) {
+            $safe   = nl2br(htmlspecialchars($c, ENT_QUOTES, 'UTF-8'));
+            $num    = $i + 1;
+            $items .= "<div style='margin:10px 0;padding:12px 16px;background:#f8f9fa;border-left:4px solid #c9a227;'>
+                    <strong>Reviewer {$num} / ผู้ทรงคุณวุฒิท่านที่ {$num}</strong><br>{$safe}
+                </div>";
+        }
+        return "<div style='margin:20px 0;'>
+                <h3 style='color:#003087;font-size:16px;margin:0 0 6px;'>Reviewer Comments / ความเห็นจากผู้ทรงคุณวุฒิ</h3>
+                {$items}
+            </div>";
+    }
+
+    public static function sendReviewResult(string $email, string $name, string $paperCode, string $paperTitle, string $decision, int $paperId, string $editorNote = '', array $reviewerComments = []): bool
+    {
+        $noteHtml     = self::editorNoteHtml($editorNote);
+        $commentsHtml = self::reviewerCommentsHtml($reviewerComments);
         $subject = '[ICALGC 2026] Review Result for Your Paper – ' . $paperCode;
-        $link    = APP_URL . '/author/paper-detail.php?code=' . $paperCode;
+        $link    = APP_URL . '/author/paper-detail.php?id=' . $paperId;
         $html    = self::wrapTemplate('Review Result Available', "
             <p>Dear {$name},</p>
             <p>The review result for your paper is now available.</p>
@@ -139,6 +174,8 @@ class Mail
                 <tr><td style='padding:8px;border:1px solid #ddd;font-weight:bold;'>Title</td><td style='padding:8px;border:1px solid #ddd;'>{$paperTitle}</td></tr>
                 <tr><td style='padding:8px;border:1px solid #ddd;font-weight:bold;'>Decision</td><td style='padding:8px;border:1px solid #ddd;'>{$decision}</td></tr>
             </table>
+            {$noteHtml}
+            {$commentsHtml}
             <p style='text-align:center;margin:30px 0;'>
                 <a href='{$link}' style='background:#003087;color:#fff;padding:12px 30px;text-decoration:none;border-radius:5px;font-weight:bold;'>View Details</a>
             </p>

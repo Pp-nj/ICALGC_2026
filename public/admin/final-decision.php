@@ -195,8 +195,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (empty($errors)) {
         try {
-            $db->prepare("UPDATE papers SET status_code = :dec, updated_at = NOW() WHERE id = :pid")
-               ->execute([':dec' => $decision, ':pid' => $pIdPost]);
+            // admin_note holds the editor's note to the author; it is shown on the
+            // author's paper page, so overwrite (or clear) it on every decision.
+            $db->prepare("UPDATE papers SET status_code = :dec, admin_note = :note, updated_at = NOW() WHERE id = :pid")
+               ->execute([':dec' => $decision, ':note' => $editorNote !== '' ? $editorNote : null, ':pid' => $pIdPost]);
 
             if ($editorNote) {
                 auditLog("final_decision_{$decision}", 'papers', "Paper $pIdPost: $editorNote");
@@ -210,26 +212,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Notify author (non-fatal — errors here don't block the decision)
             $paper_code  = $paper['paper_code'];
             $paper_title = $_lang === 'th' ? $paper['title_th'] : $paper['title_en'];
+            // Comments meant for the author only; comment_for_editor stays confidential.
+            $reviewerComments = array_column($reviews, 'comment_for_author');
             try {
                 switch ($decision) {
                     case 'accepted':
-                        Notification::paperAccepted($paper['submitter_id'], $paper_code, $pIdPost);
+                        Notification::paperAccepted($paper['submitter_id'], $paper_code, $pIdPost, $editorNote);
                         Mail::sendAccepted($paper['submitter_email'], $paper['submitter_name'], $paper_code, $paper_title);
                         break;
                     case 'revision_required':
-                        Notification::revisionRequired($paper['submitter_id'], $paper_code, $pIdPost);
-                        Mail::sendReviewResult($paper['submitter_email'], $paper['submitter_name'], $paper_code, $paper_title, 'Revision Required');
+                        Notification::revisionRequired($paper['submitter_id'], $paper_code, $pIdPost, $editorNote);
+                        Mail::sendReviewResult($paper['submitter_email'], $paper['submitter_name'], $paper_code, $paper_title, 'Revision Required', $pIdPost, $editorNote, $reviewerComments);
                         break;
                     case 'rejected':
                         Notification::create(
                             $paper['submitter_id'], 'review_result',
                             'บทคัดย่อของท่านไม่ผ่านการพิจารณา',
                             'Paper Not Accepted',
-                            "บทคัดย่อ $paper_code ไม่ผ่านการพิจารณา",
-                            "Paper $paper_code was not accepted after review.",
+                            "บทคัดย่อ $paper_code ไม่ผ่านการพิจารณา" . Notification::noteSuffix($editorNote, 'th'),
+                            "Paper $paper_code was not accepted after review." . Notification::noteSuffix($editorNote, 'en'),
                             $pIdPost, 'both'
                         );
-                        Mail::sendReviewResult($paper['submitter_email'], $paper['submitter_name'], $paper_code, $paper_title, 'Not Accepted');
+                        Mail::sendReviewResult($paper['submitter_email'], $paper['submitter_name'], $paper_code, $paper_title, 'Not Accepted', $pIdPost, $editorNote, $reviewerComments);
                         break;
                 }
             } catch (\Throwable $e) {
@@ -400,7 +404,7 @@ $recLabels = ['accept'=>'Accept','minor_revision'=>'Minor Revision','major_revis
               <div>
                 <label class="form-label fw-bold" style="font-size:.85rem;"><?= $_lang==='th' ? 'หมายเหตุบรรณาธิการ (ไม่บังคับ)' : 'Editor Note (optional)' ?></label>
                 <textarea name="editor_note" class="form-control" rows="4"
-                          placeholder="<?= $_lang==='th' ? 'หมายเหตุสำหรับบันทึกภายใน...' : 'Internal notes for record...' ?>"></textarea>
+                          placeholder="<?= $_lang==='th' ? 'ข้อความถึงผู้แต่ง' : 'Message to the author' ?>"></textarea>
               </div>
               <button type="submit" class="btn-primary-custom"
                       data-confirm="<?= $_lang==='th' ? 'ยืนยันผลการตัดสิน? ผู้แต่งจะได้รับการแจ้งเตือน' : 'Confirm decision? The author will be notified.' ?>">

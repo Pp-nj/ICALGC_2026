@@ -127,13 +127,21 @@ class Notification
         );
     }
 
-    public static function paperAccepted(int $authorId, string $paperCode, int $paperId): void
+    /** Editor's note appended to a decision message ('' when there is no note). */
+    public static function noteSuffix(string $note, string $lang): string
+    {
+        $note = trim($note);
+        if ($note === '') return '';
+        return ($lang === 'th' ? "\nหมายเหตุบรรณาธิการ: " : "\nEditor's note: ") . $note;
+    }
+
+    public static function paperAccepted(int $authorId, string $paperCode, int $paperId, string $note = ''): void
     {
         self::create($authorId, 'accepted',
             'บทคัดย่อได้รับการยอมรับ',
             'Paper Accepted',
-            "ยินดีด้วย! บทคัดย่อ {$paperCode} ได้รับการยอมรับ",
-            "Congratulations! Your paper {$paperCode} has been accepted.",
+            "ยินดีด้วย! บทคัดย่อ {$paperCode} ได้รับการยอมรับ" . self::noteSuffix($note, 'th'),
+            "Congratulations! Your paper {$paperCode} has been accepted." . self::noteSuffix($note, 'en'),
             $paperId, 'both'
         );
     }
@@ -149,13 +157,13 @@ class Notification
         );
     }
 
-    public static function revisionRequired(int $authorId, string $paperCode, int $paperId): void
+    public static function revisionRequired(int $authorId, string $paperCode, int $paperId, string $note = ''): void
     {
         self::create($authorId, 'revision_required',
             'ต้องการแก้ไขบทคัดย่อ',
             'Revision Required',
-            "บทคัดย่อ {$paperCode} ต้องการการแก้ไข กรุณาตรวจสอบความเห็นของผู้ทรงคุณวุฒิ",
-            "Paper {$paperCode} requires revision. Please review the comments.",
+            "บทคัดย่อ {$paperCode} ต้องการการแก้ไข กรุณาตรวจสอบความเห็นของผู้ทรงคุณวุฒิ" . self::noteSuffix($note, 'th'),
+            "Paper {$paperCode} requires revision. Please review the comments." . self::noteSuffix($note, 'en'),
             $paperId, 'both'
         );
     }

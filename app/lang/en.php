@@ -25,7 +25,7 @@ return [
     'hero.subtitle'         => 'International Conference on ASEAN Languages in Global Contexts 2026',
     'hero.subtitle2'        => 'International Academic Conference on ASEAN Languages in Global Contexts 2026',
     'hero.date'             => 'November 25, 2026 | 08:30 AM – 05:00 PM',
-    'hero.venue'            => 'Srinakharinwirot University Prasarnmit Campus, Bangkok, Thailand',
+    'hero.venue'            => 'Asok-Montri Music and Performing Arts Hall, 4th Floor, Innovation Building: Professor Dr. Saroj Buasri, Srinakharinwirot University',
     'hero.btn_register'     => 'Register Now',
     'hero.btn_login'        => 'Login',
     'hero.btn_abstract'     => 'Call for Abstract',

@@ -193,6 +193,15 @@ $recommendationColor = function($rec) {
           <span style="color:var(--gray-700);font-size:.88rem;margin-left:8px;"><?= e($desc) ?></span>
         <?php endif; ?>
       </div>
+
+      <?php if (!empty($paper['admin_note'])): ?>
+        <div class="mt-3 p-3 rounded" style="background:var(--gray-100);border-left:4px solid var(--blue-mid);">
+          <div style="font-size:.82rem;font-weight:700;color:var(--blue-dark);margin-bottom:6px;">
+            <i class="fas fa-comment-dots me-1"></i><?= $_lang==='th' ? 'หมายเหตุบรรณาธิการ' : "Editor's Note" ?>
+          </div>
+          <div style="font-size:.88rem;line-height:1.7;"><?= nl2br(e($paper['admin_note'])) ?></div>
+        </div>
+      <?php endif; ?>
     </div>
 
     <div class="row g-4">
